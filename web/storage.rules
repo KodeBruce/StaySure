@@ -1,0 +1,18 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Public property photos
+    match /properties/{propertyId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Confidential student documents (ID, proof of registration, NSFAS letters)
+    match /student_documents/{studentId}/{documentId} {
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == studentId || request.auth.token.role == 'admin');
+    }
+  }
+}
+

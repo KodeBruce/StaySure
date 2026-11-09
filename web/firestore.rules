@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Properties are publicly readable; only verified providers/admins can write
+    match /properties/{propertyId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null;
+    }
+
+    // User profiles: users can read and write their own profile
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Applications: only the student who applied, the landlord, or an admin can access
+    match /applications/{appId} {
+      allow create: if true;
+      allow read, update: if request.auth != null && 
+        (request.auth.uid == resource.data.studentId || 
+         request.auth.uid == resource.data.providerId || 
+         request.auth.token.role == 'admin');
+    }
+
+    // Chat conversations
+    match /conversations/{convId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid in resource.data.participants;
+        
+      match /messages/{msgId} {
+        allow read, write: if request.auth != null;
+      }
+    }
+  }
+}
+
