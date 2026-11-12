@@ -3865,9 +3865,10 @@ body.has-tray .screen {
     transition: bottom 0.28s ease, transform 0.28s ease, opacity 0.25s ease;
   }
 
+  .app-root.is-map-search .topnav,
   .app-root.is-map-search footer,
   .app-root.is-map-search .tray-wrap {
-    display: none;
+    display: none !important;
   }
 
   .app-root.is-map-search .view {
@@ -4110,9 +4111,10 @@ body.has-tray .screen {
     overflow: hidden;
   }
 
+  .app-root.is-map-search .topnav,
   .app-root.is-map-search footer,
   .app-root.is-map-search .tray-wrap {
-    display: none;
+    display: none !important;
   }
 
   .app-root.is-map-search .view {
@@ -5675,12 +5677,10 @@ body.has-tray .screen {
   }
 
   .map-fullscreen .leaflet-tile-pane,
-  .accom-map .leaflet-tile-pane {
-    filter: contrast(98%) brightness(101%);
 
     .accom-map .leaflet-tile-pane,
     .leaflet-tile-pane {
-      filter: grayscale(100%) brightness(105%) contrast(92%);
+      filter: grayscale(100%) brightness(105%) contrast(92%) !important;
     }
 
     .leaflet-popup-content-wrapper {
