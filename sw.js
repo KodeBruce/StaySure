@@ -1,9 +1,9 @@
-const CACHE_NAME = 'staysure-static-v1';
+const CACHE_NAME = 'staysure-static-v3';
 const PRECACHE_URLS = [
   '/', '/index.html', '/manifest.webmanifest',
-  '/css/base.css', '/css/screens.css', '/css/install-prompt.css',
+  '/css/base.css', '/css/screens.css', '/css/leaflet.css', '/css/install-prompt.css',
   '/js/data.js', '/js/ui.js', '/js/screens-a.js', '/js/screens-b.js',
-  '/js/screens-c.js', '/js/app.js', '/js/install-prompt.js', '/js/pwa.js',
+  '/js/screens-c.js', '/js/map-screen.js', '/js/app.js', '/js/map-search.js', '/js/vendor/leaflet.js', '/js/install-prompt.js', '/js/pwa.js',
   '/icons/icon-192.png', '/icons/icon-512.png', '/images/favicon.svg',
   '/images/p1.jpg', '/images/p2.jpg', '/images/p3.jpg', '/images/p4.jpg',
   '/images/p5.jpg', '/images/p6.jpg', '/images/p7.jpg', '/images/p8.jpg',

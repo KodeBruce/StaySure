@@ -43,6 +43,9 @@ export interface Property {
   id: string;
   name: string;
   area: string;
+  province?: string;
+  latitude?: number;
+  longitude?: number;
   distanceKm: number;
   walkMin: number;
   taxiMin: number;

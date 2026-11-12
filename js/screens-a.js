@@ -7,6 +7,7 @@
 
   const D = window.SSData;
   const S = window.SS;
+  const M = window.SSMap;
 
   /* ======================================================================
      1. Landing
@@ -263,7 +264,7 @@
      3. Search
      ====================================================================== */
 
-  const searchDraft = { location: "", budget: "", distance: "", type: "", funding: "" };
+  const searchDraft = { province: "Gauteng", university: "wits", location: "", budget: "", distance: "", type: "", funding: "" };
 
   function search() {
     const st = S.state;
@@ -285,18 +286,26 @@
       title: "Search accommodation",
       html: '<section class="search-band"><div class="wrap">' +
         '<h1 class="search-h1">Find your student home</h1>' +
-        '<p class="search-sub">Near the ' + S.esc(pr.university) + ", Johannesburg</p></div></section>" +
+        '<p class="search-sub">Explore accommodation by province, university or your current location.</p></div></section>' +
         '<div class="wrap">' +
         '<div class="search-panel">' +
         '<div class="search-grid">' +
+        '<div class="field"><label for="s-province">Province</label><select class="select" id="s-province">' +
+        '<option value="">All provinces</option>' + M.provinces.map(function (province) {
+          return '<option value="' + S.esc(province) + '"' + (searchDraft.province === province ? ' selected' : '') + '>' + S.esc(province) + '</option>';
+        }).join('') + '</select></div>' +
+        '<div class="field"><label for="s-university">University</label><select class="select" id="s-university">' +
+        '<option value="">Any university</option>' + M.universities.filter(function (university) { return !searchDraft.province || university.province === searchDraft.province; }).map(function (university) {
+          return '<option value="' + university.id + '"' + (searchDraft.university === university.id ? ' selected' : '') + '>' + S.esc(university.name) + '</option>';
+        }).join('') + '</select></div>' +
         '<div class="field"><label for="s-loc">Location</label><select class="select" id="s-loc">' +
-        '<option value="">All areas near Wits</option>' +
+        '<option value="">All areas</option>' +
         D.AREAS.map(function (a) {
           return '<option value="' + S.esc(a) + '"' + (searchDraft.location === a ? " selected" : "") + ">" + S.esc(a) + "</option>";
         }).join("") + "</select></div>" +
         '<div class="field"><label for="s-budget">Max budget</label><div class="input-money"><span class="cur">R</span>' +
         '<input class="input" id="s-budget" type="number" min="1500" max="8000" step="100" inputmode="numeric" placeholder="' + pr.budget + '" value="' + S.esc(searchDraft.budget) + '" /></div></div>' +
-        '<div class="field"><label for="s-dist">Distance from Wits</label><select class="select" id="s-dist">' +
+        '<div class="field"><label for="s-dist">Distance from selected university</label><select class="select" id="s-dist">' +
         '<option value="">Any distance</option>' +
         D.DISTANCE_OPTIONS.map(function (d) {
           return '<option value="' + d.id + '"' + (searchDraft.distance === d.id ? " selected" : "") + ">" + S.esc(d.label) + "</option>";
@@ -313,7 +322,8 @@
         }).join("") + "</select></div>" +
         '<div class="field field--btn"><span class="field-label hide-mobile">&nbsp;</span>' +
         '<button class="btn btn--green" type="button" data-do-search>' + S.icon("search", 16) + "Search</button></div>" +
-        "</div></div>" +
+        '</div><div class="search-nearby"><button class="btn btn--ghost" type="button" data-search-near-me>' + S.icon('mapPin', 16) + ' Find accommodation near me</button>' +
+        (M.state.message ? '<span class="small muted" role="status">' + S.esc(M.state.message) + '</span>' : '') + '</div></div>' +
 
         '<div class="rec-block">' +
         '<div class="row row--between row--wrap mb-10">' +
@@ -330,6 +340,14 @@
           if (node) node.addEventListener("change", function () { searchDraft[key] = node.value; });
         };
         bind("#s-loc", "location");
+        const provinceSelect = root.querySelector('#s-province');
+        if (provinceSelect) provinceSelect.addEventListener('change', function () {
+          searchDraft.province = provinceSelect.value;
+          searchDraft.university = searchDraft.province === 'Gauteng' ? 'wits' : '';
+          searchDraft.location = '';
+          S.renderRoute();
+        });
+        bind('#s-university', 'university');
         bind("#s-budget", "budget");
         bind("#s-dist", "distance");
         bind("#s-type", "type");
@@ -344,9 +362,28 @@
           if (searchDraft.type) f.types = [searchDraft.type];
           if (searchDraft.funding === "nsfas") f.nsfas = true;
           if (searchDraft.funding === "self" || searchDraft.funding === "other") f.self = true;
+          M.state.province = searchDraft.province;
+          M.state.university = searchDraft.university;
+          M.state.nearby = false;
+          M.state.bounds = null;
+          M.state.pendingBounds = null;
+          M.state.message = '';
           S.state.filters = f;
           S.save();
           S.go("/results");
+        });
+        const nearButton = root.querySelector('[data-search-near-me]');
+        if (nearButton) nearButton.addEventListener('click', function () {
+          nearButton.disabled = true;
+          nearButton.textContent = 'Finding your location…';
+          M.locate(function (success) {
+            if (!success) { S.renderRoute(); return; }
+            const f = D.defaultFilters();
+            f.max = Number(searchDraft.budget) || 6000;
+            S.state.filters = f;
+            S.save();
+            S.go('/results');
+          });
         });
       }
     };
@@ -387,7 +424,7 @@
       '<div class="range-ends small muted"><span>R1,500</span><span>R6,000</span></div>' +
       "</div>" +
 
-      '<div class="fgroup"><div class="fgroup-head"><b>Distance from Wits</b></div>' +
+      '<div class="fgroup"><div class="fgroup-head"><b>Distance from selected location</b></div>' +
       '<div class="fgrid">' + distanceGroup(f) + "</div></div>" +
 
       '<div class="fgroup"><div class="fgroup-head"><b>Verification</b></div>' +
@@ -420,7 +457,7 @@
 
       '<div class="fgroup fgroup--last"><div class="fgroup-head"><b>Sort results</b></div>' +
       '<select class="select" data-fsort aria-label="Sort results">' +
-      [["match", "Best match"], ["price", "Lowest price"], ["distance", "Closest to Wits"], ["rating", "Highest rated"]]
+      [["match", "Best match"], ["price", "Lowest price"], ["distance", "Closest to selected location"], ["rating", "Highest rated"]]
         .map(function (o) { return '<option value="' + o[0] + '"' + (f.sort === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") +
       "</select></div>";
   }
@@ -429,17 +466,29 @@
     const st = S.state;
     const f = st.filters;
     const pr = st.profile;
-    const list = D.applyFilters(f, pr);
+    const selectedCampus = M.universities.find(function (item) { return item.id === M.state.university; });
+    const distanceOrigin = M.state.nearby ? M.state.position : selectedCampus ? selectedCampus.position : null;
+    const baseFilters = Object.assign({}, f, { dist: [] });
+    const list = D.applyFilters(baseFilters, pr).filter(function (item) {
+      if (!M.matches(item.p)) return false;
+      if (!f.dist.length || !distanceOrigin) return true;
+      const point = M.position(item.p);
+      return point && f.dist.indexOf(M.distanceBand(M.distance(point, distanceOrigin))) > -1;
+    });
+    if (distanceOrigin && (M.state.nearby || f.sort === 'distance')) list.sort(function (a, b) {
+      return M.distance(M.position(a.p), distanceOrigin) - M.distance(M.position(b.p), distanceOrigin);
+    });
     const activeCount = D.countActiveFilters(f);
     const fundingLabel = (D.FUNDING.filter(function (x) { return x.id === pr.funding; })[0] || {}).label || "Self-funded";
     const showMap = window._ssShowMap !== false;
 
-    const cards = list.map(function (item) { return S.propertyCard(item, pr); }).join("");
-
-    const pins = list.slice(0, 5).map(function (item, i) {
-      const spots = [[24, 66], [62, 52], [38, 28], [76, 72], [52, 74]];
-      return { label: D.rand(item.p.price).replace("R", "R"), x: spots[i][0], y: spots[i][1], tone: i === 0 ? "green" : "" };
-    });
+    const cards = list.map(function (item) {
+      const point = M.position(item.p);
+      const distance = M.state.nearby && M.state.position && point ? M.distance(point, M.state.position).toFixed(1) : null;
+      return '<div id="map-item-' + S.esc(item.p.id) + '" class="map-result-card">' + S.propertyCard(item, pr) +
+        (distance ? '<span class="map-result-distance">About ' + distance + ' km straight line from you</span>' : '') +
+        (showMap ? '<button class="btn btn--quiet btn--sm map-focus-button" type="button" data-map-focus="' + S.esc(item.p.id) + '">Show on map</button>' : '') + '</div>';
+    }).join("");
 
     const empty = '<div class="empty-state card card--pad">' +
       '<span class="empty-ico">' + S.icon("search", 26) + "</span>" +
@@ -448,22 +497,30 @@
       '<button class="btn mt-18" type="button" data-clear-all>Clear filters</button></div>';
 
     return {
-      title: list.length + " places near Wits",
+      title: list.length + " accommodation options",
       html: '<div class="wrap results-wrap">' +
         '<div class="results-head">' +
         '<div class="grow">' +
-        '<h1 class="h-page">' + list.length + " place" + (list.length === 1 ? "" : "s") + " near Wits</h1>" +
+        '<h1 class="h-page">' + list.length + " place" + (list.length === 1 ? "" : "s") + (M.state.nearby ? ' near you' : ' near ' + S.esc((M.universities.find(function (item) { return item.id === M.state.university; }) || {}).name || M.state.province || 'you')) + '</h1>' +
         '<p class="sub mt-6">Personalised for a ' + D.rand(pr.budget) + " budget · " + S.esc(fundingLabel) + " funding · " + pr.priorities.length + " priorities</p>" +
         "</div>" +
         '<div class="results-tools">' +
         '<label class="sr-only" for="sort-top">Sort results</label>' +
         '<select class="select select--sm" id="sort-top" data-fsort>' +
-        [["match", "Best match"], ["price", "Lowest price"], ["distance", "Closest to Wits"], ["rating", "Highest rated"]]
+        [["match", "Best match"], ["price", "Lowest price"], ["distance", "Closest to selected location"], ["rating", "Highest rated"]]
           .map(function (o) { return '<option value="' + o[0] + '"' + (f.sort === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") +
         "</select>" +
-        '<button class="btn btn--ghost btn--sm hide-mobile" type="button" data-map-toggle aria-pressed="' + showMap + '">' +
+        '<button class="btn btn--ghost btn--sm" type="button" data-map-toggle aria-pressed="' + showMap + '">' +
         S.icon("mapPin", 15) + (showMap ? "Hide map" : "Show map") + "</button>" +
         "</div></div>" +
+
+        '<div class="map-search-toolbar"><a class="btn btn--ghost btn--sm" href="#/search">Change province, university or area</a>' +
+        '<button class="btn btn--green btn--sm" type="button" data-results-near-me>' + (M.state.nearby ? 'Refresh my location' : '◎ Near me') + '</button>' +
+        (M.state.nearby ? '<label>Within <select class="select select--sm" data-results-radius>' + [1, 3, 5, 10, 20].map(function (radius) {
+          return '<option value="' + radius + '"' + (radius === M.state.radius ? ' selected' : '') + '>' + radius + ' km</option>';
+        }).join('') + '</select></label><button class="btn btn--quiet btn--sm" type="button" data-results-near-off>Turn off near me</button>' : '') + '</div>' +
+        (M.state.message ? '<p class="small muted map-search-status" role="status">' + S.esc(M.state.message) + '</p>' : '') +
+        '<p class="small muted map-search-status">Demo pins use approximate area centres until exact listing coordinates are verified. Distances are straight-line estimates.</p>' +
 
         '<div class="chips-row">' +
         '<button class="chip chip--filters" type="button" data-open-filters>' + S.icon("filter", 15) + "Filters" +
@@ -475,7 +532,9 @@
         (activeCount || f.max <= pr.budget ? '<button class="chip chip--quiet" type="button" data-clear-all>Clear all</button>' : "") +
         "</div>" +
 
-        (showMap ? '<div class="results-map hide-mobile">' + S.miniMap(pins, 200) + "</div>" : "") +
+        (showMap ? '<div class="results-map"><button class="btn btn--navy btn--sm search-map-area-button" type="button" data-search-map-area hidden>Search this area</button>' +
+          (M.state.bounds ? '<button class="btn btn--ghost btn--sm clear-map-area-button" type="button" data-clear-map-area>Clear map area</button>' : '') +
+          '<div id="accommodation-map" class="accommodation-map" role="region" aria-label="Accommodation map"></div></div>' : '') +
 
         '<div class="results-layout">' +
         '<aside class="filters-side hide-mobile" aria-label="Filters"><div class="filters-card">' +
@@ -486,6 +545,43 @@
         "</div></div>",
 
       mount: function (root) {
+        if (showMap) M.mount(root.querySelector('#accommodation-map'), list);
+        root.querySelectorAll('[data-map-focus]').forEach(function (button) {
+          button.addEventListener('click', function () { M.focus(button.getAttribute('data-map-focus')); });
+        });
+        const areaButton = root.querySelector('[data-search-map-area]');
+        if (areaButton) areaButton.addEventListener('click', function () {
+          M.state.bounds = M.state.pendingBounds;
+          M.state.pendingBounds = null;
+          S.renderRoute();
+        });
+        const clearArea = root.querySelector('[data-clear-map-area]');
+        if (clearArea) clearArea.addEventListener('click', function () {
+          M.state.bounds = null;
+          M.state.pendingBounds = null;
+          S.renderRoute();
+        });
+        const nearButton = root.querySelector('[data-results-near-me]');
+        if (nearButton) nearButton.addEventListener('click', function () {
+          nearButton.disabled = true;
+          nearButton.textContent = 'Finding your location…';
+          M.locate(function () { S.renderRoute(); });
+        });
+        const radiusSelect = root.querySelector('[data-results-radius]');
+        if (radiusSelect) radiusSelect.addEventListener('change', function () {
+          M.state.radius = Number(radiusSelect.value);
+          S.renderRoute();
+        });
+        const nearOff = root.querySelector('[data-results-near-off]');
+        if (nearOff) nearOff.addEventListener('click', function () {
+          M.state.nearby = false;
+          M.state.message = '';
+          M.state.bounds = null;
+          M.state.pendingBounds = null;
+          M.state.province = 'Gauteng';
+          M.state.university = 'wits';
+          S.renderRoute();
+        });
         /* Sort (top control). The sidebar's own sort select is handled by
            bindFilterEvents below, so scope this to #sort-top to avoid double binding. */
         const topSort = root.querySelector("#sort-top");

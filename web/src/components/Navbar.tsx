@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCompare } from '../context/CompareContext';
 import { AuthModal } from './AuthModal';
 import { isFirebaseConfigured } from '../firebase/config';
+import { House, Search as SearchIcon, GitCompareArrows, ClipboardList, Heart } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, role, profile, signOut } = useAuth();
@@ -58,6 +59,14 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
       </header>
+
+      <nav className="app-floating-nav" aria-label="Primary navigation">
+        <NavLink to="/" end><House size={21} /><span>Home</span></NavLink>
+        <NavLink to="/search"><SearchIcon size={21} /><span>Search</span></NavLink>
+        <NavLink to="/compare"><GitCompareArrows size={21} /><span>Compare</span></NavLink>
+        <NavLink to="/applications"><ClipboardList size={21} /><span>Applications</span></NavLink>
+        <NavLink to="/saved"><Heart size={21} /><span>Saved</span></NavLink>
+      </nav>
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </>

@@ -23,6 +23,8 @@ npx serve .
 
 Then open the served root. The entry point is `index.html`, which boots the hash router.
 
+Search and results now include a Leaflet map. The Near me button requests browser location permission on tap, shows a blue location dot and a selectable radius, and sorts matching listings by approximate straight-line distance. Demo property pins use area centres because the fictional listings have no verified street coordinates. New listing records can supply `latitude`, `longitude`, and `province` for accurate map pins. Map tiles require a network connection.
+
 ---
 
 ## Entry paths & routes

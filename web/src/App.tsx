@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CompareProvider } from './context/CompareContext';
 import { Navbar } from './components/Navbar';
@@ -16,12 +16,13 @@ import { Apply } from './pages/Apply';
 import { Applications } from './pages/Applications';
 import { Saved } from './pages/Saved';
 
-export const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const location = useLocation();
+  const isMapSearch = location.pathname === '/search';
   return (
-    <BrowserRouter>
       <AuthProvider>
         <CompareProvider>
-          <div className="app-root" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <div className={`app-root${isMapSearch ? ' is-map-search' : ''}`} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             <Navbar />
             
             <main className="view" style={{ flexGrow: 1 }}>
@@ -53,9 +54,10 @@ export const App: React.FC = () => {
           </div>
         </CompareProvider>
       </AuthProvider>
-    </BrowserRouter>
   );
 };
+
+export const App: React.FC = () => <BrowserRouter><AppContent /></BrowserRouter>;
 
 export default App;
 

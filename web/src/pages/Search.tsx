@@ -1,175 +1,158 @@
-import React, { useEffect, useState } from 'react';
-import { PropertyCard } from '../components/PropertyCard';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { LocateFixed, Search as SearchIcon, X, MapPin, SlidersHorizontal } from 'lucide-react';
+import { AccommodationMap } from '../components/AccommodationMap';
 import { getProperties } from '../services/propertyService';
-import { Property, FilterState } from '../types';
+import type { Property, FilterState } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { calculateMatchScore } from '../data/matchScore';
+import { AREA_CENTRES, PROVINCES, PROVINCE_CENTRES, UNIVERSITIES, distanceKm, propertyPosition, propertyProvince, withinBounds, type Coordinates, type MapBounds } from '../data/mapLocations';
 
-export const Search: React.FC = () => {
+const initialFilters: FilterState = {
+  min: 1500, max: 6000, dist: [], verified: false, accredited: false,
+  nsfas: false, self: false, facilities: [], types: [], location: '', sort: 'best'
+};
+
+export function Search() {
   const { profile } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<FilterState>(initialFilters);
+  const [province, setProvince] = useState('Gauteng');
+  const [university, setUniversity] = useState('wits');
+  const [userPosition, setUserPosition] = useState<Coordinates | null>(null);
+  const [accuracyMeters, setAccuracyMeters] = useState(0);
+  const [nearby, setNearby] = useState(false);
+  const [radiusKm, setRadiusKm] = useState(5);
+  const [locationMessage, setLocationMessage] = useState('');
+  const [locating, setLocating] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
+  const [pendingBounds, setPendingBounds] = useState<MapBounds | null>(null);
+  const railRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
-  const [filters, setFilters] = useState<FilterState>({
-    min: 1500,
-    max: 6000,
-    dist: [],
-    verified: false,
-    accredited: false,
-    nsfas: false,
-    self: false,
-    facilities: [],
-    types: [],
-    location: '',
-    sort: 'best'
-  });
-
+  useEffect(() => { getProperties().then(setProperties).catch(() => setProperties([])).finally(() => setLoading(false)); }, []);
   useEffect(() => {
-    getProperties().then(data => {
-      setProperties(data);
-      setLoading(false);
-    });
-  }, []);
+    if (!drawerOpen) return;
+    closeRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') setDrawerOpen(false); };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [drawerOpen]);
 
-  const filteredProperties = properties.filter(p => {
-    if (p.price < filters.min || p.price > filters.max) return false;
-    if (filters.verified && !p.verified) return false;
-    if (filters.nsfas && !p.nsfas) return false;
-    if (filters.types.length > 0 && !filters.types.includes(p.type)) return false;
-    if (filters.location && p.area !== filters.location) return false;
+  const campus = UNIVERSITIES.find((item) => item.id === university);
+  const mapCenter = userPosition && nearby ? userPosition : campus?.position || PROVINCE_CENTRES[province] || AREA_CENTRES.Braamfontein;
+  const areas = [...new Set(properties.filter((item) => !province || propertyProvince(item) === province).map((item) => item.area))].sort();
+
+  const results = useMemo(() => properties.filter((property) => {
+    if (property.price < filters.min || property.price > filters.max) return false;
+    if (filters.verified && !property.verified) return false;
+    if (filters.nsfas && !property.nsfas) return false;
+    if (filters.location && property.area !== filters.location) return false;
+    if (province && propertyProvince(property) !== province) return false;
+    const location = propertyPosition(property);
+    if (mapBounds && (!location || !withinBounds(location.position, mapBounds))) return false;
+    if (campus && location && distanceKm(location.position, campus.position) > 12) return false;
+    if (nearby && userPosition && (!location || distanceKm(location.position, userPosition) > radiusKm)) return false;
     return true;
   }).sort((a, b) => {
+    const aPosition = propertyPosition(a)?.position;
+    const bPosition = propertyPosition(b)?.position;
+    if (nearby && userPosition) return (aPosition ? distanceKm(aPosition, userPosition) : Infinity) - (bPosition ? distanceKm(bPosition, userPosition) : Infinity);
     if (filters.sort === 'price-asc') return a.price - b.price;
     if (filters.sort === 'price-desc') return b.price - a.price;
-    if (filters.sort === 'dist') return a.distanceKm - b.distanceKm;
-    // 'best' match score
-    const scoreA = calculateMatchScore(a, profile).score;
-    const scoreB = calculateMatchScore(b, profile).score;
-    return scoreB - scoreA;
-  });
+    if (filters.sort === 'dist' && campus) return (aPosition ? distanceKm(aPosition, campus.position) : Infinity) - (bPosition ? distanceKm(bPosition, campus.position) : Infinity);
+    return calculateMatchScore(b, profile).score - calculateMatchScore(a, profile).score;
+  }), [properties, filters, province, campus, nearby, userPosition, radiusKm, mapBounds, profile]);
 
-  return (
-    <div className="wrap" style={{ maxWidth: '1160px', margin: '32px auto', padding: '0 24px' }}>
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--navy)', margin: '0 0 6px' }}>
-          Find your student home near Wits
-        </h1>
-        <span className="tiny muted">
-          Personalised for your {profile.budget ? `R${profile.budget} budget` : "preferences"} · {filteredProperties.length} places available
-        </span>
-      </div>
+  function useMyLocation() {
+    if (!navigator.geolocation) { setLocationMessage('Location is unavailable. Choose a province or area in Search.'); return; }
+    setLocating(true);
+    setLocationMessage('Finding your location…');
+    navigator.geolocation.getCurrentPosition((position) => {
+      setUserPosition([position.coords.latitude, position.coords.longitude]);
+      setAccuracyMeters(position.coords.accuracy);
+      setNearby(true);
+      setProvince(''); setUniversity('');
+      setFilters((previous) => ({ ...previous, location: '' }));
+      setMapBounds(null); setPendingBounds(null);
+      setLocating(false); setDrawerOpen(false);
+      setLocationMessage('Showing approximate straight-line distances from your location.');
+    }, () => {
+      setLocating(false);
+      setLocationMessage('Location unavailable. Choose a province, university or area in Search.');
+    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+  }
 
-      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '32px', alignItems: 'start' }}>
-        {/* Filters Sidebar */}
-        <aside className="card card--pad" style={{ background: '#fff' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 16px', color: 'var(--navy)' }}>Filters</h3>
+  function chooseProvince(value: string) {
+    setProvince(value);
+    setUniversity(value === 'Gauteng' ? 'wits' : '');
+    setFilters((previous) => ({ ...previous, location: '' }));
+    setNearby(false); setMapBounds(null); setPendingBounds(null);
+  }
 
-          <div className="field" style={{ marginBottom: '16px' }}>
-            <label>Max Monthly Rent: R{filters.max.toLocaleString('en-ZA')}</label>
-            <input
-              type="range"
-              min="1500"
-              max="6000"
-              step="100"
-              value={filters.max}
-              onChange={e => setFilters(prev => ({ ...prev, max: Number(e.target.value) }))}
-              style={{ width: '100%' }}
-            />
-          </div>
+  function selectProperty(id: string) {
+    setSelectedId(id);
+    const card = document.getElementById(`search-property-${id}`);
+    card?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
 
-          <div className="field" style={{ marginBottom: '16px' }}>
-            <label>Area</label>
-            <select
-              className="input"
-              value={filters.location}
-              onChange={e => setFilters(prev => ({ ...prev, location: e.target.value }))}
-            >
-              <option value="">All Areas</option>
-              <option value="Braamfontein">Braamfontein</option>
-              <option value="Parktown">Parktown</option>
-              <option value="Milpark">Milpark</option>
-              <option value="Auckland Park">Auckland Park</option>
-              <option value="Melville">Melville</option>
-            </select>
-          </div>
+  function onRailScroll() {
+    const rail = railRef.current;
+    if (!rail) return;
+    const centre = rail.scrollLeft + rail.clientWidth / 2;
+    const cards = [...rail.querySelectorAll<HTMLElement>('[data-property-id]')];
+    const closest = cards.reduce<HTMLElement | null>((best, card) =>
+      !best || Math.abs(card.offsetLeft + card.offsetWidth / 2 - centre) < Math.abs(best.offsetLeft + best.offsetWidth / 2 - centre) ? card : best, null);
+    if (closest?.dataset.propertyId) setSelectedId((previous) => previous === closest.dataset.propertyId ? previous : closest.dataset.propertyId!);
+  }
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-            <label className="row" style={{ gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
-              <input
-                type="checkbox"
-                checked={filters.verified}
-                onChange={e => setFilters(prev => ({ ...prev, verified: e.target.checked }))}
-              />
-              StaySure Verified only
-            </label>
-            <label className="row" style={{ gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
-              <input
-                type="checkbox"
-                checked={filters.nsfas}
-                onChange={e => setFilters(prev => ({ ...prev, nsfas: e.target.checked }))}
-              />
-              NSFAS Compatible
-            </label>
-          </div>
+  return <div className="fullscreen-search" aria-label="Accommodation map search">
+    <AccommodationMap properties={results} center={mapCenter} userPosition={nearby ? userPosition : null} accuracyMeters={accuracyMeters} radiusKm={radiusKm} selectedId={selectedId} visible onViewChange={setPendingBounds} onSelect={selectProperty} />
 
-          <button
-            className="btn btn--sm btn--ghost"
-            style={{ width: '100%' }}
-            onClick={() => setFilters({
-              min: 1500,
-              max: 6000,
-              dist: [],
-              verified: false,
-              accredited: false,
-              nsfas: false,
-              self: false,
-              facilities: [],
-              types: [],
-              location: '',
-              sort: 'best'
-            })}
-          >
-            Reset Filters
-          </button>
-        </aside>
-
-        {/* Results Section */}
-        <div>
-          <div className="row" style={{ justifyContent: 'space-between', marginBottom: '16px' }}>
-            <span className="tiny muted">{filteredProperties.length} accommodation listings</span>
-            <div className="row" style={{ gap: '8px' }}>
-              <span className="tiny muted">Sort by:</span>
-              <select
-                className="input"
-                style={{ padding: '6px 10px', fontSize: '13px', width: 'auto' }}
-                value={filters.sort}
-                onChange={e => setFilters(prev => ({ ...prev, sort: e.target.value as any }))}
-              >
-                <option value="best">Best Match Score</option>
-                <option value="price-asc">Lowest Price</option>
-                <option value="price-desc">Highest Price</option>
-                <option value="dist">Closest to Campus</option>
-              </select>
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="card card--pad tc muted">Loading accommodation options...</div>
-          ) : filteredProperties.length === 0 ? (
-            <div className="card card--pad tc">
-              <b>No accommodation matches your selected filters.</b>
-              <p className="tiny muted mt-6">Try raising your budget or clearing area filters.</p>
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '20px' }}>
-              {filteredProperties.map(p => (
-                <PropertyCard key={p.id} property={p} />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+    <div className="fullscreen-map-top">
+      <button type="button" className="map-float-button" onClick={useMyLocation} disabled={locating} aria-label={nearby ? 'Refresh my location' : 'Find accommodation near me'} title={nearby ? 'Refresh my location' : 'Near me'}><LocateFixed size={22} /></button>
+      <span className="map-results-count">{loading ? 'Loading places…' : `${results.length} place${results.length === 1 ? '' : 's'}`}{nearby ? ' near you' : ''}</span>
+      <button type="button" className="map-float-button map-search-trigger" onClick={() => setDrawerOpen(true)} aria-label="Open search filters" aria-expanded={drawerOpen} title="Search"><SearchIcon size={22} /></button>
     </div>
-  );
-};
+    {pendingBounds && <button type="button" className="map-area-action" onClick={() => { setMapBounds(pendingBounds); setPendingBounds(null); }}>Search this area</button>}
+    {mapBounds && <button type="button" className="map-area-clear" onClick={() => { setMapBounds(null); setPendingBounds(null); }}>Clear map area</button>}
+    {locationMessage && <p className="map-location-toast" role="status">{locationMessage}</p>}
 
+    <div className="map-card-rail" ref={railRef} onScroll={onRailScroll} aria-label="Accommodation listings" tabIndex={0}>
+      {loading ? <div className="map-rail-empty">Loading accommodation…</div> : results.length === 0 ? <div className="map-rail-empty"><b>No accommodation here yet.</b><span>Try a wider radius or change the search filters.</span></div> : results.map((property) => {
+        const point = propertyPosition(property)?.position;
+        const fromYou = nearby && userPosition && point ? distanceKm(point, userPosition) : null;
+        return <article key={property.id} id={`search-property-${property.id}`} data-property-id={property.id} className={`map-rail-card${selectedId === property.id ? ' is-selected' : ''}`} onClick={() => setSelectedId(property.id)}>
+          <img src={property.images[0] || '/images/p1.jpg'} alt="" />
+          <div className="map-rail-card-body">
+            <div className="map-rail-card-title"><strong>{property.name}</strong><b>R{property.price.toLocaleString('en-ZA')}</b></div>
+            <span className="map-rail-meta"><MapPin size={13} /> {property.area} · {fromYou !== null ? `about ${fromYou.toFixed(1)} km from you` : property.type}</span>
+            <div className="map-rail-footer"><span>{property.verified ? '✓ Verified' : 'Verification pending'}</span><Link to={`/detail/${property.id}`} aria-label={`View ${property.name}`}>View details →</Link></div>
+          </div>
+        </article>;
+      })}
+    </div>
+    <p className="map-approx-note">Demo pins show approximate area locations · Straight-line distances</p>
+
+    <div className={`map-search-drawer-backdrop${drawerOpen ? ' is-open' : ''}`} onClick={() => setDrawerOpen(false)} aria-hidden="true" />
+    <aside className={`map-search-drawer${drawerOpen ? ' is-open' : ''}`} role="dialog" aria-modal={drawerOpen} aria-label="Search accommodation" aria-hidden={!drawerOpen}>
+      <div className="map-drawer-heading"><div><span>FIND YOUR PLACE</span><h2>Search accommodation</h2></div><button type="button" ref={closeRef} onClick={() => setDrawerOpen(false)} aria-label="Close search"><X size={22} /></button></div>
+      <div className="map-drawer-fields">
+        <label>Province<select className="input" value={province} onChange={(event) => chooseProvince(event.target.value)}><option value="">All provinces</option>{PROVINCES.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+        <label>University<select className="input" value={university} onChange={(event) => { setUniversity(event.target.value); setNearby(false); setMapBounds(null); setPendingBounds(null); }}><option value="">Any university</option>{UNIVERSITIES.filter((item) => !province || item.province === province).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+        <label>Area<select className="input" value={filters.location} onChange={(event) => setFilters((previous) => ({ ...previous, location: event.target.value }))}><option value="">All areas</option>{areas.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+        <label>Max rent <b>R{filters.max.toLocaleString('en-ZA')}</b><input type="range" min="1500" max="6000" step="100" value={filters.max} onChange={(event) => setFilters((previous) => ({ ...previous, max: Number(event.target.value) }))} /></label>
+        {nearby && <label>Within<select className="input" value={radiusKm} onChange={(event) => setRadiusKm(Number(event.target.value))}>{[1, 3, 5, 10, 20].map((item) => <option key={item} value={item}>{item} km</option>)}</select></label>}
+        <label className="map-drawer-check"><input type="checkbox" checked={filters.verified} onChange={(event) => setFilters((previous) => ({ ...previous, verified: event.target.checked }))} /> Verified only</label>
+        <label className="map-drawer-check"><input type="checkbox" checked={filters.nsfas} onChange={(event) => setFilters((previous) => ({ ...previous, nsfas: event.target.checked }))} /> NSFAS compatible</label>
+        <label>Sort by<select className="input" value={filters.sort} onChange={(event) => setFilters((previous) => ({ ...previous, sort: event.target.value as FilterState['sort'] }))}><option value="best">Best match</option><option value="price-asc">Lowest price</option><option value="price-desc">Highest price</option><option value="dist">Closest to university</option></select></label>
+        {nearby && <button type="button" className="btn btn--ghost" onClick={() => { setNearby(false); setLocationMessage(''); }}>Turn off Near me</button>}
+        <p>Demo pins use approximate area centres until listing coordinates are verified.</p>
+      </div>
+      <div className="map-drawer-actions"><button type="button" className="btn btn--ghost" onClick={() => { setFilters(initialFilters); setProvince('Gauteng'); setUniversity('wits'); setNearby(false); setMapBounds(null); setPendingBounds(null); }}>Reset</button><button type="button" className="btn btn--green" onClick={() => setDrawerOpen(false)}><SlidersHorizontal size={16} /> Show {results.length} places</button></div>
+    </aside>
+  </div>;
+}

@@ -539,6 +539,7 @@
     closeSelectMenu();
     const r = parseHash();
     current = r;
+    document.body.classList.toggle('is-map-route', r.name === 'search' || r.name === 'results');
     closeSheet();
     const screen = routes[r.name] || routes.landing;
     const root = document.getElementById("view");
