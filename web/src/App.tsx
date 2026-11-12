@@ -18,7 +18,7 @@ import { Saved } from './pages/Saved';
 
 const AppContent: React.FC = () => {
   const location = useLocation();
-  const isMapSearch = location.pathname === '/search';
+  const isMapSearch = /^\/search\/?$/.test(location.pathname);
   return (
       <AuthProvider>
         <CompareProvider>

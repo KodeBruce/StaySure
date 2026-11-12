@@ -75,10 +75,15 @@
         '<div class="map-filter-actions"><button class="btn btn--ghost" type="button" data-map-reset>Reset</button><button class="btn btn--green" type="button" data-map-apply>Show places</button></div></aside></div>',
       mount: function (root) {
         const carousel = root.querySelector('[data-map-carousel]');
-        M.mount(root.querySelector('#accommodation-map'), list, function (id) {
-          const card = document.getElementById('map-card-' + id);
-          if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-        });
+        try {
+          M.mount(root.querySelector('#accommodation-map'), list, function (id) {
+            const card = document.getElementById('map-card-' + id);
+            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          });
+        } catch (error) {
+          console.error('Accommodation map could not start:', error);
+          root.querySelector('#accommodation-map').innerHTML = '<p class="map-fullscreen-status">Map unavailable. Use Search to filter the listings below.</p>';
+        }
         let scrollFrame = 0;
         carousel.addEventListener('scroll', function () {
           if (scrollFrame) cancelAnimationFrame(scrollFrame);

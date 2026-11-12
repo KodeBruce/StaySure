@@ -548,10 +548,11 @@
     document.title = (out.title ? out.title + " · " : "") + "StaySure";
     root.innerHTML = '<div class="screen">' + out.html + "</div>";
     window.scrollTo(0, 0);
+    // Keep navigation available even if an optional screen widget fails to mount.
+    SS.renderChrome();
     if (typeof out.mount === "function") out.mount(root);
     enhanceSelects(root);
     animateRings(root);
-    SS.renderChrome();
   }
 
   function currentRoute() { return current; }

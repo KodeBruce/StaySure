@@ -4,6 +4,12 @@ import App from './App';
 import './styles/base.css';
 import './styles/screens.css';
 
+// Links shared by the earlier static prototype used hash routes. Keep those
+// links working when they open the React app, which uses browser routes.
+if (window.location.pathname === '/' && /^#\/(search|results)(?:[/?]|$)/.test(window.location.hash)) {
+  window.history.replaceState(null, '', '/search');
+}
+
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <App />

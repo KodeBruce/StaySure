@@ -1,4 +1,4 @@
-const CACHE_NAME = 'staysure-static-v3';
+const CACHE_NAME = 'staysure-static-v4';
 const PRECACHE_URLS = [
   '/', '/index.html', '/manifest.webmanifest',
   '/css/base.css', '/css/screens.css', '/css/leaflet.css', '/css/install-prompt.css',
