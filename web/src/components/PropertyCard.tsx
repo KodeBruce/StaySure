@@ -91,6 +91,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property: p }) => {
           {p.nsfas && (
             <span className="pill pill--navy" style={{ fontSize: '11px', padding: '2px 8px' }}>NSFAS Compatible</span>
           )}
+          {p.tour?.status === 'published' && (
+            <span className="pill pill--green" style={{ fontSize: '11px', padding: '2px 8px' }}>3D tour available</span>
+          )}
         </div>
 
         <div style={{ marginTop: 'auto', paddingTop: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>

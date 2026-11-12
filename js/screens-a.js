@@ -121,10 +121,11 @@
 
     function optSet(items, currentVal, multi, name) {
       return items.map(function (it) {
-        const on = multi ? currentVal.indexOf(it.key) > -1 : currentVal === it.key;
+        const key = it.key == null ? it.id : it.key;
+        const on = multi ? currentVal.indexOf(key) > -1 : currentVal === key;
         return '<button class="opt' + (on ? " is-selected" : "") + (it.disabled ? " is-disabled" : "") + '" type="button" ' +
           (it.disabled ? 'aria-disabled="true"' : "") +
-          ' data-opt="' + S.esc(it.key) + '" data-name="' + S.esc(name) + '" aria-pressed="' + on + '">' +
+          ' data-opt="' + S.esc(key) + '" data-name="' + S.esc(name) + '" aria-pressed="' + on + '">' +
           '<span class="opt-mark' + (multi ? " opt-mark--box" : "") + '">' + (multi ? S.icon("check", 13) : "") + "</span>" +
           '<span class="opt-body"><span class="opt-title">' + S.esc(it.label) + "</span>" +
           (it.sub ? '<span class="opt-sub">' + S.esc(it.sub) + "</span>" : "") + "</span>" +

@@ -6,7 +6,7 @@ import { AuthModal } from './AuthModal';
 import { isFirebaseConfigured } from '../firebase/config';
 
 export const Navbar: React.FC = () => {
-  const { user, profile, signOut } = useAuth();
+  const { user, role, profile, signOut } = useAuth();
   const { compareIds, savedIds } = useCompare();
   const [showAuth, setShowAuth] = useState(false);
 
@@ -36,6 +36,9 @@ export const Navbar: React.FC = () => {
           </div>
 
           <div className="row" style={{ gap: '12px' }}>
+            <Link to="/provider/tours" className="btn btn--sm btn--ghost" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              {user && (role === 'provider' || role === 'admin') ? 'Create 3D tour' : '3D tours'}
+            </Link>
             {!isFirebaseConfigured && (
               <span className="pill pill--amber" title="Configure your .env file with Firebase credentials to enable live database persistence">
                 Demo Mode

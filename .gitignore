@@ -46,6 +46,7 @@ build/Release
 
 # Dependency directories
 node_modules/
+__pycache__/
 
 # Optional npm cache directory
 .npm

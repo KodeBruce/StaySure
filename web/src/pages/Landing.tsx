@@ -4,8 +4,10 @@ import { PropertyCard } from '../components/PropertyCard';
 import { getProperties, seedPropertiesToFirestore } from '../services/propertyService';
 import { Property } from '../types';
 import { isFirebaseConfigured } from '../firebase/config';
+import { useAuth } from '../context/AuthContext';
 
 export const Landing: React.FC = () => {
+  const { role } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [seeding, setSeeding] = useState(false);
   const [seedMsg, setSeedMsg] = useState('');
@@ -86,7 +88,7 @@ export const Landing: React.FC = () => {
             </Link>
           </div>
 
-          {isFirebaseConfigured && (
+          {isFirebaseConfigured && role === 'admin' && (
             <div style={{ marginBottom: '20px', padding: '12px 16px', background: 'var(--navy-tint)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span className="tiny">
                 <b>Firebase Connected:</b> Sync listings to your Firestore collection.

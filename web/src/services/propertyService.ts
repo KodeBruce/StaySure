@@ -51,7 +51,8 @@ export async function seedPropertiesToFirestore(): Promise<{ count: number; erro
     const batch = writeBatch(db);
     for (const p of INITIAL_PROPERTIES) {
       const ref = doc(db, 'properties', p.id);
-      batch.set(ref, p);
+      // Preserve reviewed tour metadata when baseline listing data is refreshed.
+      batch.set(ref, p, { merge: true });
     }
     await batch.commit();
     return { count: INITIAL_PROPERTIES.length };

@@ -1,16 +1,77 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // tour_jobs/{jobId}: ownerId, propertyId, mode, status, capturePaths,
+    // captureDate, spaces, createdAt; worker adds assetPath or error.
+    // properties/{propertyId}: public listing; only an admin claim publishes tour.
+    function isAdmin() {
+      return request.auth != null && request.auth.token.role == 'admin';
+    }
+    function validTourJob(data) {
+      return data.keys().hasAll(['ownerId', 'propertyId', 'mode', 'status', 'capturePaths', 'captureDate', 'spaces', 'createdAt'])
+        && data.keys().hasOnly(['ownerId', 'propertyId', 'mode', 'status', 'capturePaths', 'captureDate', 'spaces', 'createdAt', 'assetPath', 'error'])
+        && data.ownerId is string && data.ownerId.size() > 0
+        && data.propertyId is string && data.propertyId.size() > 0
+        && data.mode in ['video', 'images']
+        && data.status in ['uploading', 'queued', 'processing', 'review', 'failed', 'published']
+        && data.capturePaths is list && data.capturePaths.size() <= 80
+        && data.captureDate is string && data.captureDate.size() == 10
+        && data.spaces is list && data.spaces.size() > 0 && data.spaces.size() <= 12
+        && data.createdAt is string;
+    }
+    function validProperty(data) {
+      return data.keys().hasAll(['name', 'price', 'images', 'verified'])
+        && data.name is string && data.name.size() > 0
+        && data.price is number && data.price >= 0
+        && data.images is list && data.verified is bool;
+    }
+    function validUser(data) {
+      return data.keys().hasAll(['email', 'role', 'profile', 'createdAt'])
+        && data.email is string && data.email.size() > 3
+        && data.role in ['student', 'provider', 'admin']
+        && data.profile is map && data.createdAt is string;
+    }
     
     // Properties are publicly readable; only verified providers/admins can write
     match /properties/{propertyId} {
       allow read: if true;
-      allow create, update, delete: if request.auth != null;
+      allow create, update: if isAdmin() && validProperty(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /tour_jobs/{jobId} {
+      allow read: if request.auth != null && (isAdmin() || resource.data.ownerId == request.auth.uid);
+      allow create: if request.auth != null
+        && validTourJob(request.resource.data)
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.status == 'uploading'
+        && request.resource.data.capturePaths.size() == 0
+        && exists(/databases/$(database)/documents/properties/$(request.resource.data.propertyId))
+        && (isAdmin() || get(/databases/$(database)/documents/properties/$(request.resource.data.propertyId)).data.providerId == request.auth.uid);
+      allow update: if validTourJob(request.resource.data)
+        && (isAdmin() || (
+          request.auth != null
+          && resource.data.ownerId == request.auth.uid
+          && resource.data.status == 'uploading'
+          && request.resource.data.status in ['queued', 'failed']
+          && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.propertyId == resource.data.propertyId
+          && request.resource.data.mode == resource.data.mode
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'capturePaths', 'error'])
+        ));
+      allow delete: if isAdmin();
     }
 
     // User profiles: users can read and write their own profile
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId
+        && validUser(request.resource.data)
+        && request.resource.data.role in ['student', 'provider'];
+      allow update: if request.auth != null && request.auth.uid == userId
+        && validUser(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profile']);
+      allow delete: if false;
     }
 
     // Applications: only the student who applied, the landlord, or an admin can access

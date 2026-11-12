@@ -17,6 +17,28 @@ export interface ReviewItem {
   date: string;
 }
 
+export interface PropertyTour {
+  // Tours become visible to students only after a StaySure review.
+  status: 'processing' | 'review' | 'published';
+  capturedAt: string; // ISO date of the real property capture
+  spaces: string[]; // Areas actually shown in the capture
+  assetPath?: string; // Firebase Storage path of the processed Gaussian splat
+}
+
+export interface TourJob {
+  id: string;
+  propertyId: string;
+  ownerId: string;
+  mode: 'video' | 'images';
+  status: 'uploading' | 'queued' | 'processing' | 'review' | 'failed' | 'published';
+  capturePaths: string[];
+  captureDate: string;
+  spaces: string[];
+  createdAt: string;
+  error?: string;
+  assetPath?: string;
+}
+
 export interface Property {
   id: string;
   name: string;
@@ -39,6 +61,7 @@ export interface Property {
   security: string[];
   reviews: ReviewItem[];
   images: string[];
+  tour?: PropertyTour;
   checks: CheckItem[];
   passedChecks: number;
   distanceBand: string;

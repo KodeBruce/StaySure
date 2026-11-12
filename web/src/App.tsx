@@ -7,6 +7,10 @@ import { CompareTray } from './components/CompareTray';
 import { Landing } from './pages/Landing';
 import { Search } from './pages/Search';
 import { Detail } from './pages/Detail';
+import { Tour } from './pages/Tour';
+import { CreateTour } from './pages/CreateTour';
+import { ReviewTour } from './pages/ReviewTour';
+import { TourDemo } from './pages/TourDemo';
 import { Compare } from './pages/Compare';
 import { Apply } from './pages/Apply';
 import { Applications } from './pages/Applications';
@@ -25,6 +29,10 @@ export const App: React.FC = () => {
                 <Route path="/" element={<Landing />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/detail/:id" element={<Detail />} />
+                <Route path="/detail/:id/tour" element={<Tour />} />
+                <Route path="/provider/tours" element={<CreateTour />} />
+                <Route path="/provider/tours/demo" element={<TourDemo />} />
+                <Route path="/review/tour/:id" element={<ReviewTour />} />
                 <Route path="/compare" element={<Compare />} />
                 <Route path="/apply/:id" element={<Apply />} />
                 <Route path="/applications" element={<Applications />} />

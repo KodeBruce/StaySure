@@ -14,6 +14,10 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
+## Progressive Web App
+
+Production builds include an installable web app manifest, 192 px and 512 px icons, and a service worker. The service worker precaches the app shell and bundled listing images so previously visited routes can open without a connection. Live Firebase data, sign-in, submissions, and 3D tours still require a network connection. Service worker registration is enabled in production builds; use `npm run build` and `npm run preview` to check installation and offline behavior locally.
+
 > **Note on Demo Mode:** The app runs out of the box even before configuring Firebase keys, using an initial in-memory fallback dataset. Once you add your Firebase credentials, it seamlessly connects to live Firestore and Firebase Storage.
 
 ---

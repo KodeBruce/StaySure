@@ -4,8 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/build-tour-viewer.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/build-tour-viewer.mjs",
     "build": "tsc && vite build",
+    "postbuild": "node scripts/generate-service-worker.mjs",
     "preview": "vite preview"
   },
   "devDependencies": {
@@ -17,6 +20,7 @@
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
+    "@playcanvas/supersplat-viewer": "^1.31.2",
     "firebase": "^13.2.0",
     "lucide-react": "^1.70.0",
     "react": "^19.3.1",

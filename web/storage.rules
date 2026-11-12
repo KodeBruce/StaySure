@@ -1,11 +1,32 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.role == 'admin';
+    }
     
     // Public property photos
     match /properties/{propertyId}/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    match /tour_captures/{ownerId}/{jobId}/{fileName} {
+      allow read: if request.auth != null && (isAdmin() || request.auth.uid == ownerId);
+      allow create: if request.auth != null
+        && request.auth.uid == ownerId
+        && firestore.get(/databases/(default)/documents/tour_jobs/$(jobId)).data.ownerId == ownerId
+        && firestore.get(/databases/(default)/documents/tour_jobs/$(jobId)).data.status == 'uploading'
+        && ((request.resource.contentType in ['video/mp4', 'video/quicktime'] && request.resource.size <= 500 * 1024 * 1024)
+          || (request.resource.contentType in ['image/jpeg', 'image/png'] && request.resource.size <= 20 * 1024 * 1024));
+      allow update, delete: if false;
+    }
+
+    match /tours/{propertyId}/{jobId}/scene.ply {
+      allow read: if isAdmin()
+        || (request.auth != null && firestore.get(/databases/(default)/documents/tour_jobs/$(jobId)).data.ownerId == request.auth.uid)
+        || firestore.get(/databases/(default)/documents/properties/$(propertyId)).data.tour.assetPath == 'tours/' + propertyId + '/' + jobId + '/scene.ply';
+      allow write: if false;
     }
 
     // Confidential student documents (ID, proof of registration, NSFAS letters)

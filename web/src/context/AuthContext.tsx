@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true);
 
   // Load profile from Firestore or local storage
-  const loadUserProfile = async (uid: string) => {
+  const loadUserProfile = async (uid: string, authUser?: User) => {
     if (!isFirebaseConfigured) return;
     try {
       const docRef = doc(db, 'users', uid);
@@ -51,7 +51,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (snap.exists()) {
         const data = snap.data();
         if (data.profile) setProfile(data.profile);
-        if (data.role) setRole(data.role);
+        setRole(data.role === 'provider' ? 'provider' : 'student');
+      }
+      if (authUser) {
+        const token = await authUser.getIdTokenResult();
+        if (token.claims.role === 'admin') setRole('admin');
       }
     } catch (e) {
       console.warn("Failed to load user profile:", e);
@@ -68,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsub = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        await loadUserProfile(currentUser.uid);
+        await loadUserProfile(currentUser.uid, currentUser);
       }
       setLoading(false);
     });
@@ -79,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithEmail = async (email: string, pass: string) => {
     if (!isFirebaseConfigured) return;
     const res = await signInWithEmailAndPassword(auth, email, pass);
-    await loadUserProfile(res.user.uid);
+    await loadUserProfile(res.user.uid, res.user);
   };
 
   const signUpWithEmail = async (email: string, pass: string, assignedRole: UserRole = 'student') => {
@@ -109,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         createdAt: new Date().toISOString()
       });
     } else {
-      await loadUserProfile(res.user.uid);
+      await loadUserProfile(res.user.uid, res.user);
     }
   };
 

@@ -41,6 +41,7 @@ export const Detail: React.FC = () => {
   const { score, reasons } = calculateMatchScore(property, profile);
   const isCompared = compareIds.includes(property.id);
   const isSaved = savedIds.includes(property.id);
+  const hasPublishedTour = property.tour?.status === 'published';
 
   return (
     <div className="wrap" style={{ maxWidth: '1160px', margin: '32px auto', padding: '0 24px' }}>
@@ -84,6 +85,16 @@ export const Detail: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {hasPublishedTour && (
+        <div className="tour-callout">
+          <div>
+            <strong>Explore this property in 3D</strong>
+            <p>Look around the spaces captured for this listing before you apply.</p>
+          </div>
+          <Link className="btn btn--navy" to={`/detail/${property.id}/tour`}>Explore 3D tour →</Link>
+        </div>
+      )}
 
       {/* Main Grid: Details + Side Action Card */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '40px', alignItems: 'start' }}>
