@@ -32,14 +32,30 @@ export function Search() {
   const [pendingBounds, setPendingBounds] = useState<MapBounds | null>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
 
   useEffect(() => { getProperties().then(setProperties).catch(() => setProperties([])).finally(() => setLoading(false)); }, []);
   useEffect(() => {
     if (!drawerOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     closeRef.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') setDrawerOpen(false); };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setDrawerOpen(false); return; }
+      if (event.key !== 'Tab' || !drawerRef.current) return;
+      const controls = [...drawerRef.current.querySelectorAll<HTMLElement>('button:not(:disabled), select:not(:disabled), input:not(:disabled)')];
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
     document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
   }, [drawerOpen]);
 
   const campus = UNIVERSITIES.find((item) => item.id === university);
@@ -138,7 +154,7 @@ export function Search() {
     <p className="map-approx-note">Demo pins show approximate area locations · Straight-line distances</p>
 
     <div className={`map-search-drawer-backdrop${drawerOpen ? ' is-open' : ''}`} onClick={() => setDrawerOpen(false)} aria-hidden="true" />
-    <aside className={`map-search-drawer${drawerOpen ? ' is-open' : ''}`} role="dialog" aria-modal={drawerOpen} aria-label="Search accommodation" aria-hidden={!drawerOpen}>
+    <aside ref={drawerRef} className={`map-search-drawer${drawerOpen ? ' is-open' : ''}`} role="dialog" aria-modal={drawerOpen} aria-label="Search accommodation" aria-hidden={!drawerOpen}>
       <div className="map-drawer-heading"><div><span>FIND YOUR PLACE</span><h2>Search accommodation</h2></div><button type="button" ref={closeRef} onClick={() => setDrawerOpen(false)} aria-label="Close search"><X size={22} /></button></div>
       <div className="map-drawer-fields">
         <label>Province<select className="input" value={province} onChange={(event) => chooseProvince(event.target.value)}><option value="">All provinces</option>{PROVINCES.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>

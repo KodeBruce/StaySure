@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { isFirebaseConfigured } from '../firebase/config';
 
@@ -14,6 +14,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   const [role, setRole] = useState<'student' | 'provider'>('student');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    emailRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onCloseRef.current();
+      if (event.key !== 'Tab' || !dialogRef.current) return;
+      const controls = [...dialogRef.current.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled)')];
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,12 +97,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         className="card card--pad"
+        role="dialog"
+        aria-modal="true"
+        aria-label={isSignUp ? 'Create a StaySure account' : 'Sign in to StaySure'}
         style={{ width: '100%', maxWidth: '420px', background: '#fff', position: 'relative' }}
         onClick={e => e.stopPropagation()}
       >
         <button
           onClick={onClose}
+          aria-label="Close sign in"
           style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}
         >
           ×
@@ -123,6 +154,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           <div className="field">
             <label htmlFor="auth-email">Email Address</label>
             <input
+              ref={emailRef}
               id="auth-email"
               type="email"
               className="input"

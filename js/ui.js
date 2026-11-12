@@ -458,6 +458,7 @@
      ====================================================================== */
 
   let activeSheet = null;
+  let sheetCloseTimer = null;
 
   function closeSheet() {
     closeSelectMenu();
@@ -465,14 +466,20 @@
     const panel = activeSheet;
     activeSheet = null;
     panel.overlay.style.animation = "fade .16s ease reverse both";
-    setTimeout(function () {
+    sheetCloseTimer = setTimeout(function () {
       if (panel.overlay.parentNode) panel.overlay.remove();
-      document.body.style.overflow = "";
+      if (!activeSheet) document.body.style.overflow = "";
+      sheetCloseTimer = null;
     }, 150);
   }
 
   function openSheet(opts) {
     closeSheet();
+    if (sheetCloseTimer) {
+      clearTimeout(sheetCloseTimer);
+      sheetCloseTimer = null;
+      document.querySelectorAll('#sheetroot .sheet-overlay').forEach(function (node) { node.remove(); });
+    }
     const root = document.getElementById("sheetroot");
     const overlay = el(
       '<div class="sheet-overlay">' +

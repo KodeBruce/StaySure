@@ -109,7 +109,16 @@
         open.addEventListener('click', function () { drawer.classList.add('is-open'); backdrop.classList.add('is-open'); drawer.setAttribute('aria-hidden', 'false'); open.setAttribute('aria-expanded', 'true'); drawer.querySelector('[data-map-close]').focus(); });
         backdrop.addEventListener('click', closeDrawer);
         drawer.querySelector('[data-map-close]').addEventListener('click', closeDrawer);
-        root.addEventListener('keydown', function (event) { if (event.key === 'Escape' && drawer.classList.contains('is-open')) closeDrawer(); });
+        root.addEventListener('keydown', function (event) {
+          if (!drawer.classList.contains('is-open')) return;
+          if (event.key === 'Escape') { closeDrawer(); return; }
+          if (event.key !== 'Tab') return;
+          const controls = Array.from(drawer.querySelectorAll('button:not(:disabled), select:not(:disabled), input:not(:disabled)'));
+          const first = controls[0];
+          const last = controls[controls.length - 1];
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        });
 
         root.querySelector('[data-map-near]').addEventListener('click', function (event) {
           const button = event.currentTarget;
@@ -134,6 +143,8 @@
           draft.location = '';
           universitySelect.innerHTML = option('', 'Any university', draftUniversity) + M.universities.filter(function (item) { return !draftProvince || item.province === draftProvince; }).map(function (item) { return option(item.id, item.name, draftUniversity); }).join('');
           areaSelect.innerHTML = option('', 'All areas', '') + (draftProvince && draftProvince !== 'Gauteng' ? [] : D.AREAS).map(function (area) { return option(area, area, ''); }).join('');
+          universitySelect.dispatchEvent(new Event('change', { bubbles: true }));
+          areaSelect.dispatchEvent(new Event('change', { bubbles: true }));
         });
         universitySelect.addEventListener('change', function () { draftUniversity = universitySelect.value; });
         areaSelect.addEventListener('change', function () { draft.location = areaSelect.value; });

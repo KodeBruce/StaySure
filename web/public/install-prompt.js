@@ -59,6 +59,10 @@
     if (dialog || isInstalled() || !window.isSecureContext) return;
     const dismissed = Number(read(DISMISSED_KEY));
     if (dismissed && Date.now() - dismissed < WEEK) return;
+    if (document.querySelector('[role="dialog"][aria-modal="true"]:not([aria-hidden="true"])')) {
+      window.setTimeout(show, 3000);
+      return;
+    }
 
     previousFocus = document.activeElement;
     dialog = document.createElement('div');
@@ -86,10 +90,15 @@
       } else if (installEvent) {
         const promptEvent = installEvent;
         installEvent = null;
-        await promptEvent.prompt();
-        const choice = await promptEvent.userChoice;
-        if (choice.outcome === 'accepted') write(INSTALLED_KEY, 'true');
-        close(choice.outcome !== 'accepted');
+        try {
+          await promptEvent.prompt();
+          const choice = await promptEvent.userChoice;
+          if (choice.outcome === 'accepted') write(INSTALLED_KEY, 'true');
+          close(choice.outcome !== 'accepted');
+        } catch (error) {
+          console.warn('Install prompt was unavailable:', error);
+          showInstructions();
+        }
       } else {
         showInstructions();
       }

@@ -1,32 +1,35 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useCompare } from '../context/CompareContext';
 import { INITIAL_PROPERTIES } from '../data/mockData';
 
 export const CompareTray: React.FC = () => {
   const { compareIds, removeFromCompare, clearCompare } = useCompare();
+  const location = useLocation();
 
-  if (compareIds.length === 0) return null;
+  if (compareIds.length === 0 || /^\/(search|compare)\/?$/.test(location.pathname)) return null;
 
   const comparedProps = compareIds.map(id => INITIAL_PROPERTIES.find(p => p.id === id)).filter(Boolean);
 
   return (
     <div
+      className="compare-tray"
       style={{
         position: 'fixed',
-        bottom: '24px',
         left: '50%',
         transform: 'translateX(-50%)',
-        zIndex: 900,
+        zIndex: 850,
         background: 'var(--navy)',
         color: '#fff',
-        padding: '12px 20px',
+        padding: '10px 12px',
         borderRadius: '16px',
         boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
         display: 'flex',
         alignItems: 'center',
-        gap: '20px',
-        maxWidth: '90vw'
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '8px',
+        width: 'min(500px, calc(100vw - 20px))'
       }}
     >
       <div className="row" style={{ gap: '10px' }}>
@@ -98,17 +101,8 @@ export const CompareTray: React.FC = () => {
         >
           Clear
         </button>
-        <Link
-          to="/compare"
-          className="btn btn--sm btn--green"
-          style={{
-            pointerEvents: compareIds.length < 2 ? 'none' : 'auto',
-            opacity: compareIds.length < 2 ? 0.5 : 1,
-            textDecoration: 'none'
-          }}
-        >
-          Compare Now
-        </Link>
+        {compareIds.length < 2 ? <button type="button" className="btn btn--sm btn--green" disabled>Compare Now</button> :
+          <Link to="/compare" className="btn btn--sm btn--green" style={{ textDecoration: 'none' }}>Compare Now</Link>}
       </div>
     </div>
   );
