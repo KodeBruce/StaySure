@@ -51,7 +51,7 @@
         '<div class="map-fullscreen-canvas" id="accommodation-map" role="region" aria-label="Accommodation map"></div>' +
         '<div class="map-fullscreen-top"><button class="map-float-control" type="button" data-map-near aria-label="' + (M.state.nearby ? 'Refresh my location' : 'Find accommodation near me') + '">' + S.icon('mapPin', 21) + '</button>' +
         '<span class="map-fullscreen-count">' + list.length + ' place' + (list.length === 1 ? '' : 's') + (M.state.nearby ? ' near you' : '') + '</span>' +
-        '<button class="map-float-control" type="button" data-map-open-search aria-label="Open search filters" aria-expanded="false">' + S.icon('search', 21) + '</button></div>' +
+        '<button class="map-float-control map-filter-trigger" type="button" data-map-open-search aria-label="Open search filters" aria-expanded="false">' + S.icon('search', 17) + '<span>Filters</span></button></div>' +
         '<button class="btn btn--navy map-fullscreen-area" type="button" data-search-map-area hidden>Search this area</button>' +
         (M.state.bounds ? '<button class="btn btn--ghost map-fullscreen-clear" type="button" data-clear-map-area>Clear map area</button>' : '') +
         (M.state.message ? '<p class="map-fullscreen-status" role="status">' + S.esc(M.state.message) + '</p>' : '') +
@@ -105,8 +105,22 @@
         const open = root.querySelector('[data-map-open-search]');
         const drawer = root.querySelector('[data-map-drawer]');
         const backdrop = root.querySelector('[data-map-drawer-backdrop]');
-        function closeDrawer() { drawer.classList.remove('is-open'); backdrop.classList.remove('is-open'); drawer.setAttribute('aria-hidden', 'true'); open.setAttribute('aria-expanded', 'false'); open.focus(); }
-        open.addEventListener('click', function () { drawer.classList.add('is-open'); backdrop.classList.add('is-open'); drawer.setAttribute('aria-hidden', 'false'); open.setAttribute('aria-expanded', 'true'); drawer.querySelector('[data-map-close]').focus(); });
+        function closeDrawer() {
+          drawer.classList.remove('is-open');
+          backdrop.classList.remove('is-open');
+          document.body.classList.remove('drawer-open');
+          drawer.setAttribute('aria-hidden', 'true');
+          open.setAttribute('aria-expanded', 'false');
+          open.focus();
+        }
+        open.addEventListener('click', function () {
+          drawer.classList.add('is-open');
+          backdrop.classList.add('is-open');
+          document.body.classList.add('drawer-open');
+          drawer.setAttribute('aria-hidden', 'false');
+          open.setAttribute('aria-expanded', 'true');
+          drawer.querySelector('[data-map-close]').focus();
+        });
         backdrop.addEventListener('click', closeDrawer);
         drawer.querySelector('[data-map-close]').addEventListener('click', closeDrawer);
         root.addEventListener('keydown', function (event) {
@@ -156,9 +170,10 @@
         drawer.querySelector('[data-map-nsfas]').addEventListener('change', function (event) { draft.nsfas = event.target.checked; });
         drawer.querySelector('[data-map-sort]').addEventListener('change', function (event) { draft.sort = event.target.value; });
         const nearOff = drawer.querySelector('[data-map-near-off]');
-        if (nearOff) nearOff.addEventListener('click', function () { M.state.nearby = false; M.state.message = ''; M.state.province = 'Gauteng'; M.state.university = 'wits'; S.renderRoute(); });
-        drawer.querySelector('[data-map-reset]').addEventListener('click', function () { S.state.filters = D.defaultFilters(); M.state.province = 'Gauteng'; M.state.university = 'wits'; M.state.nearby = false; M.state.bounds = null; M.state.pendingBounds = null; S.save(); S.renderRoute(); });
+        if (nearOff) nearOff.addEventListener('click', function () { document.body.classList.remove('drawer-open'); M.state.nearby = false; M.state.message = ''; M.state.province = 'Gauteng'; M.state.university = 'wits'; S.renderRoute(); });
+        drawer.querySelector('[data-map-reset]').addEventListener('click', function () { document.body.classList.remove('drawer-open'); S.state.filters = D.defaultFilters(); M.state.province = 'Gauteng'; M.state.university = 'wits'; M.state.nearby = false; M.state.bounds = null; M.state.pendingBounds = null; S.save(); S.renderRoute(); });
         drawer.querySelector('[data-map-apply]').addEventListener('click', function () {
+          document.body.classList.remove('drawer-open');
           S.state.filters = draft;
           M.state.province = draftProvince;
           M.state.university = draftUniversity;

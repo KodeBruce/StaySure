@@ -547,6 +547,7 @@
     const r = parseHash();
     current = r;
     document.body.classList.toggle('is-map-route', r.name === 'search' || r.name === 'results');
+    document.body.classList.remove('drawer-open');
     closeSheet();
     const screen = routes[r.name] || routes.landing;
     const root = document.getElementById("view");
