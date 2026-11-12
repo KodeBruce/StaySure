@@ -728,15 +728,15 @@
 }
 
 .accom-map-pin.is-selected {
-  background: var(--green);
-  border-color: #ffffff;
-  color: #ffffff;
-  box-shadow: 0 6px 20px rgba(31, 157, 92, 0.45);
-  transform: scale(1.08);
+  background: var(--green) !important;
+  border-color: #ffffff !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 22px rgba(31, 157, 92, 0.55) !important;
+  transform: scale(1.1) !important;
 }
 
 .accom-map-pin.is-selected span {
-  color: #ffffff;
+  color: #ffffff !important;
 }
 
 .leaflet-container {
@@ -4498,6 +4498,12 @@ body.is-map-route .bn-link.is-active::before {
   box-shadow: 0 10px 30px rgba(19, 35, 79, 0.18);
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.map-carousel-card.is-selected {
+  border: 2px solid var(--green) !important;
+  box-shadow: 0 12px 36px rgba(31, 157, 92, 0.28), 0 0 0 1px var(--green) !important;
+  transform: translateY(-2px);
 }
 
 .map-carousel-card:hover {

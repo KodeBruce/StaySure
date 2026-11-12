@@ -78,8 +78,18 @@
         try {
           M.mount(root.querySelector('#accommodation-map'), list, function (id) {
             const card = document.getElementById('map-card-' + id);
-            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            if (card) {
+              const cards = root.querySelectorAll('[data-map-card]');
+              cards.forEach(function (c) { c.classList.toggle('is-selected', c === card); });
+              card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
           });
+          if (list.length > 0) {
+            window.setTimeout(function () {
+              const firstId = list[0].p.id;
+              M.focus(firstId, false, false);
+            }, 120);
+          }
         } catch (error) {
           console.error('Accommodation map could not start:', error);
           root.querySelector('#accommodation-map').innerHTML = '<p class="map-fullscreen-status">Map unavailable. Use Search to filter the listings below.</p>';
@@ -93,7 +103,11 @@
             const selected = cards.sort(function (a, b) {
               return Math.abs(a.offsetLeft + a.offsetWidth / 2 - center) - Math.abs(b.offsetLeft + b.offsetWidth / 2 - center);
             })[0];
-            if (selected) M.focus(selected.getAttribute('data-map-card'), false, false);
+            if (selected) {
+              const id = selected.getAttribute('data-map-card');
+              cards.forEach(function (c) { c.classList.toggle('is-selected', c === selected); });
+              M.focus(id, false, false);
+            }
           });
         });
         carousel.querySelectorAll('[data-map-card]').forEach(function (card) {
