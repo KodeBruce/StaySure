@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useLocation } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCompare } from '../context/CompareContext';
 import { AuthModal } from './AuthModal';
@@ -7,6 +8,8 @@ import { isFirebaseConfigured } from '../firebase/config';
 import { House, Search as SearchIcon, GitCompareArrows, ClipboardList, Heart } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
+  const location = useLocation();
+  const isMapSearch = /^\/search\/?$/.test(location.pathname);
   const { user, role, profile, signOut } = useAuth();
   const { compareIds, savedIds } = useCompare();
   const [showAuth, setShowAuth] = useState(false);
@@ -60,13 +63,13 @@ export const Navbar: React.FC = () => {
         </div>
       </header>
 
-      <nav className="app-floating-nav" aria-label="Primary navigation">
+      {createPortal(<nav className={`app-floating-nav${isMapSearch ? ' is-map-nav' : ''}`} aria-label="Primary navigation">
         <NavLink to="/" end><House size={21} /><span>Home</span></NavLink>
         <NavLink to="/search"><SearchIcon size={21} /><span>Search</span></NavLink>
         <NavLink to="/compare"><GitCompareArrows size={21} /><span>Compare</span></NavLink>
         <NavLink to="/applications"><ClipboardList size={21} /><span>Applications</span></NavLink>
         <NavLink to="/saved"><Heart size={21} /><span>Saved</span></NavLink>
-      </nav>
+      </nav>, document.body)}
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </>
