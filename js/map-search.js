@@ -85,37 +85,36 @@
       const button = element.parentElement.querySelector('[data-search-map-area]');
       if (button) button.hidden = false;
     });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 20
-    }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+      }).addTo(map);
 
-    items.forEach(function (item) {
-      const property = item.p;
-      const point = position(property);
-      if (!point) return;
-      const icon = L.divIcon({ className: 'accom-map-pin-shell', html: '<span class="accom-map-pin"><span aria-hidden="true">⌂</span> ' + window.SSData.rand(property.price) + '</span>', iconSize: [106, 38], iconAnchor: [53, 38] });
-      const marker = L.marker(point, { icon: icon, title: property.name }).addTo(map);
-      markers[property.id] = marker;
-      const popup = document.createElement('div');
-      popup.className = 'accom-map-popup';
-      const title = document.createElement('strong');
-      title.textContent = property.name;
-      const detail = document.createElement('span');
-      detail.textContent = property.area + ' · ' + window.SSData.rand(property.price) + '/month';
-      const note = document.createElement('small');
-      note.textContent = Number.isFinite(property.latitude) ? 'Listing location' : 'Approximate area location';
-      popup.append(title, detail, note);
-      marker.bindPopup(popup);
-      marker.on('click', function () {
-        if (onSelect) { onSelect(property.id); return; }
-        const card = document.getElementById('map-item-' + property.id);
-        if (card) { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); card.classList.add('is-map-selected'); }
+      items.forEach(function (item) {
+        const property = item.p;
+        const point = position(property);
+        if (!point) return;
+        const icon = L.divIcon({ className: 'accom-map-pin-shell', html: '<span class="accom-map-pin"><span aria-hidden="true">⌂</span> ' + window.SSData.rand(property.price) + '</span>', iconSize: [106, 38], iconAnchor: [53, 38] });
+        const marker = L.marker(point, { icon: icon, title: property.name }).addTo(map);
+        markers[property.id] = marker;
+        const popup = document.createElement('div');
+        popup.className = 'accom-map-popup';
+        const title = document.createElement('strong');
+        title.textContent = property.name;
+        const detail = document.createElement('span');
+        detail.textContent = property.area + ' · ' + window.SSData.rand(property.price) + '/month';
+        const note = document.createElement('small');
+        note.textContent = Number.isFinite(property.latitude) ? 'Listing location' : 'Approximate area location';
+        popup.append(title, detail, note);
+        marker.bindPopup(popup);
+        marker.on('click', function () {
+          if (onSelect) { onSelect(property.id); return; }
+          const card = document.getElementById('map-item-' + property.id);
+          if (card) { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); card.classList.add('is-map-selected'); }
+        });
       });
-    });
 
-    if (state.nearby && state.position) {
+      if(state.nearby && state.position) {
       L.circle(state.position, { radius: state.radius * 1000, color: '#1f9d5c', fillColor: '#1f9d5c', fillOpacity: 0.08, weight: 2 }).addTo(map);
       L.circle(state.position, { radius: state.accuracy, color: '#1f9d5c', fillColor: '#1f9d5c', fillOpacity: 0.14, weight: 1.5 }).addTo(map);
       L.circleMarker(state.position, { radius: 8, color: '#fff', weight: 3, fillColor: '#1f9d5c', fillOpacity: 1 }).bindTooltip('Your location').addTo(map);

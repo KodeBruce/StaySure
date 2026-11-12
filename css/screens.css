@@ -746,7 +746,7 @@
 
 .map-fullscreen .leaflet-tile-pane,
 .accom-map .leaflet-tile-pane {
-  filter: contrast(98%) brightness(101%);
+  filter: grayscale(100%) brightness(105%) contrast(92%);
 }
 
 .leaflet-popup-content-wrapper {
@@ -4247,28 +4247,26 @@ body.is-map-route .tray-wrap {
   display: none;
 }
 
-/* Stationary docked bottom nav on mobile/tablet (same placement as all other tabs) */
+/* Floating neat icons navigation for mobile/tablet (same placement as all other tabs) */
 body.is-map-route .bottomnav {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  max-width: none;
-  height: var(--bottom-h, 64px);
-  min-height: 56px;
-  padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
-  border-radius: 0;
-  transform: none !important;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.96);
-  border-top: 1px solid var(--line);
-  box-shadow: 0 -2px 12px rgba(19, 35, 79, 0.06);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  transition: none !important;
+  left: 50%;
+  right: auto;
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%) !important;
+  width: min(500px, calc(100% - 20px));
+  min-height: 60px;
+  padding: 4px;
+  border: 1px solid rgba(19, 35, 79, 0.12);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 24px rgba(19, 35, 79, 0.16);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  transition: opacity 0.25s ease;
 }
 
 @media (min-width: 961px) {
@@ -4286,35 +4284,31 @@ body.is-map-route .bn-link {
   gap: 2px;
   min-width: 0;
   min-height: 50px;
-  padding: 4px 2px;
-  border-radius: 0;
+  border-radius: 15px;
   color: var(--ink-2);
-  font-size: 10.5px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 800;
   text-decoration: none;
-  transition: color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 body.is-map-route .bn-link svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
 }
 
 body.is-map-route .bn-link.is-active {
+  background: var(--navy-soft);
   color: var(--navy);
-  font-weight: 800;
 }
 
 body.is-map-route .bn-link.is-active::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 28px;
-  height: 3px;
-  border-radius: 0 0 3px 3px;
-  background: var(--navy);
+  display: none;
+}
+
+/* Ensure Leaflet tiles render clean monochrome grey-white without watermarks */
+.leaflet-tile-pane {
+  filter: grayscale(100%) brightness(105%) contrast(92%);
 }
 
 /* Map canvas stays BEHIND the navigation icons */
@@ -4348,7 +4342,7 @@ body.is-map-route .bn-link.is-active::before {
   pointer-events: none;
 }
 
-.map-fullscreen-top > * {
+.map-fullscreen-top>* {
   pointer-events: auto;
 }
 
@@ -4520,7 +4514,7 @@ body.is-map-route .bn-link.is-active::before {
   cursor: pointer;
 }
 
-.map-carousel-card > img {
+.map-carousel-card>img {
   width: 100px;
   height: 100%;
   object-fit: cover;
@@ -4555,7 +4549,7 @@ body.is-map-route .bn-link.is-active::before {
   font-weight: 600;
 }
 
-.map-carousel-copy > span {
+.map-carousel-copy>span {
   display: flex;
   align-items: center;
   gap: 2px;
@@ -4564,7 +4558,7 @@ body.is-map-route .bn-link.is-active::before {
   line-height: 1.3;
 }
 
-.map-carousel-copy > div {
+.map-carousel-copy>div {
   display: flex;
   justify-content: space-between;
   gap: 6px;
@@ -4753,7 +4747,7 @@ body.is-map-route .bn-link.is-active::before {
     height: 150px;
   }
 
-  .map-carousel-card > img {
+  .map-carousel-card>img {
     width: 90px;
     flex-basis: 90px;
   }
