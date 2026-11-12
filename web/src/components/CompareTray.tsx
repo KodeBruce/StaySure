@@ -7,7 +7,16 @@ export const CompareTray: React.FC = () => {
   const { compareIds, removeFromCompare, clearCompare } = useCompare();
   const location = useLocation();
 
-  if (compareIds.length === 0 || /^\/(search|compare)\/?$/.test(location.pathname)) return null;
+  const isVisible = compareIds.length > 0 && !/^\/(search|compare)\/?$/.test(location.pathname);
+
+  React.useEffect(() => {
+    document.body.classList.toggle('has-compare-tray', isVisible);
+    return () => {
+      document.body.classList.remove('has-compare-tray');
+    };
+  }, [isVisible]);
+
+  if (!isVisible) return null;
 
   const comparedProps = compareIds.map(id => INITIAL_PROPERTIES.find(p => p.id === id)).filter(Boolean);
 
