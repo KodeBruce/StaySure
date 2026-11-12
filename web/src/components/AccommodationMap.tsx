@@ -28,20 +28,21 @@ export function AccommodationMap({ properties, center, userPosition, accuracyMet
   useEffect(() => {
     if (!container.current) return;
     const instance = L.map(container.current, { scrollWheelZoom: false, zoomControl: false }).setView(center, userPosition ? 13 : 12);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 18
-    }).addTo(instance);
-    L.control.zoom({ position: 'bottomright' }).addTo(instance);
-    const group = L.layerGroup().addTo(instance);
-    const reportBounds = () => {
-      const bounds = instance.getBounds();
-      onViewChangeRef.current({ south: bounds.getSouth(), west: bounds.getWest(), north: bounds.getNorth(), east: bounds.getEast() });
-    };
-    instance.on('dragend zoomend', reportBounds);
-    map.current = instance;
-    markers.current = group;
-    return () => { instance.remove(); map.current = null; markers.current = null; };
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+      }).addTo(instance);
+      L.control.zoom({ position: 'bottomright' }).addTo(instance);
+      const group = L.layerGroup().addTo(instance);
+      const reportBounds = () => {
+        const bounds = instance.getBounds();
+        onViewChangeRef.current({ south: bounds.getSouth(), west: bounds.getWest(), north: bounds.getNorth(), east: bounds.getEast() });
+      };
+      instance.on('dragend zoomend', reportBounds);
+      map.current = instance;
+      markers.current = group;
+      return() => { instance.remove(); map.current = null; markers.current = null; };
   }, []);
 
   useEffect(() => { map.current?.setView(center, userPosition ? 13 : 12); }, [center[0], center[1], userPosition]);
@@ -81,9 +82,9 @@ export function AccommodationMap({ properties, center, userPosition, accuracyMet
       group.addLayer(marker);
     }
     if (userPosition) {
-      L.circle(userPosition, { radius: radiusKm * 1000, color: '#1f9d5c', fillColor: '#1f9d5c', fillOpacity: 0.07, weight: 2 }).addTo(group);
-      L.circle(userPosition, { radius: accuracyMeters, color: '#2266d1', fillColor: '#2266d1', fillOpacity: 0.14, weight: 1 }).addTo(group);
-      L.circleMarker(userPosition, { radius: 8, color: '#fff', weight: 3, fillColor: '#2266d1', fillOpacity: 1 }).bindTooltip('Your location').addTo(group);
+      L.circle(userPosition, { radius: radiusKm * 1000, color: '#1f9d5c', fillColor: '#1f9d5c', fillOpacity: 0.08, weight: 2 }).addTo(group);
+      L.circle(userPosition, { radius: accuracyMeters, color: '#1f9d5c', fillColor: '#1f9d5c', fillOpacity: 0.14, weight: 1.5 }).addTo(group);
+      L.circleMarker(userPosition, { radius: 8, color: '#fff', weight: 3, fillColor: '#1f9d5c', fillOpacity: 1 }).bindTooltip('Your location').addTo(group);
     }
   }, [properties, selectedId, userPosition, accuracyMeters, radiusKm]);
 

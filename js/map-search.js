@@ -85,8 +85,10 @@
       const button = element.parentElement.querySelector('[data-search-map-area]');
       if (button) button.hidden = false;
     });
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 18
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20
     }).addTo(map);
 
     items.forEach(function (item) {
@@ -114,9 +116,9 @@
     });
 
     if (state.nearby && state.position) {
-      L.circle(state.position, { radius: state.radius * 1000, color: '#1f9d5c', fillColor: '#1f9d5c', fillOpacity: 0.07, weight: 2 }).addTo(map);
-      L.circle(state.position, { radius: state.accuracy, color: '#2266d1', fillColor: '#2266d1', fillOpacity: 0.14, weight: 1 }).addTo(map);
-      L.circleMarker(state.position, { radius: 8, color: '#fff', weight: 3, fillColor: '#2266d1', fillOpacity: 1 }).bindTooltip('Your location').addTo(map);
+      L.circle(state.position, { radius: state.radius * 1000, color: '#1f9d5c', fillColor: '#1f9d5c', fillOpacity: 0.08, weight: 2 }).addTo(map);
+      L.circle(state.position, { radius: state.accuracy, color: '#1f9d5c', fillColor: '#1f9d5c', fillOpacity: 0.14, weight: 1.5 }).addTo(map);
+      L.circleMarker(state.position, { radius: 8, color: '#fff', weight: 3, fillColor: '#1f9d5c', fillOpacity: 1 }).bindTooltip('Your location').addTo(map);
     }
     window.setTimeout(function () { map.invalidateSize(); }, 0);
     window._ssMapMarkers = markers;
