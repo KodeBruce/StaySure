@@ -51,7 +51,7 @@
         '<div class="map-fullscreen-canvas" id="accommodation-map" role="region" aria-label="Accommodation map"></div>' +
         '<div class="map-fullscreen-top"><button class="map-float-control" type="button" data-map-near aria-label="' + (M.state.nearby ? 'Refresh my location' : 'Find accommodation near me') + '">' + S.icon('mapPin', 21) + '</button>' +
         '<span class="map-fullscreen-count">' + list.length + ' place' + (list.length === 1 ? '' : 's') + (M.state.nearby ? ' near you' : '') + '</span>' +
-        '<button class="map-float-control map-filter-trigger" type="button" data-map-open-search aria-label="Open search filters" aria-expanded="false">' + S.icon('search', 17) + '<span>Filters</span></button></div>' +
+        '<button class="map-float-control map-filter-trigger" type="button" data-map-open-search aria-label="Search accommodation" aria-expanded="false" title="Search accommodation">' + S.icon('search', 20) + '</button></div>' +
         '<button class="btn btn--navy map-fullscreen-area" type="button" data-search-map-area hidden>Search this area</button>' +
         (M.state.bounds ? '<button class="btn btn--ghost map-fullscreen-clear" type="button" data-clear-map-area>Clear map area</button>' : '') +
         (M.state.message ? '<p class="map-fullscreen-status" role="status">' + S.esc(M.state.message) + '</p>' : '') +

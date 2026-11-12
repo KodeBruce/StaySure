@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { LocateFixed, MapPin, SlidersHorizontal, X } from 'lucide-react';
+import { LocateFixed, MapPin, Search as SearchIcon, SlidersHorizontal, X } from 'lucide-react';
 import { AccommodationMap } from '../components/AccommodationMap';
 import { getProperties } from '../services/propertyService';
 import type { Property, FilterState } from '../types';
@@ -151,12 +151,11 @@ export function Search() {
         type="button"
         className="map-float-button map-search-trigger"
         onClick={() => setDrawerOpen(true)}
-        aria-label="Open search filters"
+        aria-label="Search accommodation"
         aria-expanded={drawerOpen}
-        title="Search & Filters"
+        title="Search accommodation"
       >
-        <SlidersHorizontal size={18} />
-        <span className="map-trigger-label">Filters</span>
+        <SearchIcon size={20} />
       </button>
     </div>
     {pendingBounds && <button type="button" className="map-area-action" onClick={() => { setMapBounds(pendingBounds); setPendingBounds(null); }}>Search this area</button>}

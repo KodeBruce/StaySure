@@ -4353,7 +4353,7 @@ body.is-map-route .bn-link.is-active::before {
   height: 44px;
   flex: 0 0 44px;
   border: 1px solid rgba(19, 35, 79, 0.12);
-  border-radius: 14px;
+  border-radius: 50%;
   background: #fff;
   color: var(--navy);
   box-shadow: var(--shadow-lg);
@@ -4371,18 +4371,15 @@ body.is-map-route .bn-link.is-active::before {
 }
 
 .map-filter-trigger {
-  width: auto;
-  min-width: 44px;
-  padding: 0 16px;
-  gap: 7px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
   background: var(--navy);
   color: #fff;
-  font-weight: 700;
-  font-size: 13px;
   border: none;
   box-shadow: 0 6px 18px rgba(19, 35, 79, 0.25);
   cursor: pointer;
