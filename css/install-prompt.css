@@ -1,0 +1,104 @@
+.install-dialog-open { overflow: hidden; }
+.install-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(13, 25, 54, 0.66);
+  backdrop-filter: blur(5px);
+}
+.install-dialog {
+  position: relative;
+  width: min(100%, 430px);
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  padding: 36px 32px 30px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 28px 80px rgba(8, 20, 50, 0.28);
+  text-align: center;
+  animation: install-enter 220ms ease-out;
+}
+.install-dialog-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: #f3f6fc;
+  color: #4d5361;
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+}
+.install-dialog-close:hover { background: #e8eefa; }
+.install-dialog-icon {
+  display: inline-flex;
+  padding: 8px;
+  border-radius: 20px;
+  background: #e1f6e8;
+  margin-bottom: 19px;
+}
+.install-dialog-icon img { width: 58px; height: 58px; border-radius: 14px; }
+.install-dialog-eyebrow {
+  display: block;
+  color: #0f6a3a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  margin-bottom: 9px;
+}
+.install-dialog h2 {
+  color: #13234f;
+  font-family: "Bricolage Grotesque", Georgia, serif;
+  font-size: clamp(26px, 5vw, 31px);
+  line-height: 1.13;
+  letter-spacing: -0.035em;
+  margin: 0 0 12px;
+}
+.install-dialog p {
+  color: #4d5361;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+.install-dialog .install-dialog-instructions {
+  margin-top: 17px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f3f6fc;
+  color: #13234f;
+  font-weight: 650;
+}
+.install-dialog-actions { display: grid; gap: 8px; margin-top: 25px; }
+.install-dialog-primary,
+.install-dialog-later {
+  min-height: 48px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: "Manrope", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+}
+.install-dialog-primary {
+  border: 1px solid #1f9d5c;
+  background: #1f9d5c;
+  color: #fff;
+}
+.install-dialog-primary:hover { background: #17834c; }
+.install-dialog-later { border: 0; background: transparent; color: #4d5361; }
+.install-dialog-later:hover { background: #f3f6fc; color: #13234f; }
+.install-dialog button:focus-visible { outline: 3px solid #13234f; outline-offset: 3px; }
+@keyframes install-enter {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (max-width: 480px) { .install-dialog { padding: 31px 23px 23px; } }
+@media (prefers-reduced-motion: reduce) { .install-dialog { animation: none; } }
