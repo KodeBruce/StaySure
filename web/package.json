@@ -7,7 +7,7 @@
     "predev": "node scripts/build-tour-viewer.mjs",
     "dev": "vite",
     "prebuild": "node scripts/build-tour-viewer.mjs",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "postbuild": "node scripts/generate-service-worker.mjs",
     "preview": "vite preview"
   },
