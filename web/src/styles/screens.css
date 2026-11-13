@@ -3757,47 +3757,24 @@ body.has-tray .screen {
 }
 
 /* Floating navigation and full-screen map search */
-.compare-tray {
-  bottom: 24px;
-}
+/* ═══════════════════════════════════════════════════════
+   FLOATING NAV + MOBILE LAYOUT  — single source of truth
+   ═══════════════════════════════════════════════════════ */
 
-.app-floating-nav {
-  display: none;
-}
+/* Nav pill hidden by default (desktop uses topnav) */
+.app-floating-nav { display: none; }
 
+/* Pill nav visible on tablet & mobile (≤1024px) */
 @media (max-width: 1024px) {
-  .compare-tray {
-    bottom: calc(90px + env(safe-area-inset-bottom, 0px));
-  }
-
+  /* ── Floating pill nav ── */
   .app-floating-nav {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     position: fixed;
     z-index: 1000;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    max-width: none;
-    height: 64px;
-    min-height: 56px;
-    padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
-    border-radius: 0;
-    border-top: 1px solid var(--line);
-    border-left: 0;
-    border-right: 0;
-    border-bottom: 0;
-    transform: none !important;
-    background: rgba(255, 255, 255, 0.96);
-    box-shadow: 0 -2px 12px rgba(19, 35, 79, 0.06);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    transition: none !important;
     left: 50%;
-    right: auto;
+    transform: translateX(-50%);
     bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-    transform: translateX(-50%) !important;
     width: min(500px, calc(100% - 20px));
     min-height: 60px;
     padding: 4px;
@@ -3817,308 +3794,57 @@ body.has-tray .screen {
     align-items: center;
     justify-content: center;
     gap: 2px;
-    border-radius: 0;
     border-radius: 15px;
     color: var(--ink-2);
-    font-size: 10.5px;
-    font-weight: 700;
     font-size: 10px;
     font-weight: 800;
     min-width: 0;
     padding: 4px 2px;
     min-height: 50px;
     text-decoration: none;
-    transition: color 0.15s ease;
     transition: all 0.15s ease;
   }
 
+  .app-floating-nav a:hover { color: var(--navy); }
+
   .app-floating-nav a.active {
-    background: var(--navy-soft);
     color: var(--navy);
-    font-weight: 800;
-    background: transparent;
+    background: var(--navy-soft);
+    border-radius: 15px;
   }
 
-  .app-floating-nav a.active::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 28px;
-    height: 3px;
-    border-radius: 0 0 3px 3px;
-    background: var(--navy);
-    display: none;
-  }
-
+  /* ── Page content clears the pill nav ── */
+  /* Pill nav ≈ 80px + 10px gap + safe area */
   .app-root:not(.is-map-search) .view {
-    padding-bottom: 94px;
+    padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
   }
 
+  body.has-compare-tray .app-root:not(.is-map-search) .view {
+    padding-bottom: calc(158px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Compare tray sits above the pill nav */
   .compare-tray {
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
-    bottom: 24px;
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
     z-index: 850;
     transition: bottom 0.28s ease, transform 0.28s ease, opacity 0.25s ease;
   }
 
+  /* ── Map/Search fullscreen ── */
   .app-root.is-map-search .topnav,
   .app-root.is-map-search footer,
-  .app-root.is-map-search .tray-wrap {
-    display: none !important;
-  }
-
-  .app-root.is-map-search .view {
-    height: 100dvh;
-    min-height: 100dvh;
-    padding: 0;
-  }
-
-  .fullscreen-search {
-    position: relative;
-    height: 100dvh;
-    width: 100%;
-    overflow: hidden;
-    background: #e8eefa;
-  }
-
-  .fullscreen-search .accom-map {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100% !important;
-    min-height: 0;
-  }
-
-  .fullscreen-map-top {
-    position: absolute;
-    top: calc(14px + env(safe-area-inset-top, 0px));
-    left: 16px;
-    right: 16px;
-    z-index: 600;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    pointer-events: none;
-  }
-
-  .fullscreen-map-top>* {
-    pointer-events: auto;
-  }
-
-  .map-float-button {
-    display: grid;
-    place-items: center;
-    width: 48px;
-    height: 48px;
-    flex: 0 0 48px;
-    border: 1px solid rgba(19, 35, 79, .12);
-    border-radius: 16px;
-    background: #fff;
-    color: var(--navy);
-    box-shadow: var(--shadow-lg);
-    cursor: pointer;
-  }
-
-  .map-float-button:hover {
-    color: var(--green-ink);
-  }
-
-  .map-float-button:disabled {
-    opacity: .6;
-  }
-
-  .map-results-count {
-    padding: 9px 15px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, .97);
-    box-shadow: var(--shadow);
-    color: var(--navy);
-    font-size: 13px;
-    font-weight: 800;
-    text-align: center;
-  }
-
-  .map-area-action,
-  .map-area-clear {
-    position: absolute;
-    z-index: 600;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 0;
-    border-radius: 999px;
-    padding: 10px 15px;
-    box-shadow: var(--shadow-lg);
-    cursor: pointer;
-    font-weight: 800;
-    white-space: nowrap;
-  }
-
-  .map-area-action {
-    top: calc(74px + env(safe-area-inset-top, 0px));
-    background: var(--navy);
-    color: #fff;
-  }
-
-  .map-area-clear {
-    top: calc(122px + env(safe-area-inset-top, 0px));
-    background: #fff;
-    color: var(--navy);
-  }
-
-  .map-location-toast {
-    position: absolute;
-    z-index: 600;
-    top: calc(74px + env(safe-area-inset-top, 0px));
-    left: 16px;
-    max-width: min(300px, calc(100% - 32px));
-    padding: 9px 12px;
-    border-radius: 11px;
-    background: #fff;
-    box-shadow: var(--shadow);
-    color: var(--navy);
-    font-size: 12px;
-    font-weight: 700;
-  }
-
-  .map-card-rail {
-    position: absolute;
-    z-index: 500;
-    left: 0;
-    right: 0;
-    bottom: calc(86px + env(safe-area-inset-bottom, 0px));
-    display: flex;
-    gap: 12px;
-    padding: 10px max(16px, calc((100vw - 1050px) / 2));
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    animation: map-rail-rise .34s ease-out;
-  }
-
-  .app-floating-nav {
-    display: none;
-  }
-
-  @media (max-width: 960px) {
-    .compare-tray {
-      bottom: calc(86px + env(safe-area-inset-bottom, 0px));
-    }
-
-    .app-floating-nav {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      max-width: none;
-      height: 64px;
-      min-height: 56px;
-      padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
-      border-radius: 0;
-      border-top: 1px solid var(--line);
-      border-left: 0;
-      border-right: 0;
-      border-bottom: 0;
-      transform: none !important;
-      background: rgba(255, 255, 255, 0.96);
-      box-shadow: 0 -2px 12px rgba(19, 35, 79, 0.06);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      transition: none !important;
-      left: 50%;
-      right: auto;
-      bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-      transform: translateX(-50%) !important;
-      width: min(500px, calc(100% - 20px));
-      min-height: 60px;
-      padding: 4px;
-      border: 1px solid rgba(19, 35, 79, 0.12);
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.95);
-      box-shadow: 0 8px 24px rgba(19, 35, 79, 0.16);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      transition: opacity 0.25s ease;
-    }
-
-    .app-floating-nav a {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      border-radius: 0;
-      border-radius: 15px;
-      color: var(--ink-2);
-      font-size: 10.5px;
-      font-weight: 700;
-      font-size: 10px;
-      font-weight: 800;
-      min-width: 0;
-      padding: 4px 2px;
-      min-height: 50px;
-      text-decoration: none;
-      transition: color 0.15s ease;
-      transition: all 0.15s ease;
-    }
-
-    .app-floating-nav a:hover {
-      color: var(--navy);
-    }
-
-    .app-floating-nav a.active {
-      background: var(--navy-soft);
-      color: var(--navy);
-      font-weight: 800;
-      background: transparent;
-    }
-
-    .app-floating-nav a.active::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 28px;
-      height: 3px;
-      border-radius: 0 0 3px 3px;
-      background: var(--navy);
-      display: none;
-    }
-
-    .app-root:not(.is-map-search) .view {
-      padding-bottom: 96px;
-    }
-
-    body.has-compare-tray .app-root:not(.is-map-search) .view {
-      padding-bottom: 160px;
-    }
-  }
+  .app-root.is-map-search .tray-wrap { display: none !important; }
 
   .app-root.is-map-search {
-    height: 100vh;
     height: 100dvh;
     overflow: hidden;
   }
 
-  .app-root.is-map-search .topnav,
-  .app-root.is-map-search footer,
-  .app-root.is-map-search .tray-wrap {
-    display: none !important;
-  }
-
   .app-root.is-map-search .view {
-    height: calc(100dvh - var(--nav-h));
+    height: 100dvh;
     min-height: 0;
     padding: 0;
     overflow: hidden;
@@ -4127,7 +3853,7 @@ body.has-tray .screen {
 
   .fullscreen-search {
     position: relative;
-    height: 100%;
+    height: 100dvh;
     width: 100%;
     overflow: hidden;
     background: #e8eefa;
@@ -4141,23 +3867,22 @@ body.has-tray .screen {
     min-height: 0;
   }
 
+  /* Top bar: locate + count + search buttons */
   .fullscreen-map-top {
     position: absolute;
     top: calc(14px + env(safe-area-inset-top, 0px));
     left: 16px;
     right: 16px;
-    z-index: 500;
+    z-index: 600;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
     pointer-events: none;
   }
+  .fullscreen-map-top > * { pointer-events: auto; }
 
-  .fullscreen-map-top>* {
-    pointer-events: auto;
-  }
-
+  /* Floating circle buttons */
   .map-float-button {
     display: grid;
     place-items: center;
@@ -4172,43 +3897,18 @@ body.has-tray .screen {
     cursor: pointer;
     transition: all 0.2s ease;
   }
+  .map-float-button:hover { color: var(--green-ink); transform: translateY(-1px); }
+  .map-float-button:disabled { opacity: 0.6; }
 
-  .map-float-button:hover {
-    color: var(--green-ink);
-    transform: translateY(-1px);
-  }
-
-  .map-float-button:disabled {
-    opacity: 0.6;
-  }
-
+  /* Search trigger (navy filled) */
   .map-search-trigger {
-    width: 44px;
-    height: 44px;
-    flex: 0 0 44px;
-    padding: 0;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
     background: var(--navy);
     color: #fff;
-    box-shadow: 0 6px 18px rgba(19, 35, 79, 0.25);
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    box-shadow: 0 6px 18px rgba(19, 35, 79, 0.28);
   }
+  .map-search-trigger:hover { background: var(--navy-2); color: #fff; }
 
-  .map-search-trigger:hover {
-    background: var(--navy-2);
-    transform: translateY(-1px);
-    color: #fff;
-  }
-
-  .map-trigger-label {
-    font-weight: 700;
-    letter-spacing: 0.02em;
-  }
-
+  /* Results count pill */
   .map-results-count {
     padding: 8px 16px;
     border-radius: 999px;
@@ -4217,10 +3917,11 @@ body.has-tray .screen {
     color: var(--navy);
     font-size: 13px;
     font-weight: 800;
-    text-align: center;
     backdrop-filter: blur(8px);
+    white-space: nowrap;
   }
 
+  /* "Search this area" / "Clear area" buttons */
   .map-area-action,
   .map-area-clear {
     position: absolute;
@@ -4229,32 +3930,17 @@ body.has-tray .screen {
     transform: translateX(-50%);
     border: 0;
     border-radius: 999px;
-    padding: 10px 16px;
+    padding: 10px 18px;
     box-shadow: var(--shadow-lg);
     cursor: pointer;
     font-weight: 800;
-    white-space: nowrap;
     font-size: 13px;
-    transition: transform 0.2s ease;
+    white-space: nowrap;
   }
+  .map-area-action { top: calc(70px + env(safe-area-inset-top, 0px)); background: var(--navy); color: #fff; }
+  .map-area-clear  { top: calc(118px + env(safe-area-inset-top, 0px)); background: #fff; color: var(--navy); }
 
-  .map-area-action:hover,
-  .map-area-clear:hover {
-    transform: translateX(-50%) translateY(-1px);
-  }
-
-  .map-area-action {
-    top: calc(70px + env(safe-area-inset-top, 0px));
-    background: var(--navy);
-    color: #fff;
-  }
-
-  .map-area-clear {
-    top: calc(118px + env(safe-area-inset-top, 0px));
-    background: #fff;
-    color: var(--navy);
-  }
-
+  /* Location toast */
   .map-location-toast {
     position: absolute;
     z-index: 600;
@@ -4270,42 +3956,46 @@ body.has-tray .screen {
     font-weight: 700;
   }
 
-  /* Card rail at bottom of map */
+  /* Card rail — clears the floating pill nav */
   .map-card-rail {
     position: absolute;
     z-index: 500;
     left: 0;
     right: 0;
-    bottom: 24px;
+    /* pill nav ≈ 80px + gap 10px + safe area */
+    bottom: calc(90px + env(safe-area-inset-bottom, 0px));
     display: flex;
     gap: 12px;
-    padding: 10px max(16px, calc((100vw - 1050px) / 2));
+    padding: 10px 16px;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
-    animation: map-rail-rise .34s ease-out;
+    -webkit-overflow-scrolling: touch;
+    animation: map-rail-rise 0.34s ease-out;
   }
+  .map-card-rail::-webkit-scrollbar { display: none; }
 
-  @media (max-width: 960px) {
-    .map-card-rail {
-      bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-    }
+  /* Approx note above card rail */
+  .map-approx-note {
+    position: absolute;
+    z-index: 450;
+    left: 16px;
+    bottom: calc(90px + env(safe-area-inset-bottom, 0px) + 148px);
+    max-width: calc(100% - 32px);
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.94);
+    color: var(--ink-2);
+    font-size: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   }
+}
 
+/* ── Map card rail & cards (all sizes, inside layout context) ── */
+@media (max-width: 1024px) {
   .map-card-rail::-webkit-scrollbar {
     display: none;
-  }
-
-  .map-rail-card,
-  .map-rail-empty {
-    flex: 0 0 min(330px, 84vw);
-    scroll-snap-align: center;
-    border: 1px solid rgba(19, 35, 79, .12);
-    border-radius: 18px;
-    background: #fff;
-    box-shadow: 0 10px 30px rgba(19, 35, 79, .18);
-    overflow: hidden;
   }
 
   .map-rail-card,
@@ -4430,6 +4120,7 @@ body.has-tray .screen {
   }
 }
 
+/* ── Search Drawer (all screen sizes, renders on body via portal) ── */
   /* ── Search Drawer Backdrop & Panel ── */
   .map-search-drawer-backdrop {
     position: fixed;
