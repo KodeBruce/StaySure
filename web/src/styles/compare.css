@@ -1,0 +1,391 @@
+/* ==========================================================================
+   Compare page — clean, scannable side-by-side layout
+   ========================================================================== */
+
+/* ── Page shell ── */
+.cmp-page {
+  padding-top: 0;
+}
+
+/* ── Header ── */
+.cmp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 28px 0 20px;
+  border-bottom: 1px solid var(--line);
+  margin: 0 24px;
+}
+
+.cmp-title {
+  font-size: 28px;
+  color: var(--navy);
+  margin: 0;
+}
+
+.cmp-sub {
+  font-size: 13px;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+
+/* ── Scroll wrapper ── */
+.cmp-scroll-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 24px;
+  scroll-snap-type: x mandatory;
+}
+.cmp-scroll-wrap::-webkit-scrollbar { height: 4px; }
+.cmp-scroll-wrap::-webkit-scrollbar-track { background: var(--line); border-radius: 4px; }
+.cmp-scroll-wrap::-webkit-scrollbar-thumb { background: var(--navy-soft); border-radius: 4px; }
+
+/* ── Compare grid ── */
+.cmp-grid {
+  display: grid;
+  /* label col + N property cols */
+  grid-template-columns: 160px repeat(var(--cols, 2), minmax(220px, 1fr));
+  gap: 0;
+  min-width: fit-content;
+  width: 100%;
+}
+
+/* ── Property header cards ── */
+.cmp-label-col {
+  /* spacer above label column */
+  background: transparent;
+  border-bottom: 2px solid var(--line);
+  padding: 12px 0;
+}
+
+.cmp-prop-head {
+  position: relative;
+  padding: 16px 16px 20px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-bottom: 2px solid var(--navy);
+  border-radius: 16px 16px 0 0;
+  margin: 0 6px;
+  scroll-snap-align: start;
+  transition: box-shadow 0.2s;
+}
+
+.cmp-prop-head:hover {
+  box-shadow: 0 4px 20px rgba(19, 35, 79, 0.1);
+}
+
+.cmp-remove {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: var(--navy-tint);
+  border: none;
+  border-radius: 8px;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.cmp-remove:hover { background: var(--red-soft); color: var(--red); }
+
+.cmp-prop-img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.cmp-prop-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cmp-prop-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--navy);
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cmp-prop-area {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+/* ── Row label cells ── */
+.cmp-row-label-cell {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 14px 12px 14px 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.cmp-row-label-cell--top {
+  align-items: flex-start;
+  padding-top: 16px;
+}
+
+.cmp-row-icon {
+  display: flex;
+  align-items: center;
+  color: var(--ink-3);
+  flex-shrink: 0;
+}
+
+/* ── Data cells ── */
+.cmp-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+  margin: 0 6px;
+  transition: background 0.15s;
+}
+
+.cmp-cell:hover { background: var(--navy-tint); }
+
+/* Best value highlight */
+.cmp-cell--best {
+  background: var(--green-soft) !important;
+  border-left: 3px solid var(--green);
+}
+
+/* Facilities wrap */
+.cmp-cell--wrap {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: flex-start;
+}
+
+/* Action row */
+.cmp-cell--action {
+  flex-direction: row;
+  gap: 8px;
+  padding: 16px;
+  border-bottom: none;
+  background: var(--bg);
+  border-radius: 0 0 16px 16px;
+  border: 1px solid var(--line);
+  border-top: none;
+  margin: 0 6px;
+  flex-wrap: wrap;
+}
+
+.cmp-btn-detail, .cmp-btn-apply {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 13px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* ── Value typography ── */
+.cmp-price {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--navy);
+  line-height: 1;
+}
+
+.cmp-price em {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+  margin-left: 2px;
+}
+
+.cmp-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.cmp-sub-val {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+.cmp-muted {
+  font-size: 12px;
+  color: var(--ink-3);
+  font-style: italic;
+}
+
+/* ── Badges ── */
+.cmp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cmp-badge--green {
+  background: var(--green-soft);
+  color: var(--green-ink);
+}
+
+.cmp-badge--amber {
+  background: var(--amber-soft);
+  color: var(--amber-ink);
+}
+
+/* ── Best tag ── */
+.cmp-best-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--green);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 800;
+  width: fit-content;
+}
+
+/* ── Facility chips ── */
+.cmp-fac-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--navy-tint);
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+/* ── Add more banner ── */
+.cmp-add-more {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 24px 32px;
+  padding: 14px 18px;
+  background: var(--navy-tint);
+  border-radius: 14px;
+  border: 1px dashed var(--line-2);
+  flex-wrap: wrap;
+}
+
+.cmp-add-more span {
+  font-size: 13.5px;
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+/* ── Empty / loading state ── */
+.cmp-empty-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 24px;
+}
+
+.cmp-empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  max-width: 420px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 40px 32px;
+  box-shadow: var(--shadow);
+}
+
+.cmp-empty-icon {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  background: var(--navy-soft);
+  color: var(--navy);
+  border-radius: 16px;
+}
+
+.cmp-empty-card h2 { font-size: 20px; color: var(--navy); }
+.cmp-empty-card p  { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+
+.cmp-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--line);
+  border-top-color: var(--navy);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive ── */
+@media (max-width: 760px) {
+  .cmp-header {
+    margin: 0 16px;
+    padding: 20px 0 16px;
+  }
+  .cmp-title { font-size: 22px; }
+
+  .cmp-scroll-wrap { padding: 16px; }
+
+  .cmp-grid {
+    grid-template-columns: 130px repeat(var(--cols, 2), minmax(200px, 1fr));
+  }
+
+  .cmp-prop-img { height: 90px; }
+  .cmp-price { font-size: 18px; }
+  .cmp-row-label-cell { font-size: 11px; padding: 12px 10px 12px 0; }
+  .cmp-cell { padding: 12px 12px; }
+
+  .cmp-add-more { margin: 0 16px 24px; }
+}
+
+@media (max-width: 520px) {
+  .cmp-grid {
+    grid-template-columns: 110px repeat(var(--cols, 2), minmax(180px, 1fr));
+  }
+
+  .cmp-cell--action { flex-direction: column; }
+  .cmp-btn-detail, .cmp-btn-apply { width: 100%; }
+}

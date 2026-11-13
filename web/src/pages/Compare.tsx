@@ -4,6 +4,38 @@ import { useCompare } from '../context/CompareContext';
 import { getPropertyById } from '../services/propertyService';
 import { Property } from '../types';
 import { formatRand, formatKm } from '../data/matchScore';
+import {
+  CheckCircle2, Clock, MapPin, ShieldCheck, Banknote,
+  BedDouble, Zap, X, ArrowRight, Star, Info,
+} from 'lucide-react';
+
+/* ── Helpers ── */
+function Badge({ green, label }: { green: boolean; label: string }) {
+  return (
+    <span className={`cmp-badge ${green ? 'cmp-badge--green' : 'cmp-badge--amber'}`}>
+      {green ? <CheckCircle2 size={12} /> : <Info size={12} />}
+      {label}
+    </span>
+  );
+}
+
+function BestTag() {
+  return <span className="cmp-best-tag"><Star size={10} /> Best value</span>;
+}
+
+function Row({
+  icon, label, children,
+}: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
+  return (
+    <div className="cmp-row">
+      <div className="cmp-row-label">
+        <span className="cmp-row-icon">{icon}</span>
+        {label}
+      </div>
+      <div className="cmp-row-cells">{children}</div>
+    </div>
+  );
+}
 
 export const Compare: React.FC = () => {
   const { compareIds, removeFromCompare, clearCompare } = useCompare();
@@ -11,138 +43,171 @@ export const Compare: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     Promise.all(compareIds.map(id => getPropertyById(id))).then(results => {
       setProperties(results.filter(Boolean) as Property[]);
       setLoading(false);
     });
   }, [compareIds]);
 
+  /* ── Loading ── */
   if (loading) {
-    return <div className="wrap card card--pad tc mt-32">Loading comparison...</div>;
-  }
-
-  if (properties.length === 0) {
     return (
-      <div className="wrap card card--pad tc mt-32" style={{ maxWidth: '600px' }}>
-        <h2 style={{ color: 'var(--navy)' }}>No properties selected for comparison</h2>
-        <p className="tiny muted mt-6">Select 2 or 3 properties from search results to compare their price, facilities, and distance.</p>
-        <Link to="/search" className="btn btn--navy mt-16" style={{ textDecoration: 'none' }}>
-          Explore Places
-        </Link>
+      <div className="cmp-empty-wrap">
+        <div className="cmp-empty-card">
+          <div className="cmp-spinner" />
+          <p>Loading comparison…</p>
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className="wrap" style={{ maxWidth: '1160px', margin: '32px auto', padding: '0 24px' }}>
-      <div className="row" style={{ justifyContent: 'space-between', marginBottom: '24px' }}>
-        <div>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--navy)', margin: '0 0 4px' }}>
-            Compare Accommodation ({properties.length}/3)
-          </h1>
-          <span className="tiny muted">Side-by-side decision support for Wits students</span>
+  /* ── Empty state ── */
+  if (properties.length === 0) {
+    return (
+      <div className="cmp-empty-wrap">
+        <div className="cmp-empty-card">
+          <div className="cmp-empty-icon"><BedDouble size={32} /></div>
+          <h2>Nothing to compare yet</h2>
+          <p>Add 2 or 3 places from search results, then come back here to compare price, distance, facilities and more.</p>
+          <Link to="/search" className="btn btn--navy">Explore places</Link>
         </div>
-        <button className="btn btn--sm btn--ghost" onClick={clearCompare}>
-          Clear All
+      </div>
+    );
+  }
+
+  /* ── Derived "best" values ── */
+  const minPrice = Math.min(...properties.map(p => p.price));
+  const minDist  = Math.min(...properties.map(p => p.distanceKm ?? Infinity));
+
+  return (
+    <div className="cmp-page screen">
+      {/* Header */}
+      <div className="cmp-header">
+        <div>
+          <h1 className="cmp-title">Compare</h1>
+          <p className="cmp-sub">{properties.length} place{properties.length > 1 ? 's' : ''} selected · side-by-side</p>
+        </div>
+        <button className="btn btn--ghost btn--sm" onClick={clearCompare}>
+          <X size={14} /> Clear all
         </button>
       </div>
 
-      <div style={{ overflowX: 'auto', background: '#fff', borderRadius: '18px', border: '1px solid var(--line)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead>
-            <tr>
-              <th style={{ padding: '20px', width: '220px', borderBottom: '2px solid var(--line)', background: 'var(--navy-tint)' }}>
-                Feature
-              </th>
-              {properties.map(p => (
-                <th key={p.id} style={{ padding: '20px', borderBottom: '2px solid var(--line)', minWidth: '240px' }}>
-                  <div style={{ position: 'relative' }}>
-                    <button
-                      onClick={() => removeFromCompare(p.id)}
-                      style={{ position: 'absolute', top: '-10px', right: 0, background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}
-                      title="Remove"
-                    >
-                      ×
-                    </button>
-                    <img src={p.images[0]} alt={p.name} style={{ width: '100%', height: '120px', borderRadius: '10px', objectFit: 'cover' }} />
-                    <h4 style={{ margin: '10px 0 4px', fontSize: '16px', color: 'var(--navy)' }}>{p.name}</h4>
-                    <span className="tiny muted">{p.area}</span>
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style={{ padding: '16px 20px', fontWeight: 700, borderBottom: '1px solid var(--line)', background: 'var(--navy-tint)' }}>Monthly Rent</td>
-              {properties.map(p => (
-                <td key={p.id} style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)', fontWeight: 800, color: 'var(--navy)', fontSize: '18px' }}>
-                  {formatRand(p.price)}
-                </td>
-              ))}
-            </tr>
-            <tr>
-              <td style={{ padding: '16px 20px', fontWeight: 700, borderBottom: '1px solid var(--line)', background: 'var(--navy-tint)' }}>Distance to Wits</td>
-              {properties.map(p => (
-                <td key={p.id} style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)' }}>
-                  {formatKm(p.distanceKm)} ({p.walkMin} min walk)
-                </td>
-              ))}
-            </tr>
-            <tr>
-              <td style={{ padding: '16px 20px', fontWeight: 700, borderBottom: '1px solid var(--line)', background: 'var(--navy-tint)' }}>Verification</td>
-              {properties.map(p => (
-                <td key={p.id} style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)' }}>
-                  {p.verified ? (
-                    <span className="pill pill--green">StaySure Verified ✓</span>
-                  ) : (
-                    <span className="pill pill--amber">Pending ({p.passedChecks}/6)</span>
-                  )}
-                </td>
-              ))}
-            </tr>
-            <tr>
-              <td style={{ padding: '16px 20px', fontWeight: 700, borderBottom: '1px solid var(--line)', background: 'var(--navy-tint)' }}>NSFAS Compatible</td>
-              {properties.map(p => (
-                <td key={p.id} style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)' }}>
-                  {p.nsfas ? "Yes ✓" : "Self-funded only"}
-                </td>
-              ))}
-            </tr>
-            <tr>
-              <td style={{ padding: '16px 20px', fontWeight: 700, borderBottom: '1px solid var(--line)', background: 'var(--navy-tint)' }}>Room Type</td>
-              {properties.map(p => (
-                <td key={p.id} style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)' }}>
-                  {p.type}
-                </td>
-              ))}
-            </tr>
-            <tr>
-              <td style={{ padding: '16px 20px', fontWeight: 700, borderBottom: '1px solid var(--line)', background: 'var(--navy-tint)' }}>Facilities</td>
-              {properties.map(p => (
-                <td key={p.id} style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)' }}>
-                  <div className="row row--wrap" style={{ gap: '4px' }}>
-                    {p.facilities.map(f => (
-                      <span key={f} className="chip" style={{ fontSize: '11px' }}>{f}</span>
-                    ))}
-                  </div>
-                </td>
-              ))}
-            </tr>
-            <tr>
-              <td style={{ padding: '20px', background: 'var(--navy-tint)' }}>Action</td>
-              {properties.map(p => (
-                <td key={p.id} style={{ padding: '20px' }}>
-                  <Link to={`/apply/${p.id}`} className="btn btn--green btn--sm" style={{ textDecoration: 'none', display: 'block', textAlign: 'center' }}>
-                    Apply Here
-                  </Link>
-                </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
+      {/* Scrollable compare grid */}
+      <div className="cmp-scroll-wrap">
+        <div className="cmp-grid" style={{ '--cols': properties.length } as React.CSSProperties}>
+
+          {/* ── Property header cards ── */}
+          <div className="cmp-label-col" aria-hidden="true" />
+          {properties.map(p => (
+            <div key={p.id} className="cmp-prop-head">
+              <button
+                className="cmp-remove"
+                onClick={() => removeFromCompare(p.id)}
+                title={`Remove ${p.name}`}
+                aria-label={`Remove ${p.name} from comparison`}
+              >
+                <X size={14} />
+              </button>
+              <img src={p.images[0] || '/images/p1.jpg'} alt={p.name} className="cmp-prop-img" />
+              <div className="cmp-prop-info">
+                <strong className="cmp-prop-name">{p.name}</strong>
+                <span className="cmp-prop-area"><MapPin size={11} />{p.area}</span>
+              </div>
+            </div>
+          ))}
+
+          {/* ── Monthly rent ── */}
+          <div className="cmp-row-label-cell">
+            <span className="cmp-row-icon"><Banknote size={15} /></span>Monthly rent
+          </div>
+          {properties.map(p => (
+            <div key={p.id} className={`cmp-cell ${p.price === minPrice ? 'cmp-cell--best' : ''}`}>
+              <span className="cmp-price">{formatRand(p.price)}<em>/mo</em></span>
+              {p.price === minPrice && properties.length > 1 && <BestTag />}
+            </div>
+          ))}
+
+          {/* ── Distance ── */}
+          <div className="cmp-row-label-cell">
+            <span className="cmp-row-icon"><MapPin size={15} /></span>Distance to Wits
+          </div>
+          {properties.map(p => (
+            <div key={p.id} className={`cmp-cell ${p.distanceKm === minDist ? 'cmp-cell--best' : ''}`}>
+              <span className="cmp-val">{formatKm(p.distanceKm)}</span>
+              <span className="cmp-sub-val"><Clock size={11} /> {p.walkMin} min walk</span>
+              {p.distanceKm === minDist && properties.length > 1 && <BestTag />}
+            </div>
+          ))}
+
+          {/* ── Room type ── */}
+          <div className="cmp-row-label-cell">
+            <span className="cmp-row-icon"><BedDouble size={15} /></span>Room type
+          </div>
+          {properties.map(p => (
+            <div key={p.id} className="cmp-cell">
+              <span className="cmp-val">{p.type}</span>
+            </div>
+          ))}
+
+          {/* ── Verification ── */}
+          <div className="cmp-row-label-cell">
+            <span className="cmp-row-icon"><ShieldCheck size={15} /></span>Verification
+          </div>
+          {properties.map(p => (
+            <div key={p.id} className="cmp-cell">
+              <Badge
+                green={p.verified}
+                label={p.verified ? 'Verified ✓' : `Pending (${p.passedChecks}/6)`}
+              />
+            </div>
+          ))}
+
+          {/* ── NSFAS ── */}
+          <div className="cmp-row-label-cell">
+            <span className="cmp-row-icon"><CheckCircle2 size={15} /></span>NSFAS
+          </div>
+          {properties.map(p => (
+            <div key={p.id} className="cmp-cell">
+              <Badge green={p.nsfas} label={p.nsfas ? 'Compatible' : 'Self-funded only'} />
+            </div>
+          ))}
+
+          {/* ── Facilities ── */}
+          <div className="cmp-row-label-cell cmp-row-label-cell--top">
+            <span className="cmp-row-icon"><Zap size={15} /></span>Facilities
+          </div>
+          {properties.map(p => (
+            <div key={p.id} className="cmp-cell cmp-cell--wrap">
+              {p.facilities.length > 0
+                ? p.facilities.map(f => <span key={f} className="cmp-fac-chip">{f}</span>)
+                : <span className="cmp-muted">Not listed</span>}
+            </div>
+          ))}
+
+          {/* ── Action ── */}
+          <div className="cmp-row-label-cell" />
+          {properties.map(p => (
+            <div key={p.id} className="cmp-cell cmp-cell--action">
+              <Link to={`/detail/${p.id}`} className="btn btn--ghost btn--sm cmp-btn-detail">
+                View details
+              </Link>
+              <Link to={`/apply/${p.id}`} className="btn btn--green btn--sm cmp-btn-apply">
+                Apply <ArrowRight size={13} />
+              </Link>
+            </div>
+          ))}
+
+        </div>
       </div>
+
+      {/* Add more prompt if < 3 */}
+      {properties.length < 3 && (
+        <div className="cmp-add-more">
+          <span>Add up to {3 - properties.length} more place{3 - properties.length > 1 ? 's' : ''} to compare</span>
+          <Link to="/search" className="btn btn--navy btn--sm">+ Search places</Link>
+        </div>
+      )}
     </div>
   );
 };
-
