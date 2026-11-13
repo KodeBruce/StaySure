@@ -65,149 +65,149 @@ export const Compare: React.FC = () => {
   /* ── Empty state ── */
   if (properties.length === 0) {
     return (
-      <div className="cmp-empty-wrap">
-        <div className="cmp-empty-card">
-          <div className="cmp-empty-icon"><BedDouble size={32} /></div>
-          <h2>Nothing to compare yet</h2>
-          <p>Add 2 or 3 places from search results, then come back here to compare price, distance, facilities and more.</p>
-          <Link to="/search" className="btn btn--navy">Explore places</Link>
+        <div className="cmp-empty-wrap">
+          <div className="cmp-empty-card">
+            <div className="cmp-empty-icon"><BedDouble size={32} /></div>
+            <h2>Nothing to compare yet</h2>
+            <p>Add 2 or 3 places from search results, then come back here to compare price, distance, facilities and more.</p>
+            <Link to="/search" className="btn btn--navy">Explore places</Link>
+          </div>
         </div>
-      </div>
-    );
+        );
   }
 
   /* ── Derived "best" values ── */
   const minPrice = Math.min(...properties.map(p => p.price));
   const minDist  = Math.min(...properties.map(p => p.distanceKm ?? Infinity));
 
-  return (
-    <div className="cmp-page screen">
-      {/* Header */}
-      <div className="cmp-header">
-        <div>
-          <h1 className="cmp-title">Compare</h1>
-          <p className="cmp-sub">{properties.length} place{properties.length > 1 ? 's' : ''} selected · side-by-side</p>
-        </div>
-        <button className="btn btn--ghost btn--sm" onClick={clearCompare}>
-          <X size={14} /> Clear all
-        </button>
-      </div>
-
-      {/* Scrollable compare grid */}
-      <div className="cmp-scroll-wrap">
-        <div className="cmp-grid" style={{ '--cols': properties.length } as React.CSSProperties}>
-
-          {/* ── Property header cards ── */}
-          <div className="cmp-label-col" aria-hidden="true" />
-          {properties.map(p => (
-            <div key={p.id} className="cmp-prop-head">
-              <button
-                className="cmp-remove"
-                onClick={() => removeFromCompare(p.id)}
-                title={`Remove ${p.name}`}
-                aria-label={`Remove ${p.name} from comparison`}
-              >
-                <X size={14} />
-              </button>
-              <img src={p.images[0] || '/images/p1.jpg'} alt={p.name} className="cmp-prop-img" />
-              <div className="cmp-prop-info">
-                <strong className="cmp-prop-name">{p.name}</strong>
-                <span className="cmp-prop-area"><MapPin size={11} />{p.area}</span>
+        return (
+            <div className="cmp-page screen">
+              {/* Header */}
+              <div className="cmp-header">
+                <div>
+                  <h1 className="cmp-title">Compare</h1>
+                  <p className="cmp-sub">{properties.length} place{properties.length > 1 ? 's' : ''} selected · side-by-side</p>
+                </div>
+                  <button className="btn btn--ghost btn--sm" onClick={clearCompare}>
+                    <X size={14} /> Clear all
+                  </button>
               </div>
-            </div>
-          ))}
 
-          {/* ── Monthly rent ── */}
-          <div className="cmp-row-label-cell">
-            <span className="cmp-row-icon"><Banknote size={15} /></span>Monthly rent
-          </div>
-          {properties.map(p => (
-            <div key={p.id} className={`cmp-cell ${p.price === minPrice ? 'cmp-cell--best' : ''}`}>
-              <span className="cmp-price">{formatRand(p.price)}<em>/mo</em></span>
-              {p.price === minPrice && properties.length > 1 && <BestTag />}
-            </div>
-          ))}
+                {/* Scrollable compare grid */}
+                <div className="cmp-scroll-wrap">
+                  <div className="cmp-grid" style={{ '--cols': properties.length } as React.CSSProperties}>
 
-          {/* ── Distance ── */}
-          <div className="cmp-row-label-cell">
-            <span className="cmp-row-icon"><MapPin size={15} /></span>Distance to Wits
-          </div>
-          {properties.map(p => (
-            <div key={p.id} className={`cmp-cell ${p.distanceKm === minDist ? 'cmp-cell--best' : ''}`}>
-              <span className="cmp-val">{formatKm(p.distanceKm)}</span>
-              <span className="cmp-sub-val"><Clock size={11} /> {p.walkMin} min walk</span>
-              {p.distanceKm === minDist && properties.length > 1 && <BestTag />}
-            </div>
-          ))}
+                    {/* ── Property header cards ── */}
+                    <div className="cmp-label-col" aria-hidden="true" />
+                    {properties.map(p => (
+                      <div key={p.id} className="cmp-prop-head">
+                        <button
+                          className="cmp-remove"
+                          onClick={() => removeFromCompare(p.id)}
+                          title={`Remove ${p.name}`}
+                          aria-label={`Remove ${p.name} from comparison`}
+                        >
+                          <X size={14} />
+                        </button>
+                        <img src={p.images[0] || '/images/p1.jpg'} alt={p.name} className="cmp-prop-img" />
+                        <div className="cmp-prop-info">
+                          <strong className="cmp-prop-name">{p.name}</strong>
+                          <span className="cmp-prop-area"><MapPin size={11} />{p.area}</span>
+                        </div>
+                      </div>
+                    ))}
 
-          {/* ── Room type ── */}
-          <div className="cmp-row-label-cell">
-            <span className="cmp-row-icon"><BedDouble size={15} /></span>Room type
-          </div>
-          {properties.map(p => (
-            <div key={p.id} className="cmp-cell">
-              <span className="cmp-val">{p.type}</span>
-            </div>
-          ))}
+                    {/* ── Monthly rent ── */}
+                    <div className="cmp-row-label-cell">
+                      <span className="cmp-row-icon"><Banknote size={15} /></span>Monthly rent
+                    </div>
+                    {properties.map(p => (
+                      <div key={p.id} className={`cmp-cell ${p.price === minPrice ? 'cmp-cell--best' : ''}`}>
+                        <span className="cmp-price">{formatRand(p.price)}<em>/mo</em></span>
+                        {p.price === minPrice && properties.length > 1 && <BestTag />}
+                      </div>
+                    ))}
 
-          {/* ── Verification ── */}
-          <div className="cmp-row-label-cell">
-            <span className="cmp-row-icon"><ShieldCheck size={15} /></span>Verification
-          </div>
-          {properties.map(p => (
-            <div key={p.id} className="cmp-cell">
-              <Badge
-                green={p.verified}
-                label={p.verified ? 'Verified ✓' : `Pending (${p.passedChecks}/6)`}
-              />
-            </div>
-          ))}
+                    {/* ── Distance ── */}
+                    <div className="cmp-row-label-cell">
+                      <span className="cmp-row-icon"><MapPin size={15} /></span>Distance to Wits
+                    </div>
+                    {properties.map(p => (
+                      <div key={p.id} className={`cmp-cell ${p.distanceKm === minDist ? 'cmp-cell--best' : ''}`}>
+                        <span className="cmp-val">{formatKm(p.distanceKm)}</span>
+                        <span className="cmp-sub-val"><Clock size={11} /> {p.walkMin} min walk</span>
+                        {p.distanceKm === minDist && properties.length > 1 && <BestTag />}
+                      </div>
+                    ))}
 
-          {/* ── NSFAS ── */}
-          <div className="cmp-row-label-cell">
-            <span className="cmp-row-icon"><CheckCircle2 size={15} /></span>NSFAS
-          </div>
-          {properties.map(p => (
-            <div key={p.id} className="cmp-cell">
-              <Badge green={p.nsfas} label={p.nsfas ? 'Compatible' : 'Self-funded only'} />
-            </div>
-          ))}
+                    {/* ── Room type ── */}
+                    <div className="cmp-row-label-cell">
+                      <span className="cmp-row-icon"><BedDouble size={15} /></span>Room type
+                    </div>
+                    {properties.map(p => (
+                      <div key={p.id} className="cmp-cell">
+                        <span className="cmp-val">{p.type}</span>
+                      </div>
+                    ))}
 
-          {/* ── Facilities ── */}
-          <div className="cmp-row-label-cell cmp-row-label-cell--top">
-            <span className="cmp-row-icon"><Zap size={15} /></span>Facilities
-          </div>
-          {properties.map(p => (
-            <div key={p.id} className="cmp-cell cmp-cell--wrap">
-              {p.facilities.length > 0
-                ? p.facilities.map(f => <span key={f} className="cmp-fac-chip">{f}</span>)
-                : <span className="cmp-muted">Not listed</span>}
-            </div>
-          ))}
+                    {/* ── Verification ── */}
+                    <div className="cmp-row-label-cell">
+                      <span className="cmp-row-icon"><ShieldCheck size={15} /></span>Verification
+                    </div>
+                    {properties.map(p => (
+                      <div key={p.id} className="cmp-cell">
+                        <Badge
+                          green={p.verified}
+                          label={p.verified ? 'Verified ✓' : `Pending (${p.passedChecks}/6)`}
+                        />
+                      </div>
+                    ))}
 
-          {/* ── Action ── */}
-          <div className="cmp-row-label-cell" />
-          {properties.map(p => (
-            <div key={p.id} className="cmp-cell cmp-cell--action">
-              <Link to={`/detail/${p.id}`} className="btn btn--ghost btn--sm cmp-btn-detail">
-                View details
-              </Link>
-              <Link to={`/apply/${p.id}`} className="btn btn--green btn--sm cmp-btn-apply">
-                Apply <ArrowRight size={13} />
-              </Link>
-            </div>
-          ))}
+                    {/* ── NSFAS ── */}
+                    <div className="cmp-row-label-cell">
+                      <span className="cmp-row-icon"><CheckCircle2 size={15} /></span>NSFAS
+                    </div>
+                    {properties.map(p => (
+                      <div key={p.id} className="cmp-cell">
+                        <Badge green={p.nsfas} label={p.nsfas ? 'Compatible' : 'Self-funded only'} />
+                      </div>
+                    ))}
 
-        </div>
-      </div>
+                    {/* ── Facilities ── */}
+                    <div className="cmp-row-label-cell cmp-row-label-cell--top">
+                      <span className="cmp-row-icon"><Zap size={15} /></span>Facilities
+                    </div>
+                    {properties.map(p => (
+                      <div key={p.id} className="cmp-cell cmp-cell--wrap">
+                        {p.facilities.length > 0
+                          ? p.facilities.map(f => <span key={f} className="cmp-fac-chip">{f}</span>)
+                          : <span className="cmp-muted">Not listed</span>}
+                      </div>
+                    ))}
 
-      {/* Add more prompt if < 3 */}
-      {properties.length < 3 && (
-        <div className="cmp-add-more">
-          <span>Add up to {3 - properties.length} more place{3 - properties.length > 1 ? 's' : ''} to compare</span>
-          <Link to="/search" className="btn btn--navy btn--sm">+ Search places</Link>
-        </div>
-      )}
-    </div>
-  );
+                    {/* ── Action ── */}
+                    <div className="cmp-row-label-cell" />
+                    {properties.map(p => (
+                      <div key={p.id} className="cmp-cell cmp-cell--action">
+                        <Link to={`/detail/${p.id}`} className="btn btn--ghost btn--sm cmp-btn-detail">
+                          View details
+                        </Link>
+                        <Link to={`/apply/${p.id}`} className="btn btn--green btn--sm cmp-btn-apply">
+                          Apply <ArrowRight size={13} />
+                        </Link>
+                      </div>
+                    ))}
+
+                  </div>
+                </div>
+
+                {/* Add more prompt if < 3 */}
+                {properties.length < 3 && (
+                  <div className="cmp-add-more">
+                    <span>Add up to {3 - properties.length} more place{3 - properties.length > 1 ? 's' : ''} to compare</span>
+                    <Link to="/search" className="btn btn--navy btn--sm">+ Search places</Link>
+                  </div>
+                )}
+              </div>
+              );
 };
