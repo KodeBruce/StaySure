@@ -3774,16 +3774,16 @@ body.has-tray .screen {
     z-index: 1000;
     left: 50%;
     transform: translateX(-50%);
-    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-    width: min(500px, calc(100% - 20px));
-    min-height: 60px;
-    padding: 4px;
-    border: 1px solid rgba(19, 35, 79, 0.12);
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 8px 24px rgba(19, 35, 79, 0.16);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    width: min(480px, calc(100% - 24px));
+    min-height: 56px;
+    padding: 4px 6px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 10px 30px -4px rgba(15, 23, 42, 0.12), 0 2px 6px -1px rgba(15, 23, 42, 0.06);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     transition: opacity 0.25s ease;
   }
 
@@ -3794,23 +3794,23 @@ body.has-tray .screen {
     align-items: center;
     justify-content: center;
     gap: 2px;
-    border-radius: 15px;
-    color: var(--ink-2);
+    border-radius: 999px;
+    color: #64748b;
     font-size: 10px;
-    font-weight: 800;
+    font-weight: 700;
     min-width: 0;
     padding: 4px 2px;
-    min-height: 50px;
+    min-height: 48px;
     text-decoration: none;
     transition: all 0.15s ease;
   }
 
-  .app-floating-nav a:hover { color: var(--navy); }
+  .app-floating-nav a:hover { color: #0f172a; }
 
   .app-floating-nav a.active {
-    color: var(--navy);
-    background: var(--navy-soft);
-    border-radius: 15px;
+    color: #0f172a;
+    background: rgba(15, 23, 42, 0.05);
+    border-radius: 999px;
   }
 
   /* ── Page content clears the pill nav ── */
@@ -4088,8 +4088,9 @@ body.has-tray .screen {
 
   .map-rail-footer a {
     color: var(--navy);
-    text-decoration: underline;
+    text-decoration: none;
     white-space: nowrap;
+    font-weight: 800;
   }
 
   .map-rail-empty {
@@ -4273,25 +4274,27 @@ body.has-tray .screen {
   .map-drawer-fields select {
     appearance: none;
     -webkit-appearance: none;
-    background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2313234F' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center;
-    border: 1.5px solid var(--line);
-    border-radius: 10px;
-    padding: 9px 32px 9px 12px;
-    font-size: 13px;
-    color: var(--navy);
-    font-weight: 600;
-    height: 40px;
+    background: #fff
+      url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234D5361' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
+      no-repeat right 13px center;
+    border: 1.5px solid var(--line-2);
+    border-radius: var(--r-input);
+    padding: 0 36px 0 13px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    height: 46px;
     width: 100%;
     cursor: pointer;
-    transition: border-color 0.18s, box-shadow 0.18s;
+    transition: border-color 0.14s, box-shadow 0.14s;
   }
   .map-drawer-fields select:focus {
     outline: none;
-    border-color: var(--green);
-    box-shadow: 0 0 0 3px rgba(31, 157, 92, 0.15);
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px var(--navy-soft);
   }
   @media (max-width: 600px) {
-    .map-drawer-fields select { height: 38px; font-size: 12.5px; }
+    .map-drawer-fields select { height: 42px; font-size: 13.5px; }
   }
 
   /* Range slider */

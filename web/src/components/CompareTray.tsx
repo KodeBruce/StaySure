@@ -2,12 +2,13 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCompare } from '../context/CompareContext';
 import { INITIAL_PROPERTIES } from '../data/mockData';
+import { X } from 'lucide-react';
 
 export const CompareTray: React.FC = () => {
   const { compareIds, removeFromCompare, clearCompare } = useCompare();
   const location = useLocation();
 
-  const isVisible = compareIds.length > 0 && !/^\/(search|compare)\/?$/.test(location.pathname);
+  const isVisible = compareIds.length > 0 && !/^\/(search|compare|research)(\/|$)/.test(location.pathname);
 
   React.useEffect(() => {
     document.body.classList.toggle('has-compare-tray', isVisible);
@@ -28,48 +29,51 @@ export const CompareTray: React.FC = () => {
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 850,
-        background: 'var(--navy)',
+        background: 'rgba(15, 23, 42, 0.94)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         color: '#fff',
-        padding: '10px 12px',
-        borderRadius: '16px',
-        boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+        padding: '10px 16px',
+        borderRadius: '999px',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        boxShadow: '0 12px 32px -4px rgba(0, 0, 0, 0.35)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: '8px',
-        width: 'min(500px, calc(100vw - 20px))'
+        gap: '12px',
+        width: 'min(520px, calc(100vw - 24px))'
       }}
     >
-      <div className="row" style={{ gap: '10px' }}>
+      <div className="row" style={{ gap: '8px' }}>
         {comparedProps.map(p => (
           <div key={p!.id} style={{ position: 'relative' }}>
             <img
               src={p!.images[0]}
               alt={p!.name}
-              style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }}
+              style={{ width: '38px', height: '38px', borderRadius: '8px', objectFit: 'cover' }}
             />
             <button
               onClick={() => removeFromCompare(p!.id)}
+              aria-label={`Remove ${p!.name} from comparison`}
+              title={`Remove ${p!.name}`}
               style={{
                 position: 'absolute',
-                top: '-6px',
-                right: '-6px',
-                background: '#fff',
-                color: '#13234F',
+                top: '-4px',
+                right: '-4px',
+                background: 'transparent',
+                color: 'rgba(255, 255, 255, 0.95)',
                 border: 'none',
-                borderRadius: '50%',
-                width: '18px',
-                height: '18px',
-                fontSize: '11px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontWeight: 'bold'
+                padding: '2px',
+                filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.85))',
+                transition: 'transform 0.15s ease'
               }}
             >
-              ×
+              <X size={14} strokeWidth={2.4} />
             </button>
           </div>
         ))}
@@ -77,14 +81,14 @@ export const CompareTray: React.FC = () => {
           <div
             key={i}
             style={{
-              width: '40px',
-              height: '40px',
+              width: '38px',
+              height: '38px',
               borderRadius: '8px',
-              border: '2px dashed rgba(255,255,255,0.3)',
+              border: '1px dashed rgba(255,255,255,0.3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '11px',
+              fontSize: '12px',
               color: 'rgba(255,255,255,0.4)'
             }}
           >
@@ -94,10 +98,10 @@ export const CompareTray: React.FC = () => {
       </div>
 
       <div>
-        <div style={{ fontSize: '13px', fontWeight: 700 }}>
+        <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em' }}>
           {compareIds.length} of 3 selected
         </div>
-        <div className="tiny" style={{ opacity: 0.7 }}>
+        <div className="tiny" style={{ opacity: 0.75, fontSize: '11px' }}>
           {compareIds.length < 2 ? "Select at least 2 to compare" : "Ready to compare"}
         </div>
       </div>
@@ -106,12 +110,19 @@ export const CompareTray: React.FC = () => {
         <button
           onClick={clearCompare}
           className="btn btn--sm"
-          style={{ background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}
+          style={{ background: 'transparent', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '999px', fontSize: '12px', padding: '5px 12px' }}
         >
           Clear
         </button>
-        {compareIds.length < 2 ? <button type="button" className="btn btn--sm btn--green" disabled>Compare Now</button> :
-          <Link to="/compare" className="btn btn--sm btn--green" style={{ textDecoration: 'none' }}>Compare Now</Link>}
+        {compareIds.length < 2 ? (
+          <button type="button" className="btn btn--sm btn--green" style={{ borderRadius: '999px', fontSize: '12px', padding: '5px 14px' }} disabled>
+            Compare
+          </button>
+        ) : (
+          <Link to="/compare/demo" className="btn btn--sm btn--green" style={{ textDecoration: 'none', borderRadius: '999px', fontSize: '12px', padding: '5px 14px' }}>
+            Compare
+          </Link>
+        )}
       </div>
     </div>
   );

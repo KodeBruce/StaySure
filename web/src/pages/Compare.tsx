@@ -23,20 +23,6 @@ function BestTag() {
   return <span className="cmp-best-tag"><Star size={10} /> Best value</span>;
 }
 
-function Row({
-  icon, label, children,
-}: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
-  return (
-    <div className="cmp-row">
-      <div className="cmp-row-label">
-        <span className="cmp-row-icon">{icon}</span>
-        {label}
-      </div>
-      <div className="cmp-row-cells">{children}</div>
-    </div>
-  );
-}
-
 export const Compare: React.FC = () => {
   const { compareIds, removeFromCompare, clearCompare } = useCompare();
   const [properties, setProperties] = useState<Property[]>([]);

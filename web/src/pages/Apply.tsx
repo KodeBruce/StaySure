@@ -5,6 +5,7 @@ import { submitApplication, uploadStudentDoc } from '../services/applicationServ
 import { Property } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { formatRand } from '../data/matchScore';
+import { CustomSelect } from '../components/CustomSelect';
 
 export const Apply: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -145,17 +146,17 @@ export const Apply: React.FC = () => {
 
           <div className="field">
             <label htmlFor="funding">Funding Method</label>
-            <select
-              id="funding"
-              className="input"
+            <CustomSelect
               value={fundingType}
-              onChange={e => setFundingType(e.target.value as any)}
-            >
-              <option value="nsfas">NSFAS (National Student Financial Aid Scheme)</option>
-              <option value="university">University Bursary / Scholarship</option>
-              <option value="self">Self-Funded / Family</option>
-              <option value="other">Private Bursary / Sponsor</option>
-            </select>
+              onChange={val => setFundingType(val as any)}
+              options={[
+                { value: 'nsfas', label: 'NSFAS (National Student Financial Aid Scheme)' },
+                { value: 'university', label: 'University Bursary / Scholarship' },
+                { value: 'self', label: 'Self-Funded / Family' },
+                { value: 'other', label: 'Private Bursary / Sponsor' }
+              ]}
+              ariaLabel="Funding Method"
+            />
           </div>
 
           <div style={{ borderTop: '1px solid var(--line)', paddingTop: '16px' }}>

@@ -5,6 +5,7 @@ import { getProperties } from '../services/propertyService';
 import { getMyTourJobs, getReviewTourJobs, submitTourCapture } from '../services/tourService';
 import { isFirebaseConfigured } from '../firebase/config';
 import { Property, TourJob } from '../types';
+import { CustomSelect } from '../components/CustomSelect';
 
 const MAX_TOTAL_BYTES = 500 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
@@ -135,10 +136,15 @@ export const CreateTour: React.FC = () => {
         <h2>Upload capture</h2>
         {!isFirebaseConfigured && <p className="pill pill--amber">Firebase must be configured to upload and generate tours.</p>}
         <label>Property
-          <select className="select" value={propertyId} onChange={event => setPropertyId(event.target.value)} required>
-            <option value="">Select a property</option>
-            {properties.map(property => <option key={property.id} value={property.id}>{property.name}</option>)}
-          </select>
+          <CustomSelect
+            value={propertyId}
+            onChange={setPropertyId}
+            options={[
+              { value: '', label: 'Select a property' },
+              ...properties.map(property => ({ value: property.id, label: property.name }))
+            ]}
+            ariaLabel="Property"
+          />
         </label>
         {!properties.length && <p className="tiny muted">No properties are assigned to this account. A StaySure reviewer must set the listing’s provider ID first.</p>}
         <fieldset className="capture-mode"><legend>Capture format</legend>

@@ -15,10 +15,12 @@ import { Compare } from './pages/Compare';
 import { Apply } from './pages/Apply';
 import { Applications } from './pages/Applications';
 import { Saved } from './pages/Saved';
+import { Research, ResearchCompare, ResearchDetail } from './pages/Research';
+import { ResearchMapSearch } from './pages/ResearchMapSearch';
 
 const AppContent: React.FC = () => {
   const location = useLocation();
-  const isMapSearch = /^\/search\/?$/.test(location.pathname);
+  const isMapSearch = /^\/search(?:\/demo)?\/?$/.test(location.pathname);
   return (
       <AuthProvider>
         <CompareProvider>
@@ -28,13 +30,17 @@ const AppContent: React.FC = () => {
             <main className="view" style={{ flexGrow: 1 }}>
               <Routes>
                 <Route path="/" element={<Landing />} />
-                <Route path="/search" element={<Search />} />
+                <Route path="/search" element={<ResearchMapSearch />} />
+                <Route path="/search/demo" element={<Search />} />
+                <Route path="/research" element={<Research />} />
+                <Route path="/research/:id" element={<ResearchDetail />} />
                 <Route path="/detail/:id" element={<Detail />} />
                 <Route path="/detail/:id/tour" element={<Tour />} />
                 <Route path="/provider/tours" element={<CreateTour />} />
                 <Route path="/provider/tours/demo" element={<TourDemo />} />
                 <Route path="/review/tour/:id" element={<ReviewTour />} />
-                <Route path="/compare" element={<Compare />} />
+                <Route path="/compare" element={<ResearchCompare />} />
+                <Route path="/compare/demo" element={<Compare />} />
                 <Route path="/apply/:id" element={<Apply />} />
                 <Route path="/applications" element={<Applications />} />
                 <Route path="/saved" element={<Saved />} />

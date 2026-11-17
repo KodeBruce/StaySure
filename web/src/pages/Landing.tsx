@@ -5,12 +5,19 @@ import { getProperties, seedPropertiesToFirestore } from '../services/propertySe
 import { Property } from '../types';
 import { isFirebaseConfigured } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
+import researchProperties from '../data/researchProperties.json';
+import { ResearchBrowseSections } from './Research';
 
 export const Landing: React.FC = () => {
   const { role } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [seeding, setSeeding] = useState(false);
   const [seedMsg, setSeedMsg] = useState('');
+  const [homeQuery, setHomeQuery] = useState('');
+  const matchingResearch = researchProperties.filter(item => {
+    const needle = homeQuery.trim().toLocaleLowerCase();
+    return !needle || [item.name, item.provider, item.address, item.locality, item.region].some(value => value.toLocaleLowerCase().includes(needle));
+  });
 
   useEffect(() => {
     getProperties().then(setProperties);
@@ -49,44 +56,44 @@ export const Landing: React.FC = () => {
               <Link to="/search" className="btn btn--green" style={{ textDecoration: 'none', padding: '14px 28px' }}>
                 Find My Accommodation →
               </Link>
-              <Link to="/search" className="btn btn--ghost" style={{ textDecoration: 'none', padding: '14px 24px' }}>
+              <a href="#places" className="btn btn--ghost" style={{ textDecoration: 'none', padding: '14px 24px' }}>
                 Explore All Places
-              </Link>
+              </a>
             </div>
           </div>
 
           {/* Quick Features Row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', marginTop: '48px', paddingTop: '32px', borderTop: '1px solid var(--line)' }}>
             <div className="card card--pad" style={{ background: '#fff' }}>
-              <b style={{ color: 'var(--navy)', display: 'block', marginBottom: '6px' }}>Verified Listings</b>
-              <p className="tiny muted">Independently inspected by the StaySure team. Checked for security and true distance to campus.</p>
+              <b style={{ color: 'var(--navy)', display: 'block', marginBottom: '6px' }}>Research with sources</b>
+              <p className="tiny muted">Read provider claims alongside source links, verification notes and unresolved gaps.</p>
             </div>
             <div className="card card--pad" style={{ background: '#fff' }}>
-              <b style={{ color: 'var(--navy)', display: 'block', marginBottom: '6px' }}>Budget-Friendly Options</b>
-              <p className="tiny muted">Total monthly cost calculations including transport and utilities, not just rent.</p>
+              <b style={{ color: 'var(--navy)', display: 'block', marginBottom: '6px' }}>Advertised prices</b>
+              <p className="tiny muted">See the original room and price basis, then confirm current rates with the provider.</p>
             </div>
             <div className="card card--pad" style={{ background: '#fff' }}>
-              <b style={{ color: 'var(--navy)', display: 'block', marginBottom: '6px' }}>Student-Focused Support</b>
-              <p className="tiny muted">NSFAS compatibility indicators and side-by-side comparison for informed decision making.</p>
+              <b style={{ color: 'var(--navy)', display: 'block', marginBottom: '6px' }}>Location confidence</b>
+              <p className="tiny muted">Map points show coordinate precision; unlocated properties remain searchable by address.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Properties */}
-      <section style={{ padding: '48px 0', maxWidth: '1160px', margin: '0 auto' }}>
+      <section id="places" className="home-research-section">
+        <div className="home-research-intro">
+          <div><span className="pill pill--amber">Res Data · Gauteng</span><h2>Find your place</h2><p>Explore {researchProperties.length} researched accommodation records. Confirm prices, availability and funding with the provider before applying.</p></div>
+          <Link to="/search" className="btn btn--ghost">Open map search →</Link>
+        </div>
+        <label className="home-research-filter">Search by name, provider or area<input value={homeQuery} onChange={event => setHomeQuery(event.target.value)} placeholder="Try Braamfontein or Campus Africa" /></label>
+        <p className="research-count">{matchingResearch.length} matching properties · <Link to="/compare">Compare selected →</Link></p>
+        <ResearchBrowseSections key={homeQuery} items={matchingResearch} initialCount={12} />
+      </section>
+
+      <section style={{ padding: '0 0 48px', maxWidth: '1160px', margin: '0 auto' }}>
         <div className="wrap" style={{ padding: '0 24px' }}>
-          <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '24px' }}>
-            <div>
-              <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--navy)', margin: 0 }}>
-                Featured Accommodation Near Campus
-              </h2>
-              <span className="tiny muted">Verified residences and apartments within walking distance of Wits</span>
-            </div>
-            <Link to="/search" className="btn btn--sm btn--ghost" style={{ textDecoration: 'none' }}>
-              View all ({properties.length})
-            </Link>
-          </div>
+          <h2 style={{ fontSize: '22px', color: 'var(--navy)' }}>Original demo listings</h2>
+          <p className="tiny muted">These sample listings are fictional and show how StaySure's booking features work.</p>
 
           {isFirebaseConfigured && role === 'admin' && (
             <div style={{ marginBottom: '20px', padding: '12px 16px', background: 'var(--navy-tint)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -100,7 +107,7 @@ export const Landing: React.FC = () => {
           )}
           {seedMsg && <div className="pill pill--green mb-18">{seedMsg}</div>}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px', marginTop: '20px' }}>
             {properties.slice(0, 3).map(p => (
               <PropertyCard key={p.id} property={p} />
             ))}

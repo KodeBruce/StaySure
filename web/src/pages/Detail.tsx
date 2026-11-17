@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import { useCompare } from '../context/CompareContext';
 import { calculateMatchScore, formatRand, formatKm } from '../data/matchScore';
 import { ScoreRing } from '../components/ScoreRing';
+import { StudentReviews } from '../components/StudentReviews';
+import { Check, Plus, Heart } from 'lucide-react';
 
 export const Detail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -49,12 +51,24 @@ export const Detail: React.FC = () => {
         <Link to="/search" className="tiny" style={{ color: 'var(--navy)', textDecoration: 'none', fontWeight: 700 }}>
           ← Back to results
         </Link>
-        <div className="row" style={{ gap: '10px' }}>
-          <button className="btn btn--sm btn--ghost" onClick={() => addToCompare(property.id)}>
-            {isCompared ? "✓ Compared" : "Add to Compare"}
+        <div className="row" style={{ gap: '14px' }}>
+          {/* Minimalist compare icon button */}
+          <button
+            style={{ background: 'transparent', border: 'none', color: isCompared ? '#059669' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12.5px', fontWeight: 700, padding: '4px 2px' }}
+            onClick={() => addToCompare(property.id)}
+            title={isCompared ? 'Comparing' : 'Add to compare'}
+          >
+            {isCompared ? <Check size={15} strokeWidth={2.5} /> : <Plus size={16} strokeWidth={2} />}
+            <span>{isCompared ? 'Comparing' : 'Compare'}</span>
           </button>
-          <button className="btn btn--sm btn--ghost" onClick={() => toggleSave(property.id)}>
-            {isSaved ? "♥ Saved" : "♡ Save"}
+          {/* Minimalist save icon button */}
+          <button
+            style={{ background: 'transparent', border: 'none', color: isSaved ? '#ef4444' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12.5px', fontWeight: 700, padding: '4px 2px' }}
+            onClick={() => toggleSave(property.id)}
+            title={isSaved ? 'Saved' : 'Save'}
+          >
+            <Heart size={15} fill={isSaved ? 'currentColor' : 'none'} strokeWidth={2.2} />
+            <span>{isSaved ? 'Saved' : 'Save'}</span>
           </button>
         </div>
       </div>
@@ -170,6 +184,13 @@ export const Detail: React.FC = () => {
                         ))}
                       </ul>
                     </div>
+
+                    {/* Student Reviews */}
+                    <StudentReviews
+                      propertyId={property.id}
+                      propertyName={property.name}
+                      locality={property.area}
+                    />
                   </div>
 
                   {/* Sticky Action Side Card */}

@@ -77,20 +77,25 @@
 
 .cmp-remove {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  background: var(--navy-tint);
+  top: 8px;
+  right: 8px;
+  z-index: 10;
   border: none;
-  border-radius: 8px;
-  color: var(--ink-2);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.75));
+  transition: transform 0.15s ease, color 0.15s ease;
 }
-.cmp-remove:hover { background: var(--red-soft); color: var(--red); }
+.cmp-remove:hover {
+  color: #ef4444;
+  transform: scale(1.18);
+  background: transparent;
+}
 
 .cmp-prop-img {
   width: 100%;

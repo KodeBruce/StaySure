@@ -4,6 +4,7 @@ import { Property } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useCompare } from '../context/CompareContext';
 import { calculateMatchScore, formatRand, formatKm } from '../data/matchScore';
+import { Check, Plus, Heart } from 'lucide-react';
 
 interface PropertyCardProps {
   property: Property;
@@ -11,101 +12,114 @@ interface PropertyCardProps {
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property: p }) => {
   const { profile } = useAuth();
-  const { compareIds, addToCompare, savedIds, toggleSave } = useCompare();
+  const { compareIds, addToCompare, removeFromCompare, savedIds, toggleSave } = useCompare();
 
   const { score } = calculateMatchScore(p, profile);
   const isCompared = compareIds.includes(p.id);
   const isSaved = savedIds.includes(p.id);
 
   return (
-    <div className="card property-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div style={{ position: 'relative', width: '100%', height: '180px', background: '#eee' }}>
+    <div className="card property-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: '#fff', border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '18px', boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.05)' }}>
+      <div style={{ position: 'relative', width: '100%', height: '180px', background: '#eee', overflow: 'hidden' }}>
         <img
           src={p.images[0] || '/images/p1.jpg'}
           alt={p.name}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
         
-        <div style={{ position: 'absolute', top: '10px', left: '10px' }}>
-          {score >= 78 ? (
-            <span className="pill pill--navy" style={{ fontSize: '11px', padding: '4px 8px' }}>
-              ✦ {score}% Match
-            </span>
-          ) : (
-            <span className="pill" style={{ background: 'rgba(255,255,255,0.9)', fontSize: '11px', padding: '4px 8px' }}>
-              {p.type}
-            </span>
-          )}
-        </div>
-
+        {/* Top-Right Pure Minimalist + (To Replace Compare button, no oval) */}
         <button
-          className="btn-icon"
-          onClick={() => toggleSave(p.id)}
+          type="button"
+          onClick={() => (isCompared ? removeFromCompare(p.id) : addToCompare(p.id))}
+          title={isCompared ? `Remove ${p.name} from comparison` : `Compare ${p.name}`}
+          aria-label={isCompared ? `Remove ${p.name} from comparison` : `Compare ${p.name}`}
           style={{
             position: 'absolute',
-            top: '10px',
-            right: '10px',
-            width: '34px',
-            height: '34px',
-            background: 'rgba(255,255,255,0.9)',
-            borderRadius: '50%',
+            top: '9px',
+            right: '9px',
+            background: 'transparent',
+            border: 'none',
+            color: isCompared ? '#059669' : 'rgba(255, 255, 255, 0.95)',
+            filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.85))',
+            cursor: 'pointer',
+            padding: '4px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            border: 'none',
-            cursor: 'pointer'
+            zIndex: 5
           }}
-          title={isSaved ? "Saved" : "Save property"}
         >
-          <span style={{ color: isSaved ? '#e02424' : 'var(--ink-2)', fontSize: '16px' }}>
-            {isSaved ? '♥' : '♡'}
-          </span>
+          {isCompared ? <Check size={18} strokeWidth={2.5} /> : <Plus size={20} strokeWidth={2.2} />}
+        </button>
+
+        {/* Top-Left Pure Minimalist Heart (Save, no oval) */}
+        <button
+          type="button"
+          onClick={() => toggleSave(p.id)}
+          title={isSaved ? "Saved" : "Save property"}
+          aria-label={isSaved ? "Saved" : "Save property"}
+          style={{
+            position: 'absolute',
+            top: '9px',
+            left: '9px',
+            background: 'transparent',
+            border: 'none',
+            color: isSaved ? '#ef4444' : 'rgba(255, 255, 255, 0.95)',
+            filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.85))',
+            cursor: 'pointer',
+            padding: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 5
+          }}
+        >
+          <Heart size={18} fill={isSaved ? 'currentColor' : 'none'} strokeWidth={2.2} />
         </button>
       </div>
 
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flexGrow: 1, gap: '10px' }}>
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flexGrow: 1, gap: '8px' }}>
         <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <h3 style={{ fontSize: '17px', margin: 0, fontWeight: 700, color: 'var(--navy)' }}>
+          <h3 style={{ fontSize: '16.5px', margin: 0, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.015em' }}>
             <Link to={`/detail/${p.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               {p.name}
             </Link>
           </h3>
-          <span className="tiny muted">★ {p.rating} ({p.reviewsCount})</span>
+          <span className="tiny muted" style={{ fontWeight: 700, fontSize: '11.5px', color: '#475569' }}>★ {p.rating} ({p.reviewsCount})</span>
         </div>
 
         <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
           <div>
-            <b style={{ fontSize: '20px', color: 'var(--navy)' }}>{formatRand(p.price)}</b>
-            <span className="tiny muted">/month</span>
+            <b style={{ fontSize: '18px', color: '#059669', fontFamily: 'var(--display)' }}>{formatRand(p.price)}</b>
+            <span className="tiny muted" style={{ fontSize: '11px', marginLeft: '2px' }}>/mo</span>
           </div>
-          <span className="tiny muted">{formatKm(p.distanceKm)} from Wits</span>
+          <span className="tiny muted" style={{ fontSize: '11.5px' }}>{formatKm(p.distanceKm)} from Wits</span>
         </div>
 
-        <div className="row row--wrap" style={{ gap: '6px' }}>
+        <div className="row row--wrap" style={{ gap: '5px' }}>
           {p.verified ? (
-            <span className="pill pill--green" style={{ fontSize: '11px', padding: '2px 8px' }}>StaySure Verified ✓</span>
+            <span className="pill pill--green" style={{ fontSize: '10.5px', padding: '2px 7px' }}>Verified ✓</span>
           ) : (
-            <span className="pill pill--amber" style={{ fontSize: '11px', padding: '2px 8px' }}>Verification Pending</span>
+            <span className="pill pill--amber" style={{ fontSize: '10.5px', padding: '2px 7px' }}>Pending</span>
           )}
 
           {p.nsfas && (
-            <span className="pill pill--navy" style={{ fontSize: '11px', padding: '2px 8px' }}>NSFAS Compatible</span>
+            <span className="pill pill--navy" style={{ fontSize: '10.5px', padding: '2px 7px' }}>NSFAS</span>
           )}
           {p.tour?.status === 'published' && (
-            <span className="pill pill--green" style={{ fontSize: '11px', padding: '2px 8px' }}>3D tour available</span>
+            <span className="pill pill--green" style={{ fontSize: '10.5px', padding: '2px 7px' }}>3D Tour</span>
           )}
         </div>
 
-        <div style={{ marginTop: 'auto', paddingTop: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          <Link to={`/detail/${p.id}`} className="btn btn--navy btn--sm" style={{ textAlign: 'center', textDecoration: 'none' }}>
-            View Details
-          </Link>
-          <button
-            className={`btn btn--sm ${isCompared ? 'btn--green' : 'btn--ghost'}`}
-            onClick={() => addToCompare(p.id)}
+        {/* Card Footer: Clean "View details →" (NO line, neat font) */}
+        <div style={{ marginTop: 'auto', paddingTop: '8px', display: 'flex', justifyContent: 'flex-end', borderTop: 'none' }}>
+          <Link
+            to={`/detail/${p.id}`}
+            className="rail-card-details-link"
+            aria-label={`View details for ${p.name}`}
           >
-            {isCompared ? '✓ Comparing' : 'Compare'}
-          </button>
+            View details <span className="arrow-glyph">→</span>
+          </Link>
         </div>
       </div>
     </div>

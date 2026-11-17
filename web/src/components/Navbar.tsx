@@ -5,11 +5,14 @@ import { useAuth } from '../context/AuthContext';
 import { useCompare } from '../context/CompareContext';
 import { AuthModal } from './AuthModal';
 import { isFirebaseConfigured } from '../firebase/config';
+import { useResearchSelection } from '../data/researchSelection';
 import { House, Search as SearchIcon, GitCompareArrows, ClipboardList, Heart } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, role, profile, signOut } = useAuth();
-  const { compareIds, savedIds } = useCompare();
+  const { savedIds } = useCompare();
+  const researchCompared = useResearchSelection('compare');
+  const researchSaved = useResearchSelection('saved');
   const [showAuth, setShowAuth] = useState(false);
 
   return (
@@ -36,7 +39,7 @@ export const Navbar: React.FC = () => {
               <NavLink to="/compare" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
                 <GitCompareArrows size={16} />
                 <span>Compare</span>
-                {compareIds.length > 0 && <span className="chip" style={{ background: 'var(--green-soft)', color: 'var(--green-ink)', marginLeft: '4px' }}>{compareIds.length}</span>}
+                {researchCompared.ids.length > 0 && <span className="chip" style={{ background: 'var(--green-soft)', color: 'var(--green-ink)', marginLeft: '4px' }}>{researchCompared.ids.length}</span>}
               </NavLink>
               <NavLink to="/applications" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
                 <ClipboardList size={16} />
@@ -45,7 +48,7 @@ export const Navbar: React.FC = () => {
               <NavLink to="/saved" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
                 <Heart size={16} />
                 <span>Saved</span>
-                {savedIds.length > 0 && <span className="chip" style={{ marginLeft: '4px' }}>{savedIds.length}</span>}
+                {researchSaved.ids.length + savedIds.length > 0 && <span className="chip" style={{ marginLeft: '4px' }}>{researchSaved.ids.length + savedIds.length}</span>}
               </NavLink>
             </nav>
           </div>
@@ -87,7 +90,7 @@ export const Navbar: React.FC = () => {
           <NavLink to="/compare" className={({ isActive }) => (isActive ? 'active' : '')}>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <GitCompareArrows size={20} />
-              {compareIds.length > 0 && <span className="nav-badge">{compareIds.length}</span>}
+              {researchCompared.ids.length > 0 && <span className="nav-badge">{researchCompared.ids.length}</span>}
             </div>
             <span>Compare</span>
           </NavLink>
@@ -98,7 +101,7 @@ export const Navbar: React.FC = () => {
           <NavLink to="/saved" className={({ isActive }) => (isActive ? 'active' : '')}>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Heart size={20} />
-              {savedIds.length > 0 && <span className="nav-badge">{savedIds.length}</span>}
+              {researchSaved.ids.length + savedIds.length > 0 && <span className="nav-badge">{researchSaved.ids.length + savedIds.length}</span>}
             </div>
             <span>Saved</span>
           </NavLink>

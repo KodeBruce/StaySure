@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { LocateFixed, MapPin, Search as SearchIcon, SlidersHorizontal, X } from 'lucide-react';
+import { Check, LocateFixed, MapPin, Plus, Search as SearchIcon, SlidersHorizontal, Star, X } from 'lucide-react';
+import { CustomSelect } from '../components/CustomSelect';
 import { AccommodationMap } from '../components/AccommodationMap';
 import { getProperties } from '../services/propertyService';
 import type { Property, FilterState } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { useCompare } from '../context/CompareContext';
 import { calculateMatchScore } from '../data/matchScore';
 import { AREA_CENTRES, PROVINCES, PROVINCE_CENTRES, UNIVERSITIES, distanceKm, propertyPosition, propertyProvince, withinBounds, type Coordinates, type MapBounds } from '../data/mapLocations';
 
@@ -16,6 +18,7 @@ const initialFilters: FilterState = {
 
 export function Search() {
   const { profile } = useAuth();
+  const { compareIds, addToCompare } = useCompare();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FilterState>(initialFilters);
@@ -166,17 +169,45 @@ export function Search() {
       {loading ? <div className="map-rail-empty">Loading accommodation…</div> : results.length === 0 ? <div className="map-rail-empty"><b>No accommodation here yet.</b><span>Try a wider radius or change the search filters.</span></div> : results.map((property) => {
         const point = propertyPosition(property)?.position;
         const fromYou = nearby && userPosition && point ? distanceKm(point, userPosition) : null;
+        const isCompared = compareIds.includes(property.id);
         return <article key={property.id} id={`search-property-${property.id}`} data-property-id={property.id} className={`map-rail-card${selectedId === property.id ? ' is-selected' : ''}`} onClick={() => setSelectedId(property.id)}>
-          <img src={property.images[0] || '/images/p1.jpg'} alt="" />
+          {/* Top-Right Pure Minimalist + Icon */}
+          <button
+            type="button"
+            className={`rail-card-plus-btn ${isCompared ? 'is-active' : ''}`}
+            onClick={event => {
+              event.stopPropagation();
+              addToCompare(property.id);
+            }}
+            title={isCompared ? 'In comparison tray' : `Add ${property.name} to compare`}
+            aria-label={isCompared ? 'In comparison tray' : `Add ${property.name} to compare`}
+          >
+            {isCompared ? <Check size={17} strokeWidth={2.5} /> : <Plus size={18} strokeWidth={2} />}
+          </button>
+          <div className="research-rail-media">
+            <img src={property.images[0] || '/images/p1.jpg'} alt={property.name} loading="lazy" />
+          </div>
           <div className="map-rail-card-body">
-            <div className="map-rail-card-title"><strong>{property.name}</strong><b>R{property.price.toLocaleString('en-ZA')}</b></div>
-            <span className="map-rail-meta"><MapPin size={13} /> {property.area} · {fromYou !== null ? `about ${fromYou.toFixed(1)} km from you` : property.type}</span>
-            <div className="map-rail-footer"><span>{property.verified ? '✓ Verified' : 'Verification pending'}</span><Link to={`/detail/${property.id}`} aria-label={`View ${property.name}`}>View details →</Link></div>
+            <div className="map-rail-card-title">
+              <strong title={property.name}>{property.name}</strong>
+              <span className="map-rail-card-price">R{property.price.toLocaleString('en-ZA')}</span>
+            </div>
+            <div className="map-rail-meta">
+              <MapPin size={11} />
+              <span>{property.area}</span>
+              <span className="map-rail-dot">·</span>
+              <span className="map-rail-rating"><Star size={10} fill="currentColor" stroke="none" /> {property.rating}</span>
+            </div>
+            <div className="map-rail-footer">
+              <Link to={`/detail/${property.id}`} className="rail-card-details-link" aria-label={`View details for ${property.name}`}>
+                View details <span className="arrow-glyph">→</span>
+              </Link>
+            </div>
           </div>
         </article>;
       })}
     </div>
-    <p className="map-approx-note">Demo pins show approximate area locations · Straight-line distances</p>
+    <p className="map-approx-note">Demo pins show approximate area locations · <Link to="/research">Explore 66 researched Gauteng properties with source notes →</Link></p>
 
     {createPortal(
       <>
@@ -184,16 +215,70 @@ export function Search() {
         <aside ref={drawerRef} className={`map-search-drawer${drawerOpen ? ' is-open' : ''}`} role="dialog" aria-modal={drawerOpen} aria-label="Search accommodation" aria-hidden={!drawerOpen}>
           <div className="map-drawer-heading"><div><span>FIND YOUR PLACE</span><h2>Search accommodation</h2></div><button type="button" ref={closeRef} onClick={() => setDrawerOpen(false)} aria-label="Close search"><X size={22} /></button></div>
           <div className="map-drawer-fields">
-            <label>Province<select className="input" value={province} onChange={(event) => chooseProvince(event.target.value)}><option value="">All provinces</option>{PROVINCES.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-            <label>University<select className="input" value={university} onChange={(event) => { setUniversity(event.target.value); setNearby(false); setMapBounds(null); setPendingBounds(null); }}><option value="">Any university</option>{UNIVERSITIES.filter((item) => !province || item.province === province).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-            <label>Area<select className="input" value={filters.location} onChange={(event) => setFilters((previous) => ({ ...previous, location: event.target.value }))}><option value="">All areas</option>{areas.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+            <label>Province
+              <CustomSelect
+                value={province}
+                onChange={chooseProvince}
+                options={[{ value: '', label: 'All provinces' }, ...PROVINCES.map((item) => ({ value: item, label: item }))]}
+                ariaLabel="Province"
+              />
+            </label>
+            <label>University
+              <CustomSelect
+                value={university}
+                onChange={(val) => {
+                  setUniversity(val);
+                  setNearby(false);
+                  setMapBounds(null);
+                  setPendingBounds(null);
+                }}
+                options={[
+                  { value: '', label: 'Any university' },
+                  ...UNIVERSITIES.filter((item) => !province || item.province === province).map((item) => ({
+                    value: item.id,
+                    label: item.name
+                  }))
+                ]}
+                ariaLabel="University"
+              />
+            </label>
+            <label>Area
+              <CustomSelect
+                value={filters.location}
+                onChange={(val) => setFilters((previous) => ({ ...previous, location: val }))}
+                options={[{ value: '', label: 'All areas' }, ...areas.map((item) => ({ value: item, label: item }))]}
+                ariaLabel="Area"
+              />
+            </label>
             <label>Max rent <b>R{filters.max.toLocaleString('en-ZA')}</b><input type="range" min="1500" max="6000" step="100" value={filters.max} onChange={(event) => setFilters((previous) => ({ ...previous, max: Number(event.target.value) }))} /></label>
-            {nearby && <label>Within<select className="input" value={radiusKm} onChange={(event) => setRadiusKm(Number(event.target.value))}>{[1, 3, 5, 10, 20].map((item) => <option key={item} value={item}>{item} km</option>)}</select></label>}
+            {nearby && (
+              <label>Within
+                <CustomSelect
+                  value={String(radiusKm)}
+                  onChange={(val) => setRadiusKm(Number(val))}
+                  options={[1, 3, 5, 10, 20].map((item) => ({ value: String(item), label: `${item} km` }))}
+                  ariaLabel="Within radius"
+                />
+              </label>
+            )}
             <label className="map-drawer-check"><input type="checkbox" checked={filters.verified} onChange={(event) => setFilters((previous) => ({ ...previous, verified: event.target.checked }))} /> Verified only</label>
             <label className="map-drawer-check"><input type="checkbox" checked={filters.nsfas} onChange={(event) => setFilters((previous) => ({ ...previous, nsfas: event.target.checked }))} /> NSFAS compatible</label>
-            <label>Sort by<select className="input" value={filters.sort} onChange={(event) => setFilters((previous) => ({ ...previous, sort: event.target.value as FilterState['sort'] }))}><option value="best">Best match</option><option value="price-asc">Lowest price</option><option value="price-desc">Highest price</option><option value="dist">Closest to university</option></select></label>
+            <label>Sort by
+              <CustomSelect
+                value={filters.sort}
+                onChange={(val) => setFilters((previous) => ({ ...previous, sort: val as FilterState['sort'] }))}
+                options={[
+                  { value: 'best', label: 'Best match' },
+                  { value: 'price-asc', label: 'Lowest price' },
+                  { value: 'price-desc', label: 'Highest price' },
+                  { value: 'dist', label: 'Closest to university' }
+                ]}
+                ariaLabel="Sort by"
+              />
+            </label>
             {nearby && <button type="button" className="btn btn--ghost" onClick={() => { setNearby(false); setLocationMessage(''); }}>Turn off Near me</button>}
             <p>Demo pins use approximate area centres until listing coordinates are verified.</p>
+            <Link to="/research" onClick={() => setDrawerOpen(false)}>Explore researched Gauteng properties →</Link>
           </div>
           <div className="map-drawer-actions"><button type="button" className="btn btn--ghost" onClick={() => { setFilters(initialFilters); setProvince('Gauteng'); setUniversity('wits'); setNearby(false); setMapBounds(null); setPendingBounds(null); }}>Reset</button><button type="button" className="btn btn--green" onClick={() => setDrawerOpen(false)}><SlidersHorizontal size={16} /> Show {results.length} places</button></div>
         </aside>
