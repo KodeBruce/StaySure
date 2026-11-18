@@ -3756,6 +3756,218 @@ body.has-tray .screen {
   }
 }
 
+/* ══════════════════════════════════════════════════════════
+   FLOATING COMPARE TRAY — Universal Responsive System
+   ══════════════════════════════════════════════════════════ */
+.compare-tray {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 24px;
+  z-index: 900;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-sizing: border-box;
+  width: auto;
+  max-width: calc(100vw - 24px);
+  transition: bottom 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease, opacity 0.2s ease;
+}
+
+.compare-tray-slots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.compare-tray-slot {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compare-tray-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.compare-tray-slot--empty {
+  border: 1.5px dashed rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.compare-tray-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 0 0 0 6px;
+  background: rgba(15, 23, 42, 0.88);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  z-index: 2;
+  transition: background 0.14s ease;
+}
+
+.compare-tray-remove:hover {
+  background: #ef4444;
+}
+
+.compare-tray-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.compare-tray-count {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  line-height: 1.2;
+  color: #ffffff;
+}
+
+.compare-tray-hint {
+  font-size: 10.5px;
+  white-space: nowrap;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.compare-tray-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.compare-tray-btn-clear {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.compare-tray-btn-clear:hover {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.compare-tray-btn-compare {
+  background: #249f60;
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 15px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(36, 159, 96, 0.35);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.compare-tray-btn-compare:hover {
+  background: #1f8a52;
+}
+
+.compare-tray-btn-compare:disabled {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.38);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+@media (max-width: 520px) {
+  .compare-tray {
+    padding: 6px 10px;
+    gap: 8px;
+  }
+  .compare-tray-slots {
+    gap: 4px;
+  }
+  .compare-tray-slot {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+  }
+  .compare-tray-remove {
+    width: 14px;
+    height: 14px;
+  }
+  .compare-tray-hint {
+    display: none;
+  }
+  .compare-tray-count {
+    font-size: 11px;
+    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+  }
+  .compare-tray-btn-clear {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  .compare-tray-btn-compare {
+    padding: 5px 11px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 370px) {
+  .compare-tray-info {
+    display: none;
+  }
+  .compare-tray {
+    padding: 5px 8px;
+    gap: 6px;
+  }
+}
+
 /* Floating navigation and full-screen map search */
 /* ═══════════════════════════════════════════════════════
    FLOATING NAV + MOBILE LAYOUT  — single source of truth

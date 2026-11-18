@@ -430,13 +430,14 @@
   gap: 8px;
 }
 
+/* University grid: exactly 2 columns so labels never wrap */
 .airbnb-uni-grid {
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 
 .airbnb-area-grid {
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 8px;
 }
 
@@ -449,6 +450,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
   min-height: 42px;
   padding: 8px 13px;
   border-radius: 12px;
@@ -463,6 +465,8 @@
   line-height: 1.25;
   box-sizing: border-box;
   transition: all 0.12s ease;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .airbnb-popover-pill svg {
@@ -475,6 +479,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
 .airbnb-popover-pill:hover {
