@@ -873,6 +873,19 @@
   color: #ffffff;
 }
 
+body.has-compare-tray .airbnb-float-map-btn {
+  bottom: 84px;
+}
+
+@media (max-width: 768px) {
+  .compare-tray {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  body.has-compare-tray .airbnb-float-map-btn {
+    bottom: calc(136px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 /* ── University Filter Strip & Card Badges ── */
 .airbnb-card-tag--uni {
   background: #f0fdf4 !important;

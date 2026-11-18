@@ -116,7 +116,7 @@ function ResearchCard({ item, saved, compared }: {
       <Link to={`/research/${item.id}`} aria-label={`View ${item.name} details`}>
         <ResearchImage src={image} name={item.name} />
       </Link>
-      
+
       {/* Top-Right Pure Minimalist + (To Replace Compare, no oval) */}
       <button
         type="button"
@@ -556,7 +556,7 @@ export function ResearchDetail() {
       <aside className="research-location-panel">
         <h2>Location</h2>
         <p className="research-location-addr">{item.address}, {item.locality}</p>
-        {mappedItem.length ? <ResearchMap items={mappedItem} onSelect={() => {}} zoomToSingle /> : <div className="research-map-unavailable">No reliable coordinate is recorded for this property.</div>}
+        {mappedItem.length ? <ResearchMap items={mappedItem} onSelect={() => { }} zoomToSingle /> : <div className="research-map-unavailable">No reliable coordinate is recorded for this property.</div>}
         <div className="research-coord-meta">
           <p><strong>Coordinate status:</strong> {item.coordinateStatus || 'Not recorded'}</p>
           {item.coordinatePrecision && <p><strong>Precision:</strong> {item.coordinatePrecision}</p>}
@@ -747,13 +747,12 @@ function CompareAddSheet({
                   </div>
                   <button
                     type="button"
-                    className={`btn btn--sm ${
-                      isSelected
+                    className={`btn btn--sm ${isSelected
                         ? 'btn--ghost'
                         : isFull
-                        ? 'btn--ghost'
-                        : 'btn--navy'
-                    }`}
+                          ? 'btn--ghost'
+                          : 'btn--navy'
+                      }`}
                     disabled={isFull && !isSelected}
                     onClick={() => {
                       onSelect(place.id);
@@ -1042,7 +1041,7 @@ export function ResearchCompare() {
               {items.length} of 3 selected
             </div>
             <div className="cmp-capsule-sub">
-              {items.length < 2 ? 'Select at least 2 to compare' : 'Comparing side by side'}
+              {items.length < 2 ? 'Add 1 more' : 'Comparing side by side'}
             </div>
           </div>
 
