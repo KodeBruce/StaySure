@@ -25,3 +25,19 @@ export function researchPriceSummary(advertisedPrice: string): ResearchPriceSumm
     note: low === high ? 'Advertised rent; confirm period and billing basis' : 'Advertised room or lease options; confirm each basis'
   };
 }
+
+export function extractMinPrice(advertisedPrice: string): number | null {
+  if (!advertisedPrice || unavailable.test(advertisedPrice.trim())) return null;
+  const amounts = [...advertisedPrice.matchAll(/R\s*([\d,]+(?:\.\d{2})?)/gi)]
+    .map(match => Number(match[1].replace(/,/g, '')))
+    .filter(amount => Number.isFinite(amount) && amount >= 1000 && amount <= 100000);
+  return amounts.length ? Math.min(...amounts) : null;
+}
+
+export function extractMaxPrice(advertisedPrice: string): number | null {
+  if (!advertisedPrice || unavailable.test(advertisedPrice.trim())) return null;
+  const amounts = [...advertisedPrice.matchAll(/R\s*([\d,]+(?:\.\d{2})?)/gi)]
+    .map(match => Number(match[1].replace(/,/g, '')))
+    .filter(amount => Number.isFinite(amount) && amount >= 1000 && amount <= 100000);
+  return amounts.length ? Math.max(...amounts) : null;
+}

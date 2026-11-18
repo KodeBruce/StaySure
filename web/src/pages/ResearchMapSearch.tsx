@@ -3,14 +3,14 @@ import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Check, LocateFixed, MapPin, Plus, Search as SearchIcon, Star, X } from 'lucide-react';
+import { Banknote, Check, LocateFixed, MapPin, Plus, Search as SearchIcon, SlidersHorizontal, Star, X } from 'lucide-react';
 import { CustomSelect } from '../components/CustomSelect';
 import records from '../data/researchProperties.json';
 import { researchFallbackImage, researchImages } from '../data/researchMedia';
-import { researchPriceSummary } from '../data/researchPricing';
+import { extractMinPrice, researchPriceSummary } from '../data/researchPricing';
 import { useResearchSelection } from '../data/researchSelection';
 import { getPropertyReviews } from '../data/propertyReviews';
-import { distanceKm, withinBounds, type Coordinates, type MapBounds } from '../data/mapLocations';
+import { AREA_CENTRES, distanceKm, withinBounds, type Coordinates, type MapBounds } from '../data/mapLocations';
 import './research-map-search.css';
 
 type ResearchProperty = (typeof records)[number];
@@ -24,10 +24,11 @@ function position(item: ResearchProperty): Coordinates {
   return [item.latitude!, item.longitude!];
 }
 
-function ResearchPins({ items, selectedId, center, userPosition, radiusKm, onSelect, onViewChange }: {
+function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition, radiusKm, onSelect, onViewChange }: {
   items: ResearchProperty[];
   selectedId: string | null;
   center: Coordinates;
+  targetZoom?: number;
   userPosition: Coordinates | null;
   radiusKm: number;
   onSelect: (id: string) => void;
@@ -61,7 +62,18 @@ function ResearchPins({ items, selectedId, center, userPosition, radiusKm, onSel
     return () => { instance.remove(); map.current = null; markers.current = null; };
   }, []);
 
-  useEffect(() => { map.current?.setView(center, userPosition ? 13 : 12); }, [center[0], center[1], userPosition]);
+  useEffect(() => {
+    if (!map.current) return;
+    if (items.length > 1) {
+      const bounds = L.latLngBounds(items.map(position));
+      map.current.fitBounds(bounds.pad(0.25), { maxZoom: 15 });
+    } else if (items.length === 1) {
+      map.current.setView(position(items[0]), 15);
+    } else {
+      map.current.setView(center, targetZoom);
+    }
+  }, [center[0], center[1], targetZoom, items]);
+
   useEffect(() => {
     const selected = items.find(item => item.id === selectedId);
     if (selected && hasCoordinates(selected)) map.current?.panTo(position(selected));
@@ -137,7 +149,11 @@ function ResearchPins({ items, selectedId, center, userPosition, radiusKm, onSel
 export function ResearchMapSearch() {
   const compared = useResearchSelection('compare');
   const [query, setQuery] = useState('');
+  const [area, setArea] = useState('');
   const [region, setRegion] = useState('');
+  const [maxRent, setMaxRent] = useState(12000);
+  const [includeUnpriced, setIncludeUnpriced] = useState(true);
+  const [sortBy, setSortBy] = useState<'best' | 'price-asc' | 'price-desc'>('best');
   const [mappedOnly, setMappedOnly] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(records.find(hasCoordinates)?.id ?? null);
@@ -153,6 +169,7 @@ export function ResearchMapSearch() {
   const closeRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLElement>(null);
   const regions = useMemo(() => [...new Set(records.map(item => item.region))].sort(), []);
+  const allAreas = useMemo(() => [...new Set(records.map(item => item.locality.split(',')[0].trim()))].sort(), []);
 
   useEffect(() => {
     document.body.classList.toggle('search-drawer-open', drawerOpen);
@@ -179,16 +196,60 @@ export function ResearchMapSearch() {
     };
   }, [drawerOpen]);
 
-  const results = useMemo(() => records.filter(item => {
+  const results = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase();
-    if (region && item.region !== region) return false;
-    if (mappedOnly && !hasCoordinates(item)) return false;
-    if (mapBounds && (!hasCoordinates(item) || !withinBounds(position(item), mapBounds))) return false;
-    if (nearby && userPosition && (!hasCoordinates(item) || distanceKm(position(item), userPosition) > radiusKm)) return false;
-    return !needle || [item.name, item.provider, item.address, item.locality, item.region].some(value => value.toLocaleLowerCase().includes(needle));
-  }).sort((a, b) => Number(hasCoordinates(b)) - Number(hasCoordinates(a))), [query, region, mappedOnly, mapBounds, nearby, userPosition, radiusKm]);
+    const filtered = records.filter(item => {
+      if (area && !item.locality.toLocaleLowerCase().includes(area.toLocaleLowerCase())) return false;
+      if (region && item.region !== region) return false;
+      if (mappedOnly && !hasCoordinates(item)) return false;
+      if (mapBounds && (!hasCoordinates(item) || !withinBounds(position(item), mapBounds))) return false;
+      if (nearby && userPosition && (!hasCoordinates(item) || distanceKm(position(item), userPosition) > radiusKm)) return false;
+      if (needle && ![item.name, item.provider, item.address, item.locality, item.region].some(value => value.toLocaleLowerCase().includes(needle))) {
+        return false;
+      }
+      if (maxRent < 12000) {
+        const minP = extractMinPrice(item.advertisedPrice);
+        if (minP === null) {
+          if (!includeUnpriced) return false;
+        } else if (minP > maxRent) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    return filtered.sort((a, b) => {
+      if (sortBy === 'price-asc') {
+        const priceA = extractMinPrice(a.advertisedPrice) ?? Infinity;
+        const priceB = extractMinPrice(b.advertisedPrice) ?? Infinity;
+        return priceA - priceB;
+      }
+      if (sortBy === 'price-desc') {
+        const priceA = extractMinPrice(a.advertisedPrice) ?? -Infinity;
+        const priceB = extractMinPrice(b.advertisedPrice) ?? -Infinity;
+        return priceB - priceA;
+      }
+      return Number(hasCoordinates(b)) - Number(hasCoordinates(a));
+    });
+  }, [query, area, region, maxRent, includeUnpriced, sortBy, mappedOnly, mapBounds, nearby, userPosition, radiusKm]);
+
   const mapped = useMemo(() => results.filter(hasCoordinates), [results]);
-  const center = useMemo<Coordinates>(() => userPosition && nearby ? userPosition : region && mapped.length ? position(mapped[0]) : johannesburg, [userPosition, nearby, region, mapped]);
+  const center = useMemo<Coordinates>(() => {
+    if (userPosition && nearby) return userPosition;
+    if (area && AREA_CENTRES[area]) return AREA_CENTRES[area];
+    if (mapped.length) return position(mapped[0]);
+    if (region && records.find(r => r.region === region && hasCoordinates(r))) {
+      return position(records.find(r => r.region === region && hasCoordinates(r))!);
+    }
+    return johannesburg;
+  }, [userPosition, nearby, area, mapped, region]);
+
+  const targetZoom = useMemo(() => {
+    if (nearby) return 13;
+    if (area) return 14;
+    if (region) return 12;
+    return 12;
+  }, [nearby, area, region]);
 
   useEffect(() => {
     if (!results.some(item => item.id === selectedId)) setSelectedId(results[0]?.id ?? null);
@@ -220,19 +281,39 @@ export function ResearchMapSearch() {
       setUserPosition([coords.latitude, coords.longitude]);
       setNearby(true);
       setMapBounds(null); setPendingBounds(null);
-      setRegion(''); setMappedOnly(false);
+      setRegion(''); setArea(''); setMappedOnly(false);
       setLocating(false); setDrawerOpen(false);
       setLocationMessage('Showing researched places with map points near you. Distances are approximate.');
     }, () => { setLocating(false); setLocationMessage('Location unavailable. Search by name or region instead.'); },
     { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
   }
 
+  const activeLocationLabel = area || region || (query ? `"${query}"` : 'All locations');
+  const activePriceLabel = maxRent < 12000 ? `≤ R${maxRent.toLocaleString('en-ZA')}` : 'Any budget';
+
   return <div className="fullscreen-search research-map-search" aria-label="Research accommodation map search">
-    <ResearchPins items={mapped} selectedId={selectedId} center={center} userPosition={nearby ? userPosition : null} radiusKm={radiusKm} onSelect={selectProperty} onViewChange={setPendingBounds} />
+    <ResearchPins items={mapped} selectedId={selectedId} center={center} targetZoom={targetZoom} userPosition={nearby ? userPosition : null} radiusKm={radiusKm} onSelect={selectProperty} onViewChange={setPendingBounds} />
     <div className="fullscreen-map-top">
       <button type="button" className="map-float-button" onClick={useMyLocation} disabled={locating} aria-label="Find researched accommodation near me"><LocateFixed size={20} /></button>
-      <span className="map-results-count">{results.length} places · {mapped.length} mapped</span>
-      <button type="button" className="map-float-button map-search-trigger" onClick={() => setDrawerOpen(true)} aria-label="Search researched accommodation" aria-expanded={drawerOpen}><SearchIcon size={20} /></button>
+
+      <div className="map-top-filter-bar">
+        <button
+          type="button"
+          className="map-top-search-pill"
+          onClick={() => setDrawerOpen(true)}
+          aria-label="Filter accommodation by location and price"
+        >
+          <SearchIcon size={15} />
+          <span className="map-top-pill-label">
+            {activeLocationLabel} · {activePriceLabel}
+          </span>
+          <span className="map-top-pill-count">{results.length}</span>
+        </button>
+      </div>
+
+      <button type="button" className="map-float-button map-search-trigger" onClick={() => setDrawerOpen(true)} aria-label="Search and filter options" aria-expanded={drawerOpen}>
+        <SlidersHorizontal size={19} />
+      </button>
     </div>
     {pendingBounds && <button type="button" className="map-area-action" onClick={() => { setMapBounds(pendingBounds); setPendingBounds(null); }}>Search this area</button>}
     {mapBounds && <button type="button" className="map-area-clear" onClick={() => { setMapBounds(null); setPendingBounds(null); }}>Clear map area</button>}
@@ -291,7 +372,30 @@ export function ResearchMapSearch() {
       <aside ref={drawerRef} className={`map-search-drawer research-map-drawer${drawerOpen ? ' is-open' : ''}`} role="dialog" aria-modal={drawerOpen} aria-label="Search researched accommodation" aria-hidden={!drawerOpen}>
         <div className="map-drawer-heading"><div><span>FIND YOUR PLACE</span><h2>Search accommodation</h2></div><button type="button" ref={closeRef} onClick={() => setDrawerOpen(false)} aria-label="Close search"><X size={22} /></button></div>
         <div className="map-drawer-fields">
-          <label>Name, provider or place<input className="input" value={query} onChange={event => setQuery(event.target.value)} placeholder="Try Braamfontein" /></label>
+          {/* Location Preference */}
+          <div className="map-drawer-section-title">
+            <MapPin size={14} />
+            <span>Location Preference</span>
+          </div>
+
+          <label>Search keyword or campus
+            <input className="input" value={query} onChange={event => setQuery(event.target.value)} placeholder="Try Hatfield, Braamfontein, UP, Wits..." />
+          </label>
+
+          <label>Area / Suburb
+            <CustomSelect
+              value={area}
+              onChange={(val) => {
+                setArea(val);
+                setNearby(false);
+                setMapBounds(null);
+                setPendingBounds(null);
+              }}
+              options={[{ value: '', label: 'All areas' }, ...allAreas.map(item => ({ value: item, label: item }))]}
+              ariaLabel="Area / Suburb"
+            />
+          </label>
+
           <label>Region
             <CustomSelect
               value={region}
@@ -305,6 +409,7 @@ export function ResearchMapSearch() {
               ariaLabel="Region"
             />
           </label>
+
           {nearby && (
             <label>Within
               <CustomSelect
@@ -315,13 +420,114 @@ export function ResearchMapSearch() {
               />
             </label>
           )}
-          <label className="map-drawer-check"><input type="checkbox" checked={mappedOnly} onChange={event => setMappedOnly(event.target.checked)} /> Mapped locations only</label>
+
+          {/* Price Preference */}
+          <div className="map-drawer-section-title" style={{ marginTop: '8px' }}>
+            <Banknote size={14} />
+            <span>Price Preference</span>
+          </div>
+
+          <label>Max rent budget: <b>{maxRent >= 12000 ? 'Any budget' : `R${maxRent.toLocaleString('en-ZA')} / mo`}</b>
+            <input
+              type="range"
+              min="2500"
+              max="12000"
+              step="250"
+              value={maxRent}
+              onChange={event => setMaxRent(Number(event.target.value))}
+            />
+          </label>
+
+          <div className="map-drawer-pills">
+            <button
+              type="button"
+              className={`map-drawer-pill ${maxRent >= 12000 ? 'is-active' : ''}`}
+              onClick={() => setMaxRent(12000)}
+            >
+              Any
+            </button>
+            <button
+              type="button"
+              className={`map-drawer-pill ${maxRent === 5000 ? 'is-active' : ''}`}
+              onClick={() => setMaxRent(5000)}
+            >
+              &lt; R5k
+            </button>
+            <button
+              type="button"
+              className={`map-drawer-pill ${maxRent === 6500 ? 'is-active' : ''}`}
+              onClick={() => setMaxRent(6500)}
+            >
+              &lt; R6.5k
+            </button>
+            <button
+              type="button"
+              className={`map-drawer-pill ${maxRent === 8000 ? 'is-active' : ''}`}
+              onClick={() => setMaxRent(8000)}
+            >
+              &lt; R8k
+            </button>
+          </div>
+
+          <label>Sort by
+            <CustomSelect
+              value={sortBy}
+              onChange={(val) => setSortBy(val as 'best' | 'price-asc' | 'price-desc')}
+              options={[
+                { value: 'best', label: 'Best match (mapped first)' },
+                { value: 'price-asc', label: 'Lowest price first' },
+                { value: 'price-desc', label: 'Highest price first' }
+              ]}
+              ariaLabel="Sort by"
+            />
+          </label>
+
+          <label className="map-drawer-check">
+            <input
+              type="checkbox"
+              checked={includeUnpriced}
+              onChange={event => setIncludeUnpriced(event.target.checked)}
+            />
+            Include places with rent on request
+          </label>
+
+          <label className="map-drawer-check">
+            <input
+              type="checkbox"
+              checked={mappedOnly}
+              onChange={event => setMappedOnly(event.target.checked)}
+            />
+            Mapped locations only
+          </label>
+
           {nearby && <button type="button" className="btn btn--ghost" onClick={() => { setNearby(false); setLocationMessage(''); }}>Turn off Near me</button>}
           <p>All {records.length} Res Data records can appear in the cards. Only {records.filter(hasCoordinates).length} have approximate map coordinates. Prices and availability require confirmation.</p>
           <Link to="/research" onClick={() => setDrawerOpen(false)}>View full research and source details →</Link>
           <Link to="/search/demo" onClick={() => setDrawerOpen(false)}>View original demo listings →</Link>
         </div>
-        <div className="map-drawer-actions"><button type="button" className="btn btn--ghost" onClick={() => { setQuery(''); setRegion(''); setMappedOnly(false); setNearby(false); setMapBounds(null); setPendingBounds(null); }}>Reset</button><button type="button" className="btn btn--green" onClick={() => setDrawerOpen(false)}>Show {results.length} places</button></div>
+        <div className="map-drawer-actions">
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={() => {
+              setQuery('');
+              setArea('');
+              setRegion('');
+              setMaxRent(12000);
+              setIncludeUnpriced(true);
+              setSortBy('best');
+              setMappedOnly(false);
+              setNearby(false);
+              setMapBounds(null);
+              setPendingBounds(null);
+            }}
+          >
+            Reset
+          </button>
+          <button type="button" className="btn btn--green" onClick={() => setDrawerOpen(false)}>
+            Show {results.length} places
+          </button>
+        </div>
       </aside>
     </>, document.body)}
   </div>;

@@ -35,7 +35,19 @@ export const AREA_CENTRES: Record<string, Coordinates> = {
   Melville: [-26.1763, 28.0091],
   Berea: [-26.1900, 28.0527],
   Rosebank: [-26.1466, 28.0418],
-  Westdene: [-26.1759, 27.9941]
+  Westdene: [-26.1759, 27.9941],
+  'New Doornfontein': [-26.1985, 28.0575],
+  Arcadia: [-25.7485, 28.2205],
+  Hatfield: [-25.7505, 28.2365],
+  'Pretoria CBD': [-25.7460, 28.1880],
+  'Pretoria Central': [-25.7460, 28.1880],
+  Brooklyn: [-25.7710, 28.2380],
+  Midrand: [-26.0125, 28.1280],
+  Soweto: [-26.2485, 27.8540],
+  Centurion: [-25.8600, 28.1890],
+  Germiston: [-26.2250, 28.1680],
+  Randhart: [-26.2910, 28.1100],
+  Soshanguve: [-25.5200, 28.1000]
 };
 
 export function propertyPosition(property: Property): { position: Coordinates; approximate: boolean } | null {
