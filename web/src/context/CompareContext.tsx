@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext } from 'react';
+import { useResearchSelection } from '../data/researchSelection';
 
 interface CompareContextType {
   compareIds: string[];
@@ -12,41 +13,43 @@ interface CompareContextType {
 const CompareContext = createContext<CompareContextType | undefined>(undefined);
 
 export const CompareProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [compareIds, setCompareIds] = useState<string[]>([]);
-  const [savedIds, setSavedIds] = useState<string[]>(["braam-student-village"]);
+  const compared = useResearchSelection('compare');
+  const saved = useResearchSelection('saved');
 
   const addToCompare = (id: string): boolean => {
-    if (compareIds.includes(id)) {
-      setCompareIds(prev => prev.filter(item => item !== id));
+    if (compared.ids.includes(id)) {
+      compared.toggle(id);
       return false;
     }
-    if (compareIds.length >= 3) {
+    if (compared.ids.length >= 3) {
       alert("You can compare up to 3 properties. Remove one first.");
       return false;
     }
-    setCompareIds(prev => [...prev, id]);
+    compared.toggle(id);
     return true;
   };
 
   const removeFromCompare = (id: string) => {
-    setCompareIds(prev => prev.filter(item => item !== id));
+    if (compared.ids.includes(id)) {
+      compared.toggle(id);
+    }
   };
 
-  const clearCompare = () => setCompareIds([]);
+  const clearCompare = () => {
+    compared.clear();
+  };
 
   const toggleSave = (id: string) => {
-    setSavedIds(prev => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-    );
+    saved.toggle(id);
   };
 
   return (
     <CompareContext.Provider value={{
-      compareIds,
+      compareIds: compared.ids,
       addToCompare,
       removeFromCompare,
       clearCompare,
-      savedIds,
+      savedIds: saved.ids,
       toggleSave
     }}>
       {children}
@@ -59,4 +62,5 @@ export const useCompare = () => {
   if (!context) throw new Error("useCompare must be used within CompareProvider");
   return context;
 };
+
 

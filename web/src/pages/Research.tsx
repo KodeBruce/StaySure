@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -15,12 +16,56 @@ import {
   Banknote, BedDouble, Wifi, BookOpen, Armchair, Bus,
   ShieldCheck, Fingerprint, WashingMachine, UtensilsCrossed,
   Tv, Bath, CheckCircle2, XCircle, GraduationCap, ChevronDown,
-  Info, ArrowRight, Star, X, Check, Plus
+  Info, ArrowRight, Star, X, Check, Plus, Sparkles, Search as SearchIcon
 } from 'lucide-react';
 import './research.css';
+import { INITIAL_PROPERTIES } from '../data/mockData';
 
 type ResearchProperty = (typeof records)[number];
 const properties: ResearchProperty[] = records;
+
+function convertMockToResearchProperty(p: (typeof INITIAL_PROPERTIES)[number]): ResearchProperty {
+  return {
+    id: p.id,
+    name: p.name,
+    provider: 'StaySure Verified Partner',
+    address: `${p.walkMin} min walk to campus`,
+    locality: `${p.area}, Johannesburg`,
+    region: 'Central Johannesburg',
+    classification: p.type || 'Student residence',
+    latitude: -26.1926,
+    longitude: 28.0369,
+    coordinateStatus: 'Verified campus zone',
+    coordinatePrecision: 'High',
+    coordinateNotes: 'Verified student precinct',
+    coordinateSource: 'StaySure Provider Verification',
+    website: '',
+    contact: 'StaySure Helpdesk',
+    advertisedPrice: `R${p.price.toLocaleString()} per month. ${p.nsfas ? 'NSFAS accredited rates applicable.' : 'Private rate.'}`,
+    pricePeriod: 'Academic Year 2026/27',
+    rooms: `${p.beds} beds available, ${p.available} remaining. ${p.type}.`,
+    amenities: p.facilities.join(', '),
+    funding: p.nsfas ? 'NSFAS accredited' : 'Self-funded / Private',
+    fundingEvidence: p.nsfas ? 'University partner accredited' : 'Private student agreement',
+    campus: 'Near Wits and UJ campuses',
+    institutions: 'Wits, UJ',
+    gaps: ''
+  };
+}
+
+function resolveAnyProperty(id: string): ResearchProperty | undefined {
+  const match = properties.find(item => item.id === id);
+  if (match) return match;
+  const mockMatch = INITIAL_PROPERTIES.find(item => item.id === id);
+  if (mockMatch) return convertMockToResearchProperty(mockMatch);
+  return undefined;
+}
+
+function getPropertyThumbnail(item: ResearchProperty): string {
+  const mock = INITIAL_PROPERTIES.find(p => p.id === item.id);
+  if (mock && mock.images && mock.images[0]) return mock.images[0];
+  return researchImages(item.id)[0] || researchFallbackImage;
+}
 
 function hasCoordinates(property: ResearchProperty): boolean {
   return typeof property.latitude === 'number' && typeof property.longitude === 'number';
@@ -507,35 +552,244 @@ export function ResearchDetail() {
   </div>;
 }
 
+/* ── Fast Bottom Sheet / Modal to Pick Accommodations to Compare (Concept A) ── */
+function CompareAddSheet({
+  isOpen,
+  onClose,
+  onSelect,
+  savedIds,
+  comparedIds,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelect: (id: string) => void;
+  savedIds: string[];
+  comparedIds: string[];
+}) {
+  const [activeTab, setActiveTab] = useState<'saved' | 'all'>('saved');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Lock body scroll while open
+  useEffect(() => {
+    if (!isOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [isOpen]);
+
+  // If user has no saved places, default to 'all'
+  useEffect(() => {
+    if (isOpen) {
+      if (savedIds.length === 0) {
+        setActiveTab('all');
+      } else {
+        setActiveTab('saved');
+      }
+      setSearchQuery('');
+    }
+  }, [isOpen, savedIds.length]);
+
+  if (!isOpen) return null;
+
+  // Merge research JSON properties + mock properties into one unified pool
+  const mockAsResearch = INITIAL_PROPERTIES.map(convertMockToResearchProperty);
+  const allProperties: ResearchProperty[] = [
+    ...properties,
+    ...mockAsResearch.filter(m => !properties.some(p => p.id === m.id))
+  ];
+
+  const savedProperties = allProperties.filter(p => savedIds.includes(p.id));
+  const listToFilter = activeTab === 'saved' ? savedProperties : allProperties;
+
+  const filtered = listToFilter.filter(p => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      p.name.toLowerCase().includes(q) ||
+      p.locality.toLowerCase().includes(q) ||
+      (p.institutions && p.institutions.toLowerCase().includes(q))
+    );
+  });
+
+  return createPortal(
+    <div className="cmp-sheet-backdrop" onClick={onClose}>
+      <div
+        className="cmp-sheet-dialog"
+        onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Add accommodation to comparison"
+      >
+        <div className="cmp-sheet-handle" />
+
+        <div className="cmp-sheet-header">
+          <div>
+            <h3 className="cmp-sheet-title">Add place to compare</h3>
+            <p className="cmp-sheet-sub">
+              {comparedIds.length} of 3 selected · Pick from your saved wishlist or search all residences
+            </p>
+          </div>
+          <button
+            type="button"
+            className="cmp-sheet-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="cmp-sheet-tabs">
+          <button
+            type="button"
+            className={`cmp-sheet-tab ${activeTab === 'saved' ? 'is-active' : ''}`}
+            onClick={() => setActiveTab('saved')}
+          >
+            <Heart size={14} fill={activeTab === 'saved' ? 'currentColor' : 'none'} />
+            <span>My Saved Places ({savedProperties.length})</span>
+          </button>
+          <button
+            type="button"
+            className={`cmp-sheet-tab ${activeTab === 'all' ? 'is-active' : ''}`}
+            onClick={() => setActiveTab('all')}
+          >
+            <SearchIcon size={14} />
+            <span>Search All Places ({properties.length})</span>
+          </button>
+        </div>
+
+        <div className="cmp-sheet-search-wrap">
+          <SearchIcon size={16} className="cmp-sheet-search-icon" />
+          <input
+            type="text"
+            className="cmp-sheet-search-input"
+            placeholder={
+              activeTab === 'saved'
+                ? 'Filter saved places...'
+                : 'Search by campus (e.g. Wits, UP, UJ) or area...'
+            }
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            autoFocus
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="cmp-sheet-search-clear"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        <div className="cmp-sheet-list">
+          {filtered.length === 0 ? (
+            <div className="cmp-sheet-empty">
+              {activeTab === 'saved' && savedProperties.length === 0 ? (
+                <>
+                  <p>You haven't saved any places to your wishlist yet.</p>
+                  <button
+                    type="button"
+                    className="btn btn--sm btn--navy"
+                    onClick={() => setActiveTab('all')}
+                  >
+                    Search all accommodations →
+                  </button>
+                </>
+              ) : (
+                <p>No accommodations match "{searchQuery}"</p>
+              )}
+            </div>
+          ) : (
+            filtered.map(place => {
+              const isSelected = comparedIds.includes(place.id);
+              const price = researchPriceSummary(place.advertisedPrice);
+              const reviews = getPropertyReviews(place.id, place.name, place.locality);
+              const isFull = comparedIds.length >= 3 && !isSelected;
+
+              return (
+                <div key={place.id} className="cmp-sheet-item">
+                  <img
+                    src={getPropertyThumbnail(place)}
+                    alt={place.name}
+                    className="cmp-sheet-thumb"
+                    onError={e => { e.currentTarget.src = researchFallbackImage; }}
+                  />
+                  <div className="cmp-sheet-item-info">
+                    <div className="cmp-sheet-item-name">{place.name}</div>
+                    <div className="cmp-sheet-item-meta">
+                      {place.locality.split(',')[0]} · ★ {reviews.ratingFormatted}
+                    </div>
+                    <div className="cmp-sheet-item-price">
+                      {price?.label ?? 'Ask for rates'}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className={`btn btn--sm ${
+                      isSelected
+                        ? 'btn--ghost'
+                        : isFull
+                        ? 'btn--ghost'
+                        : 'btn--navy'
+                    }`}
+                    disabled={isFull && !isSelected}
+                    onClick={() => {
+                      onSelect(place.id);
+                      if (!isSelected && comparedIds.length >= 2) {
+                        onClose();
+                      }
+                    }}
+                  >
+                    {isSelected ? (
+                      <>
+                        <Check size={14} /> Selected
+                      </>
+                    ) : isFull ? (
+                      'Full (3/3)'
+                    ) : (
+                      <>
+                        <Plus size={14} /> Add
+                      </>
+                    )}
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 /* ── Offering-based Smart Compare Component ── */
 export function ResearchCompare() {
   const compared = useResearchSelection('compare');
+  const saved = useResearchSelection('saved');
+  const [addSheetOpen, setAddSheetOpen] = useState(false);
   const [expandNotes, setExpandNotes] = useState(false);
   const [diffOnly, setDiffOnly] = useState(false);
   const [mobilePair, setMobilePair] = useState<'all' | '0-1' | '1-2' | '0-2'>('all');
 
-  const items = compared.ids
-    .map(id => properties.find(item => item.id === id))
-    .filter((item): item is ResearchProperty => Boolean(item));
+  // Resolve ALL compared IDs — both research JSON props AND mock/CompareContext props
+  const items = useMemo(() =>
+    compared.ids
+      .map(id => resolveAnyProperty(id))
+      .filter((item): item is ResearchProperty => Boolean(item)),
+    [compared.ids]
+  );
 
   const parsedItems = useMemo(() => items.map(item => ({
     item,
     offerings: parseOfferings(item),
     priceSummary: researchPriceSummary(item.advertisedPrice)
   })), [items]);
-
-  // Available accommodations to add to comparison
-  const availableToAdd = useMemo(() => {
-    return properties.filter(p => !compared.ids.includes(p.id));
-  }, [compared.ids]);
-
-  const comparePickerOptions = useMemo(() => {
-    return availableToAdd.map(p => ({
-      value: p.id,
-      label: `+ ${p.name}`,
-      sublabel: p.locality.split(',')[0],
-    }));
-  }, [availableToAdd]);
 
   // Find lowest price
   const minPrice = useMemo(() => {
@@ -713,302 +967,438 @@ export function ResearchCompare() {
     return features.filter(f => diffSet.has(f.id));
   }, [diffOnly, features, diffSet]);
 
-  return <div className="research-page research-compare-page">
-    <div className="research-heading">
-      <span className="pill pill--amber">Side-by-side Decision Support</span>
-      <h1>Compare accommodation offerings</h1>
-      <p>Compare room types, Wi-Fi, distance, study areas and security at a glance without reading walls of text.</p>
-    </div>
+  // Uncompared saved items — includes both research JSON props AND mock/CompareContext props
+  const uncomparedSaved = useMemo(() => {
+    return saved.ids
+      .filter(id => !compared.ids.includes(id))
+      .map(id => resolveAnyProperty(id))
+      .filter((item): item is ResearchProperty => Boolean(item));
+  }, [saved.ids, compared.ids]);
 
-    {items.length === 0 ? (
-      <div className="research-empty cmp-empty-card">
-        <div className="cmp-empty-icon"><BedDouble size={36} /></div>
-        <h2>Nothing selected to compare yet</h2>
-        <p>Pick 2 or 3 student accommodations from the research list or map to compare offerings side by side.</p>
-        <Link to="/search" className="btn btn--navy">Explore map places →</Link>
+  return (
+    <div className="research-page research-compare-page">
+      <div className="research-heading" style={{ marginBottom: '20px' }}>
+        <h1>Compare accommodations</h1>
+        <p style={{ color: 'var(--ink-2)', fontSize: '14px', margin: 0 }}>
+          Side-by-side decision support: choose up to 3 places to compare rent, amenities and offerings.
+        </p>
       </div>
-    ) : (
+
       <div className="cmp-smart-container">
-        {/* Top Summary & Actions */}
-        <div className="cmp-top-bar">
-          <div className="cmp-count-badge">
-            <strong>{items.length} of 3</strong> places selected
-          </div>
-          <div className="cmp-top-actions">
-            {items.length < 3 && availableToAdd.length > 0 && (
-              <div className="cmp-inline-picker-wrap">
-                <CustomSelect
-                  value=""
-                  onChange={val => {
-                    if (val) compared.toggle(val);
-                  }}
-                  options={comparePickerOptions}
-                  placeholder={`+ Add ${items.length === 1 ? 'second' : 'third'} place…`}
-                  ariaLabel="Add accommodation to comparison"
-                  size="sm"
-                  clearOnSelect
-                  minMenuWidth={280}
-                  className="cmp-custom-picker"
+        {/* Compact Capsule Dock Bar (Screenshot Style) */}
+        <div className="cmp-capsule-dock" role="region" aria-label="Selected accommodations for comparison">
+          <div className="cmp-capsule-slots">
+            {items.map(item => (
+              <div key={item.id} className="cmp-capsule-slot cmp-capsule-slot-filled" title={item.name}>
+                <img
+                  src={getPropertyThumbnail(item)}
+                  alt={item.name}
+                  onError={e => { e.currentTarget.src = researchFallbackImage; }}
                 />
-              </div>
-            )}
-            <Link to="/search" className="btn btn--sm btn--ghost">Browse map</Link>
-            <button type="button" onClick={compared.clear} className="btn btn--sm btn--ghost">Clear all</button>
-          </div>
-        </div>
-
-        {items.length === 1 && (
-          <div className="cmp-single-hint">
-            <span>Select one more accommodation above or from the map to compare side by side.</span>
-          </div>
-        )}
-
-        {/* 3-Place Mobile Segmented Toggle */}
-        {parsedItems.length === 3 && (
-          <div className="cmp-mobile-pair-switcher" aria-label="Mobile view switcher">
-            <span className="cmp-switcher-label">View:</span>
-            <button
-              type="button"
-              className={`cmp-switch-btn ${mobilePair === 'all' ? 'active' : ''}`}
-              onClick={() => setMobilePair('all')}
-            >
-              All 3
-            </button>
-            <button
-              type="button"
-              className={`cmp-switch-btn ${mobilePair === '0-1' ? 'active' : ''}`}
-              onClick={() => setMobilePair('0-1')}
-            >
-              1 vs 2
-            </button>
-            <button
-              type="button"
-              className={`cmp-switch-btn ${mobilePair === '1-2' ? 'active' : ''}`}
-              onClick={() => setMobilePair('1-2')}
-            >
-              2 vs 3
-            </button>
-            <button
-              type="button"
-              className={`cmp-switch-btn ${mobilePair === '0-2' ? 'active' : ''}`}
-              onClick={() => setMobilePair('0-2')}
-            >
-              1 vs 3
-            </button>
-          </div>
-        )}
-
-        {/* Property Header Cards */}
-        <div
-          className="cmp-header-cards"
-          style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
-        >
-          {activeItems.map(({ item, offerings, priceSummary }) => {
-            const priceNum = priceSummary?.label.match(/R([\d,]+)/);
-            const isLowest = priceNum && Number(priceNum[1].replace(/,/g, '')) === minPrice && items.length > 1;
-
-            return (
-              <div key={item.id} className="cmp-prop-card">
                 <button
                   type="button"
-                  className="cmp-prop-remove"
+                  className="cmp-capsule-slot-remove"
                   onClick={() => compared.toggle(item.id)}
-                  aria-label={`Remove ${item.name}`}
-                  title="Remove from comparison"
+                  aria-label={`Remove ${item.name} from comparison`}
+                  title={`Remove ${item.name}`}
                 >
-                  <X size={15} strokeWidth={2.4} />
+                  <X size={12} strokeWidth={2.6} />
                 </button>
-                <div className="cmp-prop-thumb">
-                  <ResearchImage src={researchImages(item.id)[0]} name={item.name} />
-                  {isLowest && <span className="cmp-best-badge"><Star size={10} /> Best Price</span>}
-                </div>
-                <Link to={`/research/${item.id}`} className="cmp-prop-name" title={item.name}>
-                  {item.name}
-                </Link>
-                <div className="cmp-prop-locality">
-                  <MapPin size={11} /> {offerings.localityShort}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--navy)', fontWeight: 700 }}>
-                  <Star size={11} fill="var(--star, #e3a626)" stroke="none" />
-                  <span>{getPropertyReviews(item.id, item.name, item.locality).ratingFormatted} ({getPropertyReviews(item.id, item.name, item.locality).reviewsCount})</span>
-                </div>
-                <div className="cmp-prop-price">{offerings.priceLabel}</div>
-                <Link to={`/research/${item.id}`} className="cmp-prop-cta" aria-label={`View details for ${item.name}`}>
-                  View details <span className="arrow-glyph">→</span>
-                </Link>
               </div>
-            );
-          })}
+            ))}
+            {Array.from({ length: 3 - items.length }).map((_, i) => (
+              <button
+                key={`empty-slot-${i}`}
+                type="button"
+                className="cmp-capsule-slot cmp-capsule-slot-empty"
+                onClick={() => setAddSheetOpen(true)}
+                aria-label="Add accommodation to comparison"
+                title="Add place to compare"
+              >
+                +
+              </button>
+            ))}
+          </div>
+
+          <div className="cmp-capsule-info">
+            <div className="cmp-capsule-title">
+              {items.length} of 3 selected
+            </div>
+            <div className="cmp-capsule-sub">
+              {items.length < 2 ? 'Select at least 2 to compare' : 'Comparing side by side'}
+            </div>
+          </div>
+
+          <div className="cmp-capsule-actions">
+            {items.length > 0 && (
+              <button
+                type="button"
+                onClick={compared.clear}
+                className="cmp-capsule-btn-clear"
+                title="Clear all"
+              >
+                Clear
+              </button>
+            )}
+            {items.length < 3 && (
+              <button
+                type="button"
+                onClick={() => setAddSheetOpen(true)}
+                className="cmp-capsule-btn-add"
+                title="Add place to compare"
+              >
+                <Plus size={13} strokeWidth={2.4} />
+                <span>Add place</span>
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Smart Toolbar: Filter Differences */}
-        {activeItems.length > 1 && (
-          <div className="cmp-filter-bar">
-            <div className="cmp-filter-pills">
-              <button
-                type="button"
-                className={`cmp-filter-pill ${!diffOnly ? 'active' : ''}`}
-                onClick={() => setDiffOnly(false)}
-              >
-                All Offerings ({features.length})
-              </button>
-              <button
-                type="button"
-                className={`cmp-filter-pill ${diffOnly ? 'active' : ''}`}
-                onClick={() => setDiffOnly(true)}
-              >
-                Differences Only ({diffSet.size})
-              </button>
+        {/* Quick Add Wishlist Strip */}
+        {saved.ids.length > 0 && uncomparedSaved.length > 0 && (
+          <div className="cmp-wishlist-strip">
+            <span className="cmp-wishlist-strip-label">
+              <Heart size={14} fill="currentColor" color="var(--green-ink)" />
+              Quick add from wishlist:
+            </span>
+            <div className="cmp-wishlist-strip-chips">
+              {uncomparedSaved.slice(0, 5).map(p => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className="cmp-wishlist-chip-btn"
+                  onClick={() => compared.toggle(p.id)}
+                  disabled={items.length >= 3}
+                  title={`Add ${p.name} to comparison`}
+                >
+                  <span>+ {p.name}</span>
+                </button>
+              ))}
+              {uncomparedSaved.length > 5 && (
+                <button
+                  type="button"
+                  className="cmp-wishlist-chip-btn"
+                  onClick={() => setAddSheetOpen(true)}
+                >
+                  <span>+{uncomparedSaved.length - 5} more</span>
+                </button>
+              )}
             </div>
-            {diffOnly && diffSet.size > 0 && (
-              <span className="cmp-diff-hint">Showing only {diffSet.size} distinguishing features</span>
-            )}
           </div>
         )}
 
-        {/* Offering Rows */}
-        <div className="cmp-rows-wrap">
-          {displayedFeatures.map(feat => {
-            const isDiff = diffSet.has(feat.id);
-            return (
-              <div key={feat.id} className={`cmp-feature-row ${isDiff ? 'has-diff' : ''}`}>
-                <div className="cmp-feature-title-bar">
-                  <span className="cmp-feature-icon">{feat.icon}</span>
-                  <span className="cmp-feature-name">{feat.name}</span>
-                  {isDiff && activeItems.length > 1 && (
-                    <span className="cmp-diff-tag">Differs</span>
-                  )}
-                </div>
-                <div
-                  className="cmp-feature-values"
-                  style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
+        {/* Feature Comparison Table (when 2 or 3 places are slotted) */}
+        {items.length >= 2 ? (
+          <>
+            {/* 3-Place Mobile Segmented Toggle */}
+            {parsedItems.length === 3 && (
+              <div className="cmp-mobile-pair-switcher" aria-label="Mobile view switcher">
+                <span className="cmp-switcher-label">View:</span>
+                <button
+                  type="button"
+                  className={`cmp-switch-btn ${mobilePair === 'all' ? 'active' : ''}`}
+                  onClick={() => setMobilePair('all')}
                 >
-                  {activeItems.map(({ item, offerings }) => (
-                    <div key={item.id} className="cmp-val-cell">
-                      {feat.render(offerings, item)}
-                    </div>
-                  ))}
-                </div>
+                  All 3
+                </button>
+                <button
+                  type="button"
+                  className={`cmp-switch-btn ${mobilePair === '0-1' ? 'active' : ''}`}
+                  onClick={() => setMobilePair('0-1')}
+                >
+                  1 vs 2
+                </button>
+                <button
+                  type="button"
+                  className={`cmp-switch-btn ${mobilePair === '1-2' ? 'active' : ''}`}
+                  onClick={() => setMobilePair('1-2')}
+                >
+                  2 vs 3
+                </button>
+                <button
+                  type="button"
+                  className={`cmp-switch-btn ${mobilePair === '0-2' ? 'active' : ''}`}
+                  onClick={() => setMobilePair('0-2')}
+                >
+                  1 vs 3
+                </button>
               </div>
-            );
-          })}
+            )}
 
-          {displayedFeatures.length === 0 && diffOnly && (
-            <div className="cmp-no-diffs">
-              <CheckCircle2 size={24} className="cmp-no-diffs-icon" />
-              <p>All core offerings match between these accommodations!</p>
+            {/* Smart Toolbar: Filter Differences */}
+            <div className="cmp-filter-bar">
+              <div className="cmp-filter-pills">
+                <button
+                  type="button"
+                  className={`cmp-filter-pill ${!diffOnly ? 'active' : ''}`}
+                  onClick={() => setDiffOnly(false)}
+                >
+                  All Offerings ({features.length})
+                </button>
+                <button
+                  type="button"
+                  className={`cmp-filter-pill ${diffOnly ? 'active' : ''}`}
+                  onClick={() => setDiffOnly(true)}
+                >
+                  Differences Only ({diffSet.size})
+                </button>
+              </div>
+              {diffOnly && diffSet.size > 0 && (
+                <span className="cmp-diff-hint">Showing only {diffSet.size} distinguishing features</span>
+              )}
+            </div>
+
+            {/* Property Header Cards */}
+            <div
+              className="cmp-header-cards"
+              style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
+            >
+              {activeItems.map(({ item, offerings, priceSummary }) => {
+                const priceNum = priceSummary?.label.match(/R([\d,]+)/);
+                const isLowest = priceNum && Number(priceNum[1].replace(/,/g, '')) === minPrice && items.length > 1;
+
+                return (
+                  <div key={item.id} className="cmp-prop-card">
+                    <button
+                      type="button"
+                      className="cmp-prop-remove"
+                      onClick={() => compared.toggle(item.id)}
+                      aria-label={`Remove ${item.name}`}
+                      title="Remove from comparison"
+                    >
+                      <X size={15} strokeWidth={2.4} />
+                    </button>
+                    <div className="cmp-prop-thumb">
+                      <ResearchImage src={getPropertyThumbnail(item)} name={item.name} />
+                      {isLowest && <span className="cmp-best-badge"><Star size={10} /> Best Price</span>}
+                    </div>
+                    <Link to={`/research/${item.id}`} className="cmp-prop-name" title={item.name}>
+                      {item.name}
+                    </Link>
+                    <div className="cmp-prop-locality">
+                      <MapPin size={11} /> {offerings.localityShort}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--navy)', fontWeight: 700 }}>
+                      <Star size={11} fill="var(--star, #e3a626)" stroke="none" />
+                      <span>{getPropertyReviews(item.id, item.name, item.locality).ratingFormatted} ({getPropertyReviews(item.id, item.name, item.locality).reviewsCount})</span>
+                    </div>
+                    <div className="cmp-prop-price">{offerings.priceLabel}</div>
+                    <Link to={`/research/${item.id}`} className="cmp-prop-cta" aria-label={`View details for ${item.name}`}>
+                      View details <span className="arrow-glyph">→</span>
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Offering Rows */}
+            <div className="cmp-rows-wrap">
+              {displayedFeatures.map(feat => {
+                const isDiff = diffSet.has(feat.id);
+                return (
+                  <div key={feat.id} className={`cmp-feature-row ${isDiff ? 'has-diff' : ''}`}>
+                    <div className="cmp-feature-title-bar">
+                      <span className="cmp-feature-icon">{feat.icon}</span>
+                      <span className="cmp-feature-name">{feat.name}</span>
+                      {isDiff && activeItems.length > 1 && (
+                        <span className="cmp-diff-tag">Differs</span>
+                      )}
+                    </div>
+                    <div
+                      className="cmp-feature-values"
+                      style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
+                    >
+                      {activeItems.map(({ item, offerings }) => (
+                        <div key={item.id} className="cmp-val-cell">
+                          {feat.render(offerings, item)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {displayedFeatures.length === 0 && diffOnly && (
+                <div className="cmp-no-diffs">
+                  <CheckCircle2 size={24} className="cmp-no-diffs-icon" />
+                  <p>All core offerings match between these accommodations!</p>
+                  <button
+                    type="button"
+                    className="btn btn--sm btn--ghost"
+                    onClick={() => setDiffOnly(false)}
+                  >
+                    Show all offerings
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Column Action Buttons */}
+            <div
+              className="cmp-header-cards"
+              style={{
+                gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))`,
+                marginTop: '16px'
+              }}
+            >
+              {activeItems.map(({ item }) => (
+                <div key={`actions-${item.id}`} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <Link
+                    to={`/apply/${item.id}`}
+                    className="btn btn--green btn--sm"
+                    style={{ width: '100%', justifyContent: 'center' }}
+                  >
+                    Apply now →
+                  </Link>
+                  <Link
+                    to={`/research/${item.id}`}
+                    className="btn btn--ghost btn--sm"
+                    style={{ width: '100%', justifyContent: 'center' }}
+                  >
+                    View details
+                  </Link>
+                </div>
+              ))}
+            </div>
+
+            {/* Cascading Legal & Verification Accordion Drawer */}
+            <div className="cmp-drawer-wrap">
               <button
                 type="button"
-                className="btn btn--sm btn--ghost"
-                onClick={() => setDiffOnly(false)}
+                className="cmp-drawer-toggle"
+                onClick={() => setExpandNotes(!expandNotes)}
+                aria-expanded={expandNotes}
               >
-                Show all offerings
+                <span className="cmp-drawer-toggle-left">
+                  <Info size={16} />
+                  <span>Inspect Full Legal Statements & Verification Records</span>
+                </span>
+                <span className="cmp-drawer-chevron">{expandNotes ? '▲ Collapse' : '▼ Expand'}</span>
               </button>
+
+              {expandNotes && (
+                <div className="cmp-drawer-body">
+                  {/* 1. Advertised Price Text */}
+                  <div className="cmp-drawer-section">
+                    <h4>Advertised Price Wording</h4>
+                    <div
+                      className="cmp-drawer-grid"
+                      style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
+                    >
+                      {activeItems.map(({ item }) => (
+                        <div key={item.id} className="cmp-drawer-cell">
+                          <strong>{item.name}:</strong>
+                          <p>{item.advertisedPrice}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 2. Validity Period */}
+                  <div className="cmp-drawer-section">
+                    <h4>Price Validity & Academic Year</h4>
+                    <div
+                      className="cmp-drawer-grid"
+                      style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
+                    >
+                      {activeItems.map(({ item }) => (
+                        <div key={item.id} className="cmp-drawer-cell">
+                          <strong>{item.name}:</strong>
+                          <p>{item.pricePeriod || 'Academic year applicability not verified by provider.'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 3. Rooms statement */}
+                  <div className="cmp-drawer-section">
+                    <h4>Room & Occupancy Statement</h4>
+                    <div
+                      className="cmp-drawer-grid"
+                      style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
+                    >
+                      {activeItems.map(({ item }) => (
+                        <div key={item.id} className="cmp-drawer-cell">
+                          <strong>{item.name}:</strong>
+                          <p>{item.rooms || 'Specific room descriptions not detailed on provider page.'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 4. Funding Evidence */}
+                  <div className="cmp-drawer-section">
+                    <h4>Funding Evidence & University Status</h4>
+                    <div
+                      className="cmp-drawer-grid"
+                      style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
+                    >
+                      {activeItems.map(({ item }) => (
+                        <div key={item.id} className="cmp-drawer-cell">
+                          <strong>{item.name}:</strong>
+                          <p>{item.funding || 'Private student rate'}</p>
+                          {item.fundingEvidence && <p className="tiny-note">Evidence: {item.fundingEvidence}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 5. Gaps */}
+                  <div className="cmp-drawer-section">
+                    <h4>Outstanding Verification Gaps</h4>
+                    <div
+                      className="cmp-drawer-grid"
+                      style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
+                    >
+                      {activeItems.map(({ item }) => (
+                        <div key={item.id} className="cmp-drawer-cell">
+                          <strong>{item.name}:</strong>
+                          <p>{item.gaps || 'No outstanding verification gaps recorded.'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Cascading Legal & Verification Accordion Drawer */}
-        <div className="cmp-drawer-wrap">
-          <button
-            type="button"
-            className="cmp-drawer-toggle"
-            onClick={() => setExpandNotes(!expandNotes)}
-            aria-expanded={expandNotes}
-          >
-            <span className="cmp-drawer-toggle-left">
-              <Info size={16} />
-              <span>Inspect Full Legal Statements & Verification Records</span>
-            </span>
-            <span className="cmp-drawer-chevron">{expandNotes ? '▲ Collapse' : '▼ Expand'}</span>
-          </button>
-
-          {expandNotes && (
-            <div className="cmp-drawer-body">
-              {/* 1. Advertised Price Text */}
-              <div className="cmp-drawer-section">
-                <h4>Advertised Price Wording</h4>
-                <div
-                  className="cmp-drawer-grid"
-                  style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
-                >
-                  {activeItems.map(({ item }) => (
-                    <div key={item.id} className="cmp-drawer-cell">
-                      <strong>{item.name}:</strong>
-                      <p>{item.advertisedPrice}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 2. Validity Period */}
-              <div className="cmp-drawer-section">
-                <h4>Price Validity & Academic Year</h4>
-                <div
-                  className="cmp-drawer-grid"
-                  style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
-                >
-                  {activeItems.map(({ item }) => (
-                    <div key={item.id} className="cmp-drawer-cell">
-                      <strong>{item.name}:</strong>
-                      <p>{item.pricePeriod || 'Academic year applicability not verified by provider.'}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 3. Rooms statement */}
-              <div className="cmp-drawer-section">
-                <h4>Room & Occupancy Statement</h4>
-                <div
-                  className="cmp-drawer-grid"
-                  style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
-                >
-                  {activeItems.map(({ item }) => (
-                    <div key={item.id} className="cmp-drawer-cell">
-                      <strong>{item.name}:</strong>
-                      <p>{item.rooms || 'Specific room descriptions not detailed on provider page.'}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 4. Funding Evidence */}
-              <div className="cmp-drawer-section">
-                <h4>Funding Evidence & University Status</h4>
-                <div
-                  className="cmp-drawer-grid"
-                  style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
-                >
-                  {activeItems.map(({ item }) => (
-                    <div key={item.id} className="cmp-drawer-cell">
-                      <strong>{item.name}:</strong>
-                      <p>{item.funding || 'Private student rate'}</p>
-                      {item.fundingEvidence && <p className="tiny-note">Evidence: {item.fundingEvidence}</p>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 5. Gaps */}
-              <div className="cmp-drawer-section">
-                <h4>Outstanding Verification Gaps</h4>
-                <div
-                  className="cmp-drawer-grid"
-                  style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
-                >
-                  {activeItems.map(({ item }) => (
-                    <div key={item.id} className="cmp-drawer-cell">
-                      <strong>{item.name}:</strong>
-                      <p>{item.gaps || 'No outstanding verification gaps recorded.'}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+          </>
+        ) : (
+          /* Empty or Single item guidance (minimal, neat, no duplicate catalog) */
+          <div style={{
+            textAlign: 'center',
+            padding: '36px 20px',
+            background: '#ffffff',
+            borderRadius: '16px',
+            border: '1px solid var(--line)',
+            boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)'
+          }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--navy)', margin: '0 0 6px' }}>
+              {items.length === 0 ? 'Select accommodations to compare' : 'Add another accommodation to compare'}
+            </h3>
+            <p style={{ fontSize: '13.5px', color: 'var(--ink-2)', maxWidth: '440px', margin: '0 auto 16px', lineHeight: 1.5 }}>
+              {items.length === 0
+                ? 'Click on the empty slots above to pick from your saved wishlist or quickly search all student residences.'
+                : 'Select at least one more residence above to see rent, Wi-Fi, NSFAS status, and proximity side by side.'}
+            </p>
+            <button
+              type="button"
+              className="btn btn--navy btn--sm"
+              onClick={() => setAddSheetOpen(true)}
+            >
+              <Plus size={15} /> Add accommodation
+            </button>
+          </div>
+        )}
       </div>
-    )}
-  </div>;
+
+      {/* Quick Picker Sheet (Portal) */}
+      <CompareAddSheet
+        isOpen={addSheetOpen}
+        onClose={() => setAddSheetOpen(false)}
+        onSelect={id => compared.toggle(id)}
+        savedIds={saved.ids}
+        comparedIds={compared.ids}
+      />
+    </div>
+  );
 }

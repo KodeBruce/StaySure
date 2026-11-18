@@ -2,6 +2,8 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCompare } from '../context/CompareContext';
 import { INITIAL_PROPERTIES } from '../data/mockData';
+import researchProperties from '../data/researchProperties.json';
+import { researchImages, researchFallbackImage } from '../data/researchMedia';
 import { X } from 'lucide-react';
 
 export const CompareTray: React.FC = () => {
@@ -19,7 +21,25 @@ export const CompareTray: React.FC = () => {
 
   if (!isVisible) return null;
 
-  const comparedProps = compareIds.map(id => INITIAL_PROPERTIES.find(p => p.id === id)).filter(Boolean);
+  const comparedProps = compareIds.map(id => {
+    const research = (researchProperties as any[]).find(p => p.id === id);
+    if (research) {
+      return {
+        id: research.id,
+        name: research.name,
+        image: researchImages(research.id)[0] || researchFallbackImage
+      };
+    }
+    const mock = INITIAL_PROPERTIES.find(p => p.id === id);
+    if (mock) {
+      return {
+        id: mock.id,
+        name: mock.name,
+        image: mock.images[0] || researchFallbackImage
+      };
+    }
+    return null;
+  }).filter((p): p is { id: string; name: string; image: string } => Boolean(p));
 
   return (
     <div
@@ -47,16 +67,17 @@ export const CompareTray: React.FC = () => {
     >
       <div className="row" style={{ gap: '8px' }}>
         {comparedProps.map(p => (
-          <div key={p!.id} style={{ position: 'relative' }}>
+          <div key={p.id} style={{ position: 'relative' }}>
             <img
-              src={p!.images[0]}
-              alt={p!.name}
+              src={p.image}
+              alt={p.name}
+              onError={e => { e.currentTarget.src = researchFallbackImage; }}
               style={{ width: '38px', height: '38px', borderRadius: '8px', objectFit: 'cover' }}
             />
             <button
-              onClick={() => removeFromCompare(p!.id)}
-              aria-label={`Remove ${p!.name} from comparison`}
-              title={`Remove ${p!.name}`}
+              onClick={() => removeFromCompare(p.id)}
+              aria-label={`Remove ${p.name} from comparison`}
+              title={`Remove ${p.name}`}
               style={{
                 position: 'absolute',
                 top: '-4px',
@@ -77,7 +98,7 @@ export const CompareTray: React.FC = () => {
             </button>
           </div>
         ))}
-        {Array.from({ length: 3 - compareIds.length }).map((_, i) => (
+        {Array.from({ length: 3 - comparedProps.length }).map((_, i) => (
           <div
             key={i}
             style={{
@@ -99,10 +120,10 @@ export const CompareTray: React.FC = () => {
 
       <div>
         <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em' }}>
-          {compareIds.length} of 3 selected
+          {comparedProps.length} of 3 selected
         </div>
         <div className="tiny" style={{ opacity: 0.75, fontSize: '11px' }}>
-          {compareIds.length < 2 ? "Select at least 2 to compare" : "Ready to compare"}
+          {comparedProps.length < 2 ? "Select at least 2 to compare" : "Ready to compare"}
         </div>
       </div>
 
@@ -114,12 +135,12 @@ export const CompareTray: React.FC = () => {
         >
           Clear
         </button>
-        {compareIds.length < 2 ? (
+        {comparedProps.length < 2 ? (
           <button type="button" className="btn btn--sm btn--green" style={{ borderRadius: '999px', fontSize: '12px', padding: '5px 14px' }} disabled>
             Compare
           </button>
         ) : (
-          <Link to="/compare/demo" className="btn btn--sm btn--green" style={{ textDecoration: 'none', borderRadius: '999px', fontSize: '12px', padding: '5px 14px' }}>
+          <Link to="/compare" className="btn btn--sm btn--green" style={{ textDecoration: 'none', borderRadius: '999px', fontSize: '12px', padding: '5px 14px' }}>
             Compare
           </Link>
         )}

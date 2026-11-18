@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
-import { useCompare } from '../context/CompareContext';
 import { AuthModal } from './AuthModal';
 import { isFirebaseConfigured } from '../firebase/config';
 import { useResearchSelection } from '../data/researchSelection';
@@ -10,7 +9,6 @@ import { House, Search as SearchIcon, GitCompareArrows, ClipboardList, Heart } f
 
 export const Navbar: React.FC = () => {
   const { user, role, profile, signOut } = useAuth();
-  const { savedIds } = useCompare();
   const researchCompared = useResearchSelection('compare');
   const researchSaved = useResearchSelection('saved');
   const [showAuth, setShowAuth] = useState(false);
@@ -48,33 +46,33 @@ export const Navbar: React.FC = () => {
               <NavLink to="/saved" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
                 <Heart size={16} />
                 <span>Saved</span>
-                {researchSaved.ids.length + savedIds.length > 0 && <span className="chip" style={{ marginLeft: '4px' }}>{researchSaved.ids.length + savedIds.length}</span>}
+                {researchSaved.ids.length > 0 && <span className="chip" style={{ marginLeft: '4px' }}>{researchSaved.ids.length}</span>}
               </NavLink>
             </nav>
           </div>
 
-              <div className="row" style={{ gap: '10px' }}>
-                <Link to="/provider/tours" className="btn btn--sm btn--ghost hide-mobile" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                  {user && (role === 'provider' || role === 'admin') ? 'Create 3D tour' : '3D tours'}
-                </Link>
-                {!isFirebaseConfigured && (
-                  <span className="pill pill--amber" title="Configure your .env file with Firebase credentials to enable live database persistence">
-                    Demo Mode
-                  </span>
-                )}
+          <div className="row" style={{ gap: '10px' }}>
+            <Link to="/provider/tours" className="btn btn--sm btn--ghost hide-mobile" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              {user && (role === 'provider' || role === 'admin') ? 'Create 3D tour' : '3D tours'}
+            </Link>
+            {!isFirebaseConfigured && (
+              <span className="pill pill--amber" title="Configure your .env file with Firebase credentials to enable live database persistence">
+                Demo Mode
+              </span>
+            )}
 
-                {user ? (
-                  <div className="row" style={{ gap: '8px' }}>
-                    <span className="tiny hide-mobile" style={{ fontWeight: 600 }}>{user.email || profile.name}</span>
-                    <button className="btn btn--sm btn--ghost" onClick={() => signOut()}>Sign Out</button>
-                  </div>
-                ) : (
-                  <button className="btn btn--sm btn--navy" onClick={() => setShowAuth(true)}>
-                    Sign In
-                  </button>
-                )}
+            {user ? (
+              <div className="row" style={{ gap: '8px' }}>
+                <span className="tiny hide-mobile" style={{ fontWeight: 600 }}>{user.email || profile.name}</span>
+                <button className="btn btn--sm btn--ghost" onClick={() => signOut()}>Sign Out</button>
               </div>
+            ) : (
+              <button className="btn btn--sm btn--navy" onClick={() => setShowAuth(true)}>
+                Sign In
+              </button>
+            )}
           </div>
+        </div>
       </header>
 
       {createPortal(
@@ -101,7 +99,7 @@ export const Navbar: React.FC = () => {
           <NavLink to="/saved" className={({ isActive }) => (isActive ? 'active' : '')}>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Heart size={20} />
-              {researchSaved.ids.length + savedIds.length > 0 && <span className="nav-badge">{researchSaved.ids.length + savedIds.length}</span>}
+              {researchSaved.ids.length > 0 && <span className="nav-badge">{researchSaved.ids.length}</span>}
             </div>
             <span>Saved</span>
           </NavLink>
