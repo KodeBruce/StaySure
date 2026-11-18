@@ -400,12 +400,25 @@
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.12s ease;
+  transition: background 0.15s ease, transform 0.12s ease, opacity 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 24px;
 }
 
 .airbnb-sheet-apply-btn:hover {
   background: #0c1d4a;
   transform: scale(1.01);
+}
+
+/* "No results" state — keep button visible but muted so user knows to adjust */
+.airbnb-sheet-apply-btn:disabled,
+.airbnb-sheet-apply-btn[disabled] {
+  background: var(--ink-3, #94a3b8);
+  cursor: not-allowed;
+  opacity: 0.75;
+  transform: none;
 }
 
 @media (max-width: 540px) {
@@ -887,6 +900,7 @@ body.has-compare-tray .airbnb-float-map-btn {
   .compare-tray {
     bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
   }
+
   body.has-compare-tray .airbnb-float-map-btn {
     bottom: calc(136px + env(safe-area-inset-bottom, 0px));
   }
