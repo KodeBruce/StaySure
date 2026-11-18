@@ -11,6 +11,7 @@ import { parseOfferings, type OfferingItem } from '../data/researchOfferings';
 import { StudentReviews } from '../components/StudentReviews';
 import { getPropertyReviews } from '../data/propertyReviews';
 import { CustomSelect } from '../components/CustomSelect';
+import { getPropertyUniversities } from '../data/mapLocations';
 import {
   ChevronLeft, ChevronRight, Heart, MapPin,
   Banknote, BedDouble, Wifi, BookOpen, Armchair, Bus,
@@ -108,6 +109,7 @@ function ResearchCard({ item, saved, compared }: {
   const isSaved = saved.ids.includes(item.id);
   const shortLocality = item.locality.split(',')[0];
   const reviews = getPropertyReviews(item.id, item.name, item.locality);
+  const nearUnis = getPropertyUniversities(item);
 
   return <article className="research-card">
     <div className="research-card-image">
@@ -184,6 +186,21 @@ function ResearchCard({ item, saved, compared }: {
         </div>
       </div>
       <p className="research-card-type">{item.classification}</p>
+      {nearUnis.length > 0 && (
+        <span
+          className="airbnb-card-tag--uni"
+          style={{
+            fontSize: '11px',
+            padding: '2px 8px',
+            borderRadius: '6px',
+            width: 'fit-content',
+            marginBottom: '4px'
+          }}
+          title={`Near ${nearUnis.map(u => u.fullName).join(', ')}`}
+        >
+          <GraduationCap size={12} strokeWidth={2.4} /> Near {nearUnis.map(u => u.shortName).join(' & ')}
+        </span>
+      )}
       <div className="research-card-footer" style={{ marginTop: 'auto', paddingTop: '8px', display: 'flex', justifyContent: 'flex-end', borderTop: 'none' }}>
         <Link to={`/research/${item.id}`} className="rail-card-details-link" aria-label={`View details for ${item.name}`}>
           View details <span className="arrow-glyph">→</span>

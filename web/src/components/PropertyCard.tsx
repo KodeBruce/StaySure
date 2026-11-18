@@ -4,7 +4,8 @@ import { Property } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useCompare } from '../context/CompareContext';
 import { calculateMatchScore, formatRand, formatKm } from '../data/matchScore';
-import { Check, Plus, Heart } from 'lucide-react';
+import { Check, Plus, Heart, GraduationCap } from 'lucide-react';
+import { getPropertyUniversities } from '../data/mapLocations';
 
 interface PropertyCardProps {
   property: Property;
@@ -17,6 +18,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property: p }) => {
   const { score } = calculateMatchScore(p, profile);
   const isCompared = compareIds.includes(p.id);
   const isSaved = savedIds.includes(p.id);
+  const nearUnis = getPropertyUniversities(p);
 
   return (
     <div className="card property-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: '#fff', border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '18px', boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.05)' }}>
@@ -97,6 +99,25 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property: p }) => {
         </div>
 
         <div className="row row--wrap" style={{ gap: '5px' }}>
+          {nearUnis.length > 0 && (
+            <span
+              className="pill"
+              style={{
+                fontSize: '10.5px',
+                padding: '2px 7px',
+                background: '#f0fdf4',
+                color: '#15803d',
+                border: '1px solid rgba(34, 197, 94, 0.28)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px'
+              }}
+              title={`Near ${nearUnis.map(u => u.fullName).join(', ')}`}
+            >
+              <GraduationCap size={11} strokeWidth={2.4} /> Near {nearUnis.map(u => u.shortName).join(' & ')}
+            </span>
+          )}
+
           {p.verified ? (
             <span className="pill pill--green" style={{ fontSize: '10.5px', padding: '2px 7px' }}>Verified ✓</span>
           ) : (

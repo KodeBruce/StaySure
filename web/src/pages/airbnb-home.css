@@ -430,13 +430,27 @@
   gap: 8px;
 }
 
+.airbnb-uni-grid {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.airbnb-area-grid {
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+}
+
 .airbnb-popover-grid--multi {
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 10px;
 }
 
 .airbnb-popover-pill {
-  padding: 9px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 13px;
   border-radius: 12px;
   border: 1.5px solid var(--line-2);
   background: #ffffff;
@@ -446,7 +460,21 @@
   font-weight: 600;
   cursor: pointer;
   text-align: left;
+  line-height: 1.25;
+  box-sizing: border-box;
   transition: all 0.12s ease;
+}
+
+.airbnb-popover-pill svg {
+  flex-shrink: 0;
+  color: var(--green-ink);
+  transition: color 0.12s ease;
+}
+
+.airbnb-popover-pill span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .airbnb-popover-pill:hover {
@@ -458,6 +486,10 @@
   background: var(--navy);
   color: #ffffff;
   border-color: var(--navy);
+}
+
+.airbnb-popover-pill.is-active svg {
+  color: #ffffff;
 }
 
 /* ── Price Slider inside Popover ── */
@@ -839,4 +871,91 @@
   box-shadow: 0 12px 32px rgba(19, 35, 79, 0.42);
   background: #0d1a3c;
   color: #ffffff;
+}
+
+/* ── University Filter Strip & Card Badges ── */
+.airbnb-card-tag--uni {
+  background: #f0fdf4 !important;
+  color: #15803d !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 3px;
+  border: 1px solid rgba(34, 197, 94, 0.28);
+}
+
+.airbnb-uni-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 14px;
+  margin-bottom: 6px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.airbnb-uni-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.airbnb-uni-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1.5px solid var(--line-2);
+  color: var(--navy);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.airbnb-uni-pill:hover {
+  border-color: var(--navy);
+  background: var(--navy-tint);
+  transform: translateY(-1px);
+}
+
+.airbnb-uni-pill.is-active {
+  background: var(--navy);
+  color: #ffffff;
+  border-color: var(--navy);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
+}
+
+.airbnb-uni-pill.is-active svg {
+  color: var(--green-ink);
+}
+
+.airbnb-uni-sub {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+.airbnb-uni-count {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  color: inherit;
+}
+
+.airbnb-uni-pill.is-active .airbnb-uni-count {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.airbnb-chip--uni {
+  background: #f0fdf4 !important;
+  color: #15803d !important;
+  border-color: rgba(34, 197, 94, 0.3) !important;
 }

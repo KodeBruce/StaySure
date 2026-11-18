@@ -21,10 +21,132 @@ export const PROVINCE_CENTRES: Record<string, Coordinates> = {
   'Western Cape': [-33.925, 18.424]
 };
 
-export const UNIVERSITIES = [
-  { id: 'wits', name: 'University of the Witwatersrand', province: 'Gauteng', position: [-26.1929, 28.0305] as Coordinates },
-  { id: 'uj', name: 'University of Johannesburg', province: 'Gauteng', position: [-26.1826, 28.0005] as Coordinates }
+export interface UniversityInfo {
+  id: string;
+  shortName: string;
+  name: string;
+  fullName: string;
+  province: string;
+  position: Coordinates;
+  campuses: string[];
+  radiusKm: number;
+}
+
+export const UNIVERSITIES: UniversityInfo[] = [
+  {
+    id: 'wits',
+    shortName: 'Wits',
+    name: 'University of the Witwatersrand',
+    fullName: 'Wits · University of the Witwatersrand',
+    province: 'Gauteng',
+    position: [-26.1929, 28.0305] as Coordinates,
+    campuses: ['Braamfontein Main Campus', 'Parktown Health/Education'],
+    radiusKm: 6
+  },
+  {
+    id: 'uj',
+    shortName: 'UJ',
+    name: 'University of Johannesburg',
+    fullName: 'UJ · University of Johannesburg',
+    province: 'Gauteng',
+    position: [-26.1826, 28.0005] as Coordinates,
+    campuses: ['Auckland Park (APK/APB)', 'Doornfontein (DFC)', 'Soweto (SWC)'],
+    radiusKm: 8
+  },
+  {
+    id: 'up',
+    shortName: 'UP',
+    name: 'University of Pretoria',
+    fullName: 'UP · University of Pretoria',
+    province: 'Gauteng',
+    position: [-25.7545, 28.2314] as Coordinates,
+    campuses: ['Hatfield Main Campus', 'Hillcrest', 'Groenkloof', 'Prinshof'],
+    radiusKm: 8
+  },
+  {
+    id: 'tut',
+    shortName: 'TUT',
+    name: 'Tshwane University of Technology',
+    fullName: 'TUT · Tshwane University of Technology',
+    province: 'Gauteng',
+    position: [-25.7323, 28.1624] as Coordinates,
+    campuses: ['Pretoria West Main Campus', 'Arcadia', 'Soshanguve', 'Ga-Rankuwa'],
+    radiusKm: 14
+  }
 ];
+
+export function getPropertyUniversities(property: {
+  name?: string;
+  address?: string;
+  locality?: string;
+  area?: string;
+  campus?: string;
+  institutions?: string;
+  witsStatus?: string;
+  ujStatus?: string;
+  upStatus?: string;
+  tutStatus?: string;
+  latitude?: number;
+  longitude?: number;
+}): UniversityInfo[] {
+  const matched: UniversityInfo[] = [];
+  const text = (
+    (property.name || '') + ' ' +
+    (property.address || '') + ' ' +
+    (property.locality || '') + ' ' +
+    (property.area || '') + ' ' +
+    (property.campus || '') + ' ' +
+    (property.institutions || '')
+  ).toLowerCase();
+
+  const witsS = (property.witsStatus || '').toLowerCase();
+  const ujS = (property.ujStatus || '').toLowerCase();
+  const upS = (property.upStatus || '').toLowerCase();
+  const tutS = (property.tutStatus || '').toLowerCase();
+
+  const hasCoords = Number.isFinite(property.latitude) && Number.isFinite(property.longitude);
+  const pCoords: Coordinates = hasCoords ? [property.latitude!, property.longitude!] : [0, 0];
+
+  // 1. Wits (University of the Witwatersrand)
+  const witsStatusMatch = witsS && !witsS.includes('not assessed') && !witsS.includes('not found');
+  const witsTextMatch = text.includes('wits') || text.includes('witwatersrand') || text.includes('braamfontein') || text.includes('parktown') || text.includes('milpark');
+  const witsNearCoord = hasCoords && distanceKm(pCoords, UNIVERSITIES[0].position) <= UNIVERSITIES[0].radiusKm;
+  if (witsStatusMatch || witsTextMatch || witsNearCoord) {
+    matched.push(UNIVERSITIES[0]);
+  }
+
+  // 2. UJ (University of Johannesburg)
+  const ujStatusMatch = ujS && !ujS.includes('not assessed') && !ujS.includes('no match');
+  const ujTextMatch = text.includes('uj') || text.includes('university of johannesburg') || text.includes('auckland park') || text.includes('doornfontein') || text.includes('bunting') || text.includes('kingsway') || text.includes('westdene') || text.includes('melville') || text.includes('soweto');
+  const ujNearCoord = hasCoords && distanceKm(pCoords, UNIVERSITIES[1].position) <= UNIVERSITIES[1].radiusKm;
+  if (ujStatusMatch || ujTextMatch || ujNearCoord) {
+    matched.push(UNIVERSITIES[1]);
+  }
+
+  // 3. UP (University of Pretoria)
+  const upStatusMatch = upS && !upS.includes('not assessed') && !upS.includes('no match');
+  const upTextMatch = text.includes('university of pretoria') || text.includes('hatfield') || text.includes('hillcrest') || text.includes('brooklyn') || text.includes('groenkloof') || text.includes('prinshof') || (text.includes('pretoria') && !text.includes('pretoria west'));
+  const upNearCoord = hasCoords && distanceKm(pCoords, UNIVERSITIES[2].position) <= UNIVERSITIES[2].radiusKm;
+  if (upStatusMatch || upTextMatch || upNearCoord) {
+    matched.push(UNIVERSITIES[2]);
+  }
+
+  // 4. TUT (Tshwane University of Technology)
+  const tutStatusMatch = tutS && !tutS.includes('not assessed') && !tutS.includes('no match');
+  const tutTextMatch = text.includes('tshwane') || text.includes('tut') || text.includes('arcadia') || text.includes('pretoria west') || text.includes('soshanguve') || text.includes('ga-rankuwa') || text.includes('danville');
+  const tutNearCoord = hasCoords && distanceKm(pCoords, UNIVERSITIES[3].position) <= UNIVERSITIES[3].radiusKm;
+  if (tutStatusMatch || tutTextMatch || tutNearCoord) {
+    matched.push(UNIVERSITIES[3]);
+  }
+
+  return matched;
+}
+
+export function isNearUniversity(property: any, universityId: string): boolean {
+  if (!universityId || universityId === 'all') return true;
+  const unis = getPropertyUniversities(property);
+  return unis.some(u => u.id === universityId.toLowerCase());
+}
 
 // The demo listings have no street coordinates. These are approximate area centres.
 export const AREA_CENTRES: Record<string, Coordinates> = {
