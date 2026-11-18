@@ -418,6 +418,15 @@ export function ResearchDetail() {
             <ArrowRight size={13} strokeWidth={2.5} />
           </Link>
         )}
+
+        {/* Apply now link */}
+        <Link
+          to={`/apply/${item.id}`}
+          className="btn btn--green btn--sm"
+          style={{ height: '34px', padding: '0 14px', fontSize: '12.5px', borderRadius: '8px', marginLeft: '6px' }}
+        >
+          Apply now →
+        </Link>
       </div>
     </div>
 
