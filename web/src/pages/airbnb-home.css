@@ -107,6 +107,27 @@
   background: var(--navy-soft);
 }
 
+/* Row inside each segment: value + chevron */
+.airbnb-segment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.airbnb-segment-chevron {
+  flex-shrink: 0;
+  color: var(--ink-3);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease;
+}
+
+.airbnb-segment-chevron.is-open {
+  transform: rotate(180deg);
+  color: var(--green-ink);
+}
+
 .airbnb-segment-label {
   font-size: 11px;
   font-weight: 800;
@@ -188,30 +209,208 @@
   }
 }
 
-/* ── Search Dropdown Popover ── */
-.airbnb-search-popover {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
-  right: 0;
-  background: #ffffff;
-  border: 1px solid var(--line);
-  border-radius: 24px;
-  box-shadow: 0 16px 44px rgba(19, 35, 79, 0.16);
-  padding: 22px;
-  z-index: 50;
-  animation: airbnbPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+/* ── Bottom Sheet (replaces dropdown popover) ── */
+.airbnb-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 20, 50, 0.38);
+  z-index: 1000;
+  animation: sheetFadeIn 0.22s ease;
 }
 
-@keyframes airbnbPopIn {
+@keyframes sheetFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-8px) scale(0.98);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+  }
+}
+
+.airbnb-bottom-sheet {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: 100%;
+  max-width: 620px;
+  z-index: 1001;
+  background: #ffffff;
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -12px 60px rgba(10, 20, 50, 0.22);
+  max-height: 82vh;
+  overflow-y: auto;
+  animation: sheetSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  overscroll-behavior: contain;
+}
+
+@keyframes sheetSlideUp {
+  from {
+    transform: translate(-50%, 70px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.airbnb-sheet-handle {
+  width: 44px;
+  height: 4.5px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.16);
+  margin: 12px auto 0;
+}
+
+.airbnb-sheet-body {
+  padding: 16px 24px 32px;
+}
+
+.airbnb-sheet-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.airbnb-sheet-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.02em;
+}
+
+.airbnb-sheet-subtitle {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+.airbnb-sheet-close {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: var(--navy-tint);
+  color: var(--navy);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.14s ease;
+}
+
+.airbnb-sheet-close:hover {
+  background: var(--navy-soft);
+}
+
+.airbnb-sheet-clear {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-2);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.14s ease;
+}
+
+.airbnb-sheet-clear:hover {
+  color: var(--navy);
+}
+
+.airbnb-sheet-input {
+  width: 100%;
+  height: 46px;
+  padding: 0 16px;
+  border: 1.5px solid var(--line-2);
+  border-radius: 14px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--navy);
+  background: #fff;
+  margin-bottom: 18px;
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.airbnb-sheet-input:focus {
+  border-color: var(--navy);
+}
+
+.airbnb-sheet-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
+
+.airbnb-sheet-price-display {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.03em;
+  margin-bottom: 20px;
+}
+
+.airbnb-sheet-preset {
+  height: 36px;
+  padding: 0 16px;
+  border: 1.5px solid var(--line-2);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--navy);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.airbnb-sheet-preset:hover {
+  background: var(--navy-tint);
+  border-color: var(--navy-2);
+}
+
+.airbnb-sheet-preset.is-active {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+
+.airbnb-sheet-apply-btn {
+  display: block;
+  width: 100%;
+  height: 52px;
+  margin-top: 24px;
+  border: none;
+  border-radius: 999px;
+  background: var(--navy);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.airbnb-sheet-apply-btn:hover {
+  background: #0c1d4a;
+  transform: scale(1.01);
+}
+
+@media (max-width: 540px) {
+  .airbnb-sheet-body {
+    padding: 14px 16px 28px;
   }
 }
 

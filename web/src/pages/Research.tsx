@@ -319,66 +319,41 @@ export function ResearchDetail() {
 
   return <div className="research-page research-detail">
     <div className="research-detail-topbar">
-      <Link to="/search" className="research-back-link">← Back to map search</Link>
+      <Link to="/search" className="research-back-link">
+        <ChevronLeft size={16} strokeWidth={2.5} />
+        <span>Map search</span>
+      </Link>
       <div className="research-detail-actions">
-        {/* Minimalist Save icon */}
+        {/* Save button */}
         <button
           type="button"
+          className={`research-topbar-action-btn ${isSaved ? 'is-saved' : ''}`}
           onClick={() => saved.toggle(item.id)}
-          title={isSaved ? 'Saved' : 'Save'}
+          title={isSaved ? 'Remove from saved' : 'Save'}
           aria-label={isSaved ? `Remove ${item.name} from saved` : `Save ${item.name}`}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: isSaved ? '#ef4444' : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
-            fontSize: '12.5px',
-            fontWeight: 700,
-            padding: '5px 2px',
-          }}
         >
           <Heart size={15} fill={isSaved ? 'currentColor' : 'none'} strokeWidth={2.2} />
           <span>{isSaved ? 'Saved' : 'Save'}</span>
         </button>
-        {/* Minimalist + / ✓ compare icon */}
+
+        {/* Compare button */}
         <button
           type="button"
+          className={`research-topbar-action-btn ${isCompared ? 'is-comparing' : ''}`}
           onClick={() => compared.toggle(item.id)}
           disabled={!isCompared && compared.ids.length >= 3}
-          title={isCompared ? `Remove from comparison` : compared.ids.length >= 3 ? 'Max 3 places' : 'Add to compare'}
+          title={isCompared ? 'Remove from comparison' : compared.ids.length >= 3 ? 'Max 3 places' : 'Add to compare'}
           aria-label={isCompared ? `Remove ${item.name} from comparison` : `Compare ${item.name}`}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: isCompared ? '#059669' : '#64748b',
-            cursor: isCompared || compared.ids.length < 3 ? 'pointer' : 'not-allowed',
-            opacity: !isCompared && compared.ids.length >= 3 ? 0.35 : 1,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
-            fontSize: '12.5px',
-            fontWeight: 700,
-            padding: '5px 2px',
-          }}
         >
-          {isCompared ? <Check size={15} strokeWidth={2.5} /> : <Plus size={16} strokeWidth={2} />}
+          {isCompared ? <Check size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.2} />}
           <span>{isCompared ? 'Comparing' : 'Compare'}</span>
         </button>
+
+        {/* View Compare link */}
         {compared.ids.length > 0 && (
-          <Link
-            to="/compare"
-            style={{
-              fontSize: '12.5px',
-              fontWeight: 700,
-              color: '#0f172a',
-              textDecoration: 'none',
-              padding: '5px 2px',
-            }}
-          >
-            View {compared.ids.length} →
+          <Link to="/compare" className="research-topbar-view-link" aria-label={`View ${compared.ids.length} compared places`}>
+            <span>View {compared.ids.length}</span>
+            <ArrowRight size={13} strokeWidth={2.5} />
           </Link>
         )}
       </div>

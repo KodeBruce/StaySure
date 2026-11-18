@@ -81,10 +81,117 @@
 .research-carousel-controls button { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--line-2); border-radius: 50%; background: #fff; color: var(--navy); cursor: pointer; }
 
 /* ── Topbar & Actions ── */
-.research-detail-topbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
-.research-back-link { display: inline-flex; align-items: center; gap: 5px; color: var(--navy); font-size: 14px; font-weight: 700; text-decoration: none; }
-.research-back-link:hover { text-decoration: underline; }
-.research-card-actions, .research-compare-actions, .research-detail-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.research-detail-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 20px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  margin: 0 -24px 28px;
+}
+
+.research-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: color 0.14s ease, background 0.14s ease;
+}
+.research-back-link:hover {
+  color: var(--navy);
+  background: var(--navy-tint);
+  text-decoration: none;
+}
+
+.research-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.research-topbar-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.14s ease, background 0.14s ease;
+  white-space: nowrap;
+}
+
+.research-topbar-action-btn:hover {
+  background: var(--navy-tint);
+  color: var(--navy);
+}
+
+.research-topbar-action-btn.is-saved {
+  color: #e02424;
+}
+
+.research-topbar-action-btn.is-comparing {
+  color: #059669;
+}
+
+.research-topbar-action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.research-topbar-view-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 6px;
+  transition: background 0.14s ease;
+}
+
+.research-topbar-view-link:hover {
+  background: #0c1d4a;
+}
+
+.research-card-actions, .research-compare-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+
+@media (max-width: 540px) {
+  .research-detail-topbar {
+    margin: 0 -16px 20px;
+    padding: 0 10px;
+  }
+  .research-topbar-action-btn span {
+    display: none;
+  }
+  .research-topbar-action-btn {
+    padding: 0 8px;
+  }
+}
 .research-heading-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
 .research-subhead { font-size: 15px; color: var(--ink-2); margin-top: 4px; }
 .research-mini-note { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; border-radius: 12px; background: var(--amber-soft); color: var(--amber-ink); font-size: 12.5px; line-height: 1.45; margin-bottom: 24px; }
