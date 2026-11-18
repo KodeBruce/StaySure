@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CompareProvider } from './context/CompareContext';
 import { Navbar } from './components/Navbar';
@@ -32,7 +32,7 @@ const AppContent: React.FC = () => {
                 <Route path="/" element={<Landing />} />
                 <Route path="/search" element={<ResearchMapSearch />} />
                 <Route path="/search/demo" element={<Search />} />
-                <Route path="/research" element={<Research />} />
+                <Route path="/research" element={<Navigate to="/" replace />} />
                 <Route path="/research/:id" element={<ResearchDetail />} />
                 <Route path="/detail/:id" element={<Detail />} />
                 <Route path="/detail/:id/tour" element={<Tour />} />

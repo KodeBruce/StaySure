@@ -231,6 +231,11 @@
   gap: 8px;
 }
 
+.airbnb-popover-grid--multi {
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+}
+
 .airbnb-popover-pill {
   padding: 9px 12px;
   border-radius: 12px;

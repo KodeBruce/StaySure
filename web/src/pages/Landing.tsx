@@ -152,12 +152,18 @@ export const Landing: React.FC = () => {
 
   const [activeArea, setActiveArea] = useState('');
   const [maxPrice, setMaxPrice] = useState(12000);
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [selectedPrefs, setSelectedPrefs] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activePopover, setActivePopover] = useState<'where' | 'price' | 'pref' | null>(null);
 
   const popoverRef = useRef<HTMLDivElement>(null);
   const listingsRef = useRef<HTMLElement>(null);
+
+  const togglePref = (id: string) => {
+    setSelectedPrefs(prev =>
+      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+    );
+  };
 
   // Close popover when clicking outside
   useEffect(() => {
@@ -196,336 +202,403 @@ export const Landing: React.FC = () => {
         if (minP !== null && minP > maxPrice) return false;
       }
 
-      // 4. Category Filter
-      switch (activeCategory) {
-        case 'nsfas':
-          return offerings.isNsfasClaimed;
-        case 'shuttle':
-          return offerings.hasTransport;
-        case 'wifi':
-          return offerings.hasWifi;
-        case 'security':
-          return offerings.hasSecurity || offerings.hasBiometrics;
-        case 'study':
-          return offerings.hasStudyArea;
-        case 'single':
-          return offerings.roomTypes.some(r => /single/i.test(r));
-        case 'sharing':
-          return offerings.roomTypes.some(r => /sharing|studio/i.test(r));
-        case 'furniture':
-          return offerings.hasFurniture;
-        case 'laundry':
-          return offerings.hasLaundry;
-        default:
+          // 4. Multi-select Preferences Filter (select as many as possible)
+          if (selectedPrefs.length > 0) {
+            for (const pref of selectedPrefs) {
+              switch (pref) {
+                case 'nsfas':
+                  if (!offerings.isNsfasClaimed) return false;
+                  break;
+                case 'shuttle':
+                  if (!offerings.hasTransport) return false;
+                  break;
+                case 'wifi':
+                  if (!offerings.hasWifi) return false;
+                  break;
+                case 'security':
+                  if (!offerings.hasSecurity && !offerings.hasBiometrics) return false;
+                  break;
+                case 'study':
+                  if (!offerings.hasStudyArea) return false;
+                  break;
+                case 'single':
+                  if (!offerings.roomTypes.some(r => /single/i.test(r))) return false;
+                  break;
+                case 'sharing':
+                  if (!offerings.roomTypes.some(r => /sharing|studio/i.test(r))) return false;
+                  break;
+                case 'furniture':
+                  if (!offerings.hasFurniture) return false;
+                  break;
+                case 'laundry':
+                  if (!offerings.hasLaundry) return false;
+                  break;
+              }
+            }
+          }
+
           return true;
-      }
-    });
-  }, [activeArea, searchQuery, maxPrice, activeCategory]);
+      });
+}, [activeArea, searchQuery, maxPrice, selectedPrefs]);
 
-  const handleSearchClick = () => {
-    setActivePopover(null);
-    listingsRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+const handleSearchClick = () => {
+  setActivePopover(null);
+  listingsRef.current?.scrollIntoView({ behavior: 'smooth' });
+};
 
-  const hasActiveFilters = activeArea !== '' || maxPrice < 12000 || activeCategory !== 'all' || searchQuery !== '';
+const hasActiveFilters = activeArea !== '' || maxPrice < 12000 || selectedPrefs.length > 0 || searchQuery !== '';
 
-  const clearAllFilters = () => {
-    setActiveArea('');
-    setMaxPrice(12000);
-    setActiveCategory('all');
-    setSearchQuery('');
-    setActivePopover(null);
-  };
+const clearAllFilters = () => {
+  setActiveArea('');
+  setMaxPrice(12000);
+  setSelectedPrefs([]);
+  setSearchQuery('');
+  setActivePopover(null);
+};
 
-  return (
-    <div className="airbnb-home">
-      {/* ── Airbnb-style Hero Header ── */}
-      <header className="airbnb-hero">
-        <span className="airbnb-hero-badge">
-          <GraduationCap size={14} />
-          <span>Verified Student Accommodation · Gauteng</span>
-        </span>
-        <h1 className="airbnb-hero-title">
-          Find student accommodation you can <span>trust.</span>
-        </h1>
-        <p className="airbnb-hero-sub">
-          Search by price, campus proximity, and living preferences across verified student residences.
-        </p>
+return (
+  <div className="airbnb-home">
+    {/* ── Airbnb-style Hero Header ── */}
+    <header className="airbnb-hero">
+      <span className="airbnb-hero-badge">
+        <GraduationCap size={14} />
+        <span>Verified Student Accommodation · Gauteng</span>
+      </span>
+      <h1 className="airbnb-hero-title">
+        Find student accommodation you can <span>trust.</span>
+      </h1>
+      <p className="airbnb-hero-sub">
+        Search by price, campus proximity, and living preferences across verified student residences.
+      </p>
 
-        {/* ── Airbnb Floating Search Capsule ── */}
-        <div className="airbnb-search-capsule-wrap" ref={popoverRef}>
-          <div className={`airbnb-search-capsule ${activePopover ? 'is-active' : ''}`}>
-            {/* Where segment */}
-            <button
-              type="button"
-              className={`airbnb-search-segment ${activePopover === 'where' ? 'is-active' : ''}`}
-              onClick={() => setActivePopover(p => p === 'where' ? null : 'where')}
-            >
-              <span className="airbnb-segment-label">Where</span>
-              <span className={`airbnb-segment-val ${!activeArea && !searchQuery ? 'is-placeholder' : ''}`}>
-                {activeArea || searchQuery || 'Search areas or campus'}
+      {/* ── Airbnb Floating Search Capsule ── */}
+      <div className="airbnb-search-capsule-wrap" ref={popoverRef}>
+        <div className={`airbnb-search-capsule ${activePopover ? 'is-active' : ''}`}>
+          {/* Where segment */}
+          <button
+            type="button"
+            className={`airbnb-search-segment ${activePopover === 'where' ? 'is-active' : ''}`}
+            onClick={() => setActivePopover(p => p === 'where' ? null : 'where')}
+          >
+            <span className="airbnb-segment-label">Where</span>
+            <span className={`airbnb-segment-val ${!activeArea && !searchQuery ? 'is-placeholder' : ''}`}>
+              {activeArea || searchQuery || 'Search areas or campus'}
+            </span>
+          </button>
+
+          <span className="airbnb-segment-divider" />
+
+          {/* Price segment */}
+          <button
+            type="button"
+            className={`airbnb-search-segment ${activePopover === 'price' ? 'is-active' : ''}`}
+            onClick={() => setActivePopover(p => p === 'price' ? null : 'price')}
+          >
+            <span className="airbnb-segment-label">Price</span>
+            <span className={`airbnb-segment-val ${maxPrice >= 12000 ? 'is-placeholder' : ''}`}>
+              {maxPrice >= 12000 ? 'Any budget' : `Up to R${maxPrice.toLocaleString('en-ZA')}/mo`}
+            </span>
+          </button>
+
+          <span className="airbnb-segment-divider" />
+
+          {/* Preferences segment */}
+          <button
+            type="button"
+            className={`airbnb-search-segment ${activePopover === 'pref' ? 'is-active' : ''}`}
+            onClick={() => setActivePopover(p => p === 'pref' ? null : 'pref')}
+          >
+            <span className="airbnb-segment-label">Preferences</span>
+              <span className={`airbnb-segment-val ${selectedPrefs.length === 0 ? 'is-placeholder' : ''}`}>
+                {selectedPrefs.length === 0
+                  ? 'NSFAS, Wi-Fi, Shuttle...'
+                  : selectedPrefs.length === 1
+                    ? CATEGORIES.find(c => c.id === selectedPrefs[0])?.label
+                    : `${CATEGORIES.find(c => c.id === selectedPrefs[0])?.label} (+${selectedPrefs.length - 1})`}
               </span>
-            </button>
+          </button>
 
-            <span className="airbnb-segment-divider" />
-
-            {/* Price segment */}
-            <button
-              type="button"
-              className={`airbnb-search-segment ${activePopover === 'price' ? 'is-active' : ''}`}
-              onClick={() => setActivePopover(p => p === 'price' ? null : 'price')}
-            >
-              <span className="airbnb-segment-label">Price</span>
-              <span className={`airbnb-segment-val ${maxPrice >= 12000 ? 'is-placeholder' : ''}`}>
-                {maxPrice >= 12000 ? 'Any budget' : `Up to R${maxPrice.toLocaleString('en-ZA')}/mo`}
-              </span>
-            </button>
-
-            <span className="airbnb-segment-divider" />
-
-            {/* Preferences segment */}
-            <button
-              type="button"
-              className={`airbnb-search-segment ${activePopover === 'pref' ? 'is-active' : ''}`}
-              onClick={() => setActivePopover(p => p === 'pref' ? null : 'pref')}
-            >
-              <span className="airbnb-segment-label">Preferences</span>
-              <span className={`airbnb-segment-val ${activeCategory === 'all' ? 'is-placeholder' : ''}`}>
-                {activeCategory !== 'all'
-                  ? CATEGORIES.find(c => c.id === activeCategory)?.label
-                  : 'NSFAS, Wi-Fi, Shuttle'}
-              </span>
-            </button>
-
-            {/* Search Action Button */}
-            <button
-              type="button"
-              className="airbnb-search-btn"
-              onClick={handleSearchClick}
-              aria-label="Search accommodations"
-            >
-              <SearchIcon size={17} strokeWidth={2.5} />
-              <span>Search</span>
-            </button>
-          </div>
-
-          {/* ── Popover Panels ── */}
-          {activePopover === 'where' && (
-            <div className="airbnb-search-popover">
-              <div className="airbnb-popover-title">
-                <span>Select Area or University</span>
-                <button type="button" className="btn btn--sm btn--ghost" onClick={() => setActiveArea('')} style={{ fontSize: '11px', height: '28px' }}>Clear</button>
-              </div>
-              <input
-                type="text"
-                className="input mb-14"
-                placeholder="Type campus (e.g. Wits, UP, UJ) or street..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                autoFocus
-              />
-              <div className="airbnb-popover-grid">
-                {POPULAR_AREAS.map(ar => (
-                  <button
-                    key={ar}
-                    type="button"
-                    className={`airbnb-popover-pill ${activeArea === (ar === 'All areas' ? '' : ar) ? 'is-active' : ''}`}
-                    onClick={() => {
-                      setActiveArea(ar === 'All areas' ? '' : ar);
-                      setActivePopover('price');
-                    }}
-                  >
-                    {ar}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activePopover === 'price' && (
-            <div className="airbnb-search-popover">
-              <div className="airbnb-popover-title">
-                <span>Monthly Rent Budget</span>
-                <b style={{ color: 'var(--green-ink)', fontSize: '15px' }}>
-                  {maxPrice >= 12000 ? 'Any budget' : `Up to R${maxPrice.toLocaleString('en-ZA')} / mo`}
-                </b>
-              </div>
-              <div className="airbnb-price-box">
-                <div className="airbnb-price-slider-wrap">
-                  <input
-                    type="range"
-                    min="2500"
-                    max="12000"
-                    step="250"
-                    value={maxPrice}
-                    onChange={e => setMaxPrice(Number(e.target.value))}
-                  />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--ink-3)', fontWeight: 600 }}>
-                    <span>R2,500</span>
-                    <span>R6,000</span>
-                    <span>R9,000</span>
-                    <span>No limit</span>
-                  </div>
-                </div>
-
-                <div className="airbnb-price-presets">
-                  <button
-                    type="button"
-                    className={`map-drawer-pill ${maxPrice >= 12000 ? 'is-active' : ''}`}
-                    onClick={() => setMaxPrice(12000)}
-                  >
-                    Any price
-                  </button>
-                  <button
-                    type="button"
-                    className={`map-drawer-pill ${maxPrice === 5000 ? 'is-active' : ''}`}
-                    onClick={() => setMaxPrice(5000)}
-                  >
-                    &lt; R5,000
-                  </button>
-                  <button
-                    type="button"
-                    className={`map-drawer-pill ${maxPrice === 6500 ? 'is-active' : ''}`}
-                    onClick={() => setMaxPrice(6500)}
-                  >
-                    &lt; R6,500
-                  </button>
-                  <button
-                    type="button"
-                    className={`map-drawer-pill ${maxPrice === 8000 ? 'is-active' : ''}`}
-                    onClick={() => setMaxPrice(8000)}
-                  >
-                    &lt; R8,000
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activePopover === 'pref' && (
-            <div className="airbnb-search-popover">
-              <div className="airbnb-popover-title">
-                <span>Living Preferences & Amenities</span>
-                <button type="button" className="btn btn--sm btn--ghost" onClick={() => setActiveCategory('all')} style={{ fontSize: '11px', height: '28px' }}>Reset</button>
-              </div>
-              <div className="airbnb-popover-grid">
-                {CATEGORIES.slice(1).map(cat => {
-                  const Icon = cat.icon;
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      className={`airbnb-popover-pill ${activeCategory === cat.id ? 'is-active' : ''}`}
-                      onClick={() => {
-                        setActiveCategory(prev => prev === cat.id ? 'all' : cat.id);
-                        setActivePopover(null);
-                      }}
-                      style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                    >
-                      <Icon size={16} strokeWidth={2} />
-                      <span>{cat.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      </header>
-
-      {/* ── Category Icon Tabs Bar (Airbnb Style) ── */}
-      <nav className="airbnb-categories-bar" aria-label="Accommodation category filters">
-        {CATEGORIES.map(cat => {
-          const Icon = cat.icon;
-          return (
-            <button
-              key={cat.id}
-              type="button"
-              className={`airbnb-cat-tab ${activeCategory === cat.id ? 'is-active' : ''}`}
-              onClick={() => setActiveCategory(cat.id)}
-            >
-              <span className="airbnb-cat-icon">
-                <Icon size={20} strokeWidth={2} />
-              </span>
-              <span className="airbnb-cat-label">{cat.label}</span>
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* ── Feed Bar: Count & Active Filters ── */}
-      <div className="airbnb-feed-bar" ref={listingsRef}>
-        <div className="airbnb-feed-count">
-          {filteredProperties.length} <span>places available</span>
+          {/* Search Action Button */}
+          <button
+            type="button"
+            className="airbnb-search-btn"
+            onClick={handleSearchClick}
+            aria-label="Search accommodations"
+          >
+            <SearchIcon size={17} strokeWidth={2.5} />
+            <span>Search</span>
+          </button>
         </div>
 
-        {hasActiveFilters && (
-          <div className="airbnb-active-chips">
-            {activeArea && (
-              <button type="button" className="airbnb-chip" onClick={() => setActiveArea('')}>
-                <MapPin size={12} />
-                <span>{activeArea}</span>
-                <X size={12} />
-              </button>
-            )}
-            {searchQuery && (
-              <button type="button" className="airbnb-chip" onClick={() => setSearchQuery('')}>
-                <span>"{searchQuery}"</span>
-                <X size={12} />
-              </button>
-            )}
-            {maxPrice < 12000 && (
-              <button type="button" className="airbnb-chip" onClick={() => setMaxPrice(12000)}>
-                <Banknote size={12} />
-                <span>≤ R{maxPrice.toLocaleString('en-ZA')}</span>
-                <X size={12} />
-              </button>
-            )}
-            {activeCategory !== 'all' && (() => {
-              const activeCatObj = CATEGORIES.find(c => c.id === activeCategory);
-              const ActiveIcon = activeCatObj?.icon;
-              return (
-                <button type="button" className="airbnb-chip" onClick={() => setActiveCategory('all')}>
-                  {ActiveIcon && <ActiveIcon size={12} strokeWidth={2.2} />}
-                  <span>{activeCatObj?.label}</span>
-                  <X size={12} />
+        {/* ── Popover Panels ── */}
+        {activePopover === 'where' && (
+          <div className="airbnb-search-popover">
+            <div className="airbnb-popover-title">
+              <span>Select Area or University</span>
+              <button type="button" className="btn btn--sm btn--ghost" onClick={() => setActiveArea('')} style={{ fontSize: '11px', height: '28px' }}>Clear</button>
+            </div>
+            <input
+              type="text"
+              className="input mb-14"
+              placeholder="Type campus (e.g. Wits, UP, UJ) or street..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              autoFocus
+            />
+            <div className="airbnb-popover-grid">
+              {POPULAR_AREAS.map(ar => (
+                <button
+                  key={ar}
+                  type="button"
+                  className={`airbnb-popover-pill ${activeArea === (ar === 'All areas' ? '' : ar) ? 'is-active' : ''}`}
+                  onClick={() => {
+                    setActiveArea(ar === 'All areas' ? '' : ar);
+                    setActivePopover('price');
+                  }}
+                >
+                  {ar}
                 </button>
-              );
-            })()}
-            <button type="button" className="airbnb-clear-all-btn" onClick={clearAllFilters}>
-              Clear all
-            </button>
+              ))}
+            </div>
           </div>
         )}
+
+        {activePopover === 'price' && (
+          <div className="airbnb-search-popover">
+            <div className="airbnb-popover-title">
+              <span>Monthly Rent Budget</span>
+              <b style={{ color: 'var(--green-ink)', fontSize: '15px' }}>
+                {maxPrice >= 12000 ? 'Any budget' : `Up to R${maxPrice.toLocaleString('en-ZA')} / mo`}
+              </b>
+            </div>
+            <div className="airbnb-price-box">
+              <div className="airbnb-price-slider-wrap">
+                <input
+                  type="range"
+                  min="2500"
+                  max="12000"
+                  step="250"
+                  value={maxPrice}
+                  onChange={e => setMaxPrice(Number(e.target.value))}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--ink-3)', fontWeight: 600 }}>
+                  <span>R2,500</span>
+                  <span>R6,000</span>
+                  <span>R9,000</span>
+                  <span>No limit</span>
+                </div>
+              </div>
+
+              <div className="airbnb-price-presets">
+                <button
+                  type="button"
+                  className={`map-drawer-pill ${maxPrice >= 12000 ? 'is-active' : ''}`}
+                  onClick={() => setMaxPrice(12000)}
+                >
+                  Any price
+                </button>
+                <button
+                  type="button"
+                  className={`map-drawer-pill ${maxPrice === 5000 ? 'is-active' : ''}`}
+                  onClick={() => setMaxPrice(5000)}
+                >
+                  &lt; R5,000
+                </button>
+                <button
+                  type="button"
+                  className={`map-drawer-pill ${maxPrice === 6500 ? 'is-active' : ''}`}
+                  onClick={() => setMaxPrice(6500)}
+                >
+                  &lt; R6,500
+                </button>
+                <button
+                  type="button"
+                  className={`map-drawer-pill ${maxPrice === 8000 ? 'is-active' : ''}`}
+                  onClick={() => setMaxPrice(8000)}
+                >
+                  &lt; R8,000
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activePopover === 'pref' && (
+            <div className="airbnb-search-popover airbnb-search-popover--wide">
+              <div className="airbnb-popover-title">
+                <div>
+                  <span>Living Preferences & Amenities</span>
+                  <div style={{ fontSize: '12px', color: 'var(--ink-3)', fontWeight: 500, marginTop: '2px' }}>
+                    Select as many as apply ({selectedPrefs.length} selected)
+                  </div>
+                </div>
+                {selectedPrefs.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn--sm btn--ghost"
+                    onClick={() => setSelectedPrefs([])}
+                    style={{ fontSize: '11px', height: '28px' }}
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+                <div className="airbnb-popover-grid airbnb-popover-grid--multi">
+                  {CATEGORIES.slice(1).map(cat => {
+                    const Icon = cat.icon;
+                    const isSelected = selectedPrefs.includes(cat.id);
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                          className = {`airbnb-popover-pill ${isSelected ? 'is-active' : ''}`
+                        }
+                      onClick={() => togglePref(cat.id)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '10px'
+                        }}
+                      >
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Icon size={16} strokeWidth={2} />
+                          <span>{cat.label}</span>
+                        </span>
+                        {isSelected && <Check size={14} strokeWidth={2.5} />}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--ink-3)' }}>
+                    {selectedPrefs.length === 0 ? 'No preferences selected' : `${selectedPrefs.length} preference${selectedPrefs.length > 1 ? 's' : ''} applied`}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn--primary btn--sm"
+                    style={{ padding: '8px 20px', fontSize: '13px' }}
+                    onClick={() => setActivePopover(null)}
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+          )}
+            </div>
+          </header>
+
+      {/* ── Category Icon Tabs Bar (Airbnb Style) ── */}
+        <nav className="airbnb-categories-bar" aria-label="Accommodation category filters">
+          {CATEGORIES.map(cat => {
+            const Icon = cat.icon;
+            const isAll = cat.id === 'all';
+            const isActive = isAll ? selectedPrefs.length === 0 : selectedPrefs.includes(cat.id);
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                className={`airbnb-cat-tab ${isActive ? 'is-active' : ''}`}
+                onClick={() => {
+                  if (isAll) {
+                    setSelectedPrefs([]);
+                  } else {
+                    togglePref(cat.id);
+                  }
+                }}
+                title={isAll ? 'Clear preferences' : (isActive ? `Remove ${cat.label}` : `Add ${cat.label}`)}
+              >
+                <span className="airbnb-cat-icon">
+                  <Icon size={20} strokeWidth={2} />
+                </span>
+                <span className="airbnb-cat-label">{cat.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* ── Feed Bar: Count & Active Filters ── */}
+        <div className="airbnb-feed-bar" ref={listingsRef}>
+          <div className="airbnb-feed-count">
+            {filteredProperties.length} <span>places available</span>
+          </div>
+
+          {hasActiveFilters && (
+            <div className="airbnb-active-chips">
+              {activeArea && (
+                <button type="button" className="airbnb-chip" onClick={() => setActiveArea('')}>
+                  <MapPin size={12} />
+                  <span>{activeArea}</span>
+                  <X size={12} />
+                </button>
+              )}
+              {searchQuery && (
+                <button type="button" className="airbnb-chip" onClick={() => setSearchQuery('')}>
+                  <span>"{searchQuery}"</span>
+                  <X size={12} />
+                </button>
+              )}
+              {maxPrice < 12000 && (
+                <button type="button" className="airbnb-chip" onClick={() => setMaxPrice(12000)}>
+                  <Banknote size={12} />
+                  <span>≤ R{maxPrice.toLocaleString('en-ZA')}</span>
+                  <X size={12} />
+                </button>
+              )}
+                {
+                  selectedPrefs.map(prefId => {
+                    const cat = CATEGORIES.find(c => c.id === prefId);
+                    if (!cat) return null;
+                    const CatIcon = cat.icon;
+                    return (
+                        <button
+                          key={prefId}
+                          type="button"
+                          className="airbnb-chip"
+                          onClick={() => togglePref(prefId)}
+                          title="Click to remove"
+                        >
+                          <CatIcon size={12} strokeWidth={2.2} />
+                          <span>{cat.label}</span>
+                          <X size={12} />
+                        </button>
+                        );
+            })}
+                        <button type="button" className="airbnb-clear-all-btn" onClick={clearAllFilters}>
+                          Clear all
+                        </button>
+                      </div>
+                    )
+                  }
       </div>
 
       {/* ── Listings Grid ── */}
-      {filteredProperties.length === 0 ? (
-        <div className="research-empty cmp-empty-card" style={{ margin: '40px auto', maxWidth: '560px' }}>
-          <h2>No matching accommodations found</h2>
-          <p>Try widening your budget or clearing filters to see more student residences.</p>
-          <button type="button" className="btn btn--navy mt-14" onClick={clearAllFilters}>
-            Clear all filters
-          </button>
-        </div>
-      ) : (
-        <main className="airbnb-grid">
-          {filteredProperties.map(item => (
-            <AirbnbPropertyCard
-              key={item.id}
-              item={item}
-              saved={saved}
-              compared={compared}
-            />
-          ))}
-        </main>
-      )}
+          {filteredProperties.length === 0 ? (
+            <div className="research-empty cmp-empty-card" style={{ margin: '40px auto', maxWidth: '560px' }}>
+              <h2>No matching accommodations found</h2>
+              <p>Try widening your budget or clearing filters to see more student residences.</p>
+              <button type="button" className="btn btn--navy mt-14" onClick={clearAllFilters}>
+                Clear all filters
+              </button>
+            </div>
+          ) : (
+            <main className="airbnb-grid">
+              {filteredProperties.map(item => (
+                <AirbnbPropertyCard
+                  key={item.id}
+                  item={item}
+                  saved={saved}
+                  compared={compared}
+                />
+              ))}
+            </main>
+          )}
 
-      {/* ── Floating Airbnb Show Map Pill Button ── */}
-      <Link to="/search" className="airbnb-float-map-btn" aria-label="Open accommodation map search">
-        <Map size={16} />
-        <span>Show map</span>
-      </Link>
-    </div>
-  );
+          {/* ── Floating Airbnb Show Map Pill Button ── */}
+          <Link to="/search" className="airbnb-float-map-btn" aria-label="Open accommodation map search">
+            <Map size={16} />
+            <span>Show map</span>
+          </Link>
+        </div>
+        );
 };

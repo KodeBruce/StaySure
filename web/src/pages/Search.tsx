@@ -207,7 +207,6 @@ export function Search() {
         </article>;
       })}
     </div>
-    <p className="map-approx-note">Demo pins show approximate area locations · <Link to="/research">Explore 66 researched Gauteng properties with source notes →</Link></p>
 
     {createPortal(
       <>
@@ -278,7 +277,6 @@ export function Search() {
             </label>
             {nearby && <button type="button" className="btn btn--ghost" onClick={() => { setNearby(false); setLocationMessage(''); }}>Turn off Near me</button>}
             <p>Demo pins use approximate area centres until listing coordinates are verified.</p>
-            <Link to="/research" onClick={() => setDrawerOpen(false)}>Explore researched Gauteng properties →</Link>
           </div>
           <div className="map-drawer-actions"><button type="button" className="btn btn--ghost" onClick={() => { setFilters(initialFilters); setProvince('Gauteng'); setUniversity('wits'); setNearby(false); setMapBounds(null); setPendingBounds(null); }}>Reset</button><button type="button" className="btn btn--green" onClick={() => setDrawerOpen(false)}><SlidersHorizontal size={16} /> Show {results.length} places</button></div>
         </aside>
