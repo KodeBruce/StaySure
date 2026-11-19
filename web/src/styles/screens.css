@@ -3769,32 +3769,31 @@ body.has-tray .screen {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   color: #ffffff;
-  padding: 8px 16px;
+  padding: 10px 20px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
   box-sizing: border-box;
-  width: auto;
-  max-width: calc(100vw - 24px);
+  width: min(640px, calc(100vw - 32px));
   transition: bottom 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease, opacity 0.2s ease;
 }
 
 .compare-tray-slots {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
 .compare-tray-slot {
   position: relative;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   overflow: hidden;
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.08);
@@ -3811,9 +3810,9 @@ body.has-tray .screen {
 }
 
 .compare-tray-slot--empty {
-  border: 1.5px dashed rgba(255, 255, 255, 0.28);
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 14px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 16px;
   font-weight: 400;
 }
 
@@ -3821,9 +3820,9 @@ body.has-tray .screen {
   position: absolute;
   top: 0;
   right: 0;
-  width: 16px;
-  height: 16px;
-  border-radius: 0 0 0 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 0 0 0 8px;
   background: rgba(15, 23, 42, 0.88);
   color: #ffffff;
   border: none;
@@ -3844,13 +3843,14 @@ body.has-tray .screen {
 .compare-tray-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  flex-shrink: 0;
+  gap: 3px;
+  flex: 1;
   min-width: 0;
+  margin: 0 4px;
 }
 
 .compare-tray-count {
-  font-size: 12.5px;
+  font-size: 13.5px;
   font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -3859,7 +3859,7 @@ body.has-tray .screen {
 }
 
 .compare-tray-hint {
-  font-size: 10.5px;
+  font-size: 11.5px;
   white-space: nowrap;
   line-height: 1.2;
   color: rgba(255, 255, 255, 0.72);
@@ -3868,28 +3868,32 @@ body.has-tray .screen {
 .compare-tray-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
 .compare-tray-btn-clear {
   background: transparent;
   color: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 999px;
   font: inherit;
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 600;
-  padding: 5px 11px;
+  height: 38px;
+  padding: 0 16px;
   cursor: pointer;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.15s ease;
 }
 
 .compare-tray-btn-clear:hover {
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .compare-tray-btn-compare {
@@ -3898,9 +3902,10 @@ body.has-tray .screen {
   border: none;
   border-radius: 999px;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  padding: 6px 15px;
+  height: 38px;
+  padding: 0 22px;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -3913,6 +3918,7 @@ body.has-tray .screen {
 
 .compare-tray-btn-compare:hover {
   background: #1f8a52;
+  transform: translateY(-1px);
 }
 
 .compare-tray-btn-compare:disabled {
@@ -3920,51 +3926,72 @@ body.has-tray .screen {
   color: rgba(255, 255, 255, 0.38);
   box-shadow: none;
   cursor: not-allowed;
+  transform: none;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 540px) {
   .compare-tray {
-    padding: 6px 10px;
-    gap: 8px;
+    width: calc(100vw - 20px);
+    padding: 8px 14px;
+    gap: 10px;
   }
   .compare-tray-slots {
-    gap: 4px;
+    gap: 6px;
   }
   .compare-tray-slot {
-    width: 30px;
-    height: 30px;
-    border-radius: 6px;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
   }
   .compare-tray-remove {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
   }
+  .compare-tray-info {
+    margin: 0 2px;
+    gap: 2px;
+  }
+  .compare-tray-count {
+    font-size: 12px;
+  }
+  .compare-tray-hint {
+    font-size: 10.5px;
+    display: block;
+  }
+  .compare-tray-actions {
+    gap: 6px;
+  }
+  .compare-tray-btn-clear {
+    height: 34px;
+    padding: 0 12px;
+    font-size: 11.5px;
+  }
+  .compare-tray-btn-compare {
+    height: 34px;
+    padding: 0 16px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 360px) {
   .compare-tray-hint {
     display: none;
   }
-  .compare-tray-count {
-    font-size: 11px;
-    padding: 2px 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 999px;
+  .compare-tray {
+    padding: 7px 10px;
+    gap: 8px;
+  }
+  .compare-tray-slot {
+    width: 34px;
+    height: 34px;
   }
   .compare-tray-btn-clear {
-    padding: 4px 8px;
+    padding: 0 10px;
     font-size: 11px;
   }
   .compare-tray-btn-compare {
-    padding: 5px 11px;
-    font-size: 11px;
-  }
-}
-
-@media (max-width: 370px) {
-  .compare-tray-info {
-    display: none;
-  }
-  .compare-tray {
-    padding: 5px 8px;
-    gap: 6px;
+    padding: 0 14px;
+    font-size: 11.5px;
   }
 }
 

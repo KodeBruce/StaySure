@@ -84,7 +84,7 @@ export const CompareTray: React.FC = () => {
 
       {/* Count + hint */}
       <div className="compare-tray-info">
-        <div className="compare-tray-count">{comparedProps.length} of 3</div>
+        <div className="compare-tray-count">{comparedProps.length} of 3 selected</div>
         <div className="compare-tray-hint">
           {canCompare ? 'Ready to compare' : 'Add 1 more to compare'}
         </div>
