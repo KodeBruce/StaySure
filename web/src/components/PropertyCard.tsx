@@ -9,9 +9,10 @@ import { getPropertyUniversities } from '../data/mapLocations';
 
 interface PropertyCardProps {
   property: Property;
+  onOpen?: (id: string) => void;
 }
 
-export const PropertyCard: React.FC<PropertyCardProps> = ({ property: p }) => {
+export const PropertyCard: React.FC<PropertyCardProps> = ({ property: p, onOpen }) => {
   const { profile } = useAuth();
   const { compareIds, addToCompare, removeFromCompare, savedIds, toggleSave } = useCompare();
 
@@ -23,6 +24,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property: p }) => {
   return (
     <div className="card property-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: '#fff', border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '18px', boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.05)' }}>
       <div style={{ position: 'relative', width: '100%', height: '180px', background: '#eee', overflow: 'hidden' }}>
+        {onOpen && <button type="button" onClick={() => onOpen(p.id)} aria-label={`Preview ${p.name}`} style={{ position: 'absolute', inset: 0, zIndex: 1, border: 0, background: 'transparent', cursor: 'pointer' }} />}
         <img
           src={p.images[0] || '/images/p1.jpg'}
           alt={p.name}
@@ -83,7 +85,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property: p }) => {
       <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flexGrow: 1, gap: '8px' }}>
         <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
           <h3 style={{ fontSize: '16.5px', margin: 0, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.015em' }}>
-            <Link to={`/detail/${p.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link to={`/detail/${p.id}`} onClick={event => { if (onOpen) { event.preventDefault(); onOpen(p.id); } }} style={{ textDecoration: 'none', color: 'inherit' }}>
               {p.name}
             </Link>
           </h3>
@@ -136,6 +138,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property: p }) => {
         <div style={{ marginTop: 'auto', paddingTop: '8px', display: 'flex', justifyContent: 'flex-end', borderTop: 'none' }}>
           <Link
             to={`/detail/${p.id}`}
+            onClick={event => { if (onOpen) { event.preventDefault(); onOpen(p.id); } }}
             className="rail-card-details-link"
             aria-label={`View details for ${p.name}`}
           >

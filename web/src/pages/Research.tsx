@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import './research.css';
 import { INITIAL_PROPERTIES } from '../data/mockData';
+import { MapPropertySheet } from './ResearchMapSearch';
 
 type ResearchProperty = (typeof records)[number];
 const properties: ResearchProperty[] = records;
@@ -56,7 +57,7 @@ function convertMockToResearchProperty(p: (typeof INITIAL_PROPERTIES)[number]): 
   };
 }
 
-function resolveAnyProperty(id: string): ResearchProperty | undefined {
+export function resolveAnyProperty(id: string): ResearchProperty | undefined {
   const match = properties.find(item => item.id === id);
   if (match) return match;
   const mockMatch = INITIAL_PROPERTIES.find(item => item.id === id);
@@ -829,6 +830,7 @@ export function ResearchCompare() {
   const saved = useResearchSelection('saved');
   const criteria = useSearchCriteria();
   const [addSheetOpen, setAddSheetOpen] = useState(false);
+  const [detailId, setDetailId] = useState<string | null>(null);
   const [expandNotes, setExpandNotes] = useState(false);
   const [diffOnly, setDiffOnly] = useState(false);
   const [mobilePair, setMobilePair] = useState<'all' | '0-1' | '1-2' | '0-2'>('all');
@@ -1254,10 +1256,11 @@ export function ResearchCompare() {
                     </button>
                     <div className="cmp-prop-thumb">
                       <ResearchImage src={getPropertyThumbnail(item)} name={item.name} />
+                      <button type="button" className="cmp-prop-preview-hit" onClick={() => setDetailId(item.id)} aria-label={`Preview ${item.name}`} />
                       {isLowest && <span className="cmp-best-badge"><Star size={10} /> Best Price</span>}
                       {hasCriteria && <span className="cmp-match-badge">✦ {matchResearchProperty(item, criteria).score}% fit</span>}
                     </div>
-                    <Link to={`/research/${item.id}`} className="cmp-prop-name" title={item.name}>
+                    <Link to={`/research/${item.id}`} className="cmp-prop-name" title={item.name} onClick={event => { event.preventDefault(); setDetailId(item.id); }}>
                       {item.name}
                     </Link>
                     <div className="cmp-prop-locality">
@@ -1268,7 +1271,7 @@ export function ResearchCompare() {
                       <span>{getPropertyReviews(item.id, item.name, item.locality).ratingFormatted} ({getPropertyReviews(item.id, item.name, item.locality).reviewsCount})</span>
                     </div>
                     <div className="cmp-prop-price">{offerings.priceLabel}</div>
-                    <Link to={`/research/${item.id}`} className="cmp-prop-cta" aria-label={`View details for ${item.name}`}>
+                    <Link to={`/research/${item.id}`} className="cmp-prop-cta" aria-label={`View details for ${item.name}`} onClick={event => { event.preventDefault(); setDetailId(item.id); }}>
                       View details <span className="arrow-glyph">→</span>
                     </Link>
                   </div>
@@ -1344,6 +1347,7 @@ export function ResearchCompare() {
                   <Link
                     to={`/research/${item.id}`}
                     className="btn btn--ghost btn--sm"
+                    onClick={event => { event.preventDefault(); setDetailId(item.id); }}
                     style={{ width: '100%', justifyContent: 'center' }}
                   >
                     View details
@@ -1490,6 +1494,10 @@ export function ResearchCompare() {
         savedIds={saved.ids}
         comparedIds={compared.ids}
       />
+      {detailId && (() => {
+        const item = resolveAnyProperty(detailId);
+        return item ? <MapPropertySheet key={detailId} item={item} match={matchResearchProperty(item, criteria)} image={getPropertyThumbnail(item)} saved={saved} compared={compared} onExited={() => setDetailId(null)} /> : null;
+      })()}
     </div>
   );
 }

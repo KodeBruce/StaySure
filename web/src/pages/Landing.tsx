@@ -14,6 +14,7 @@ import { parseOfferings, type ResearchProperty } from '../data/researchOfferings
 import { matchesSelectedRoomTypes, ROOM_TYPE_OPTIONS, type RoomTypeFilter } from '../data/roomTypeFilter';
 import { matchResearchProperty, readSearchCriteria, saveSearchCriteria, type ResearchMatch, type SearchCriteria } from '../data/researchMatch';
 import { useResearchSelection } from '../data/researchSelection';
+import { MapPropertySheet } from './ResearchMapSearch';
 import { getPropertyReviews } from '../data/propertyReviews';
 import { UNIVERSITIES, getPropertyUniversities, isNearUniversity, type UniversityInfo } from '../data/mapLocations';
 import './airbnb-home.css';
@@ -36,12 +37,13 @@ const POPULAR_AREAS = [
 ];
 
 function AirbnbPropertyCard({
-  item, saved, compared, match,
+  item, saved, compared, match, onOpen,
 }: {
   item: ResearchProperty;
   saved: ReturnType<typeof useResearchSelection>;
   compared: ReturnType<typeof useResearchSelection>;
   match: ResearchMatch;
+  onOpen: (id: string) => void;
 }) {
   const image = researchImages(item.id)[0];
   const price = researchPriceSummary(item.advertisedPrice);
@@ -53,7 +55,7 @@ function AirbnbPropertyCard({
   const [imgError, setImgError] = useState(false);
 
   return (
-    <Link to={`/research/${item.id}`} className="airbnb-card" aria-label={`View ${item.name}`}>
+    <Link id={`home-card-${item.id}`} to={`/research/${item.id}`} className="airbnb-card" aria-label={`View ${item.name} details`} onClick={event => { event.preventDefault(); onOpen(item.id); }}>
       <div className="airbnb-card-media">
         <img
           src={imgError ? researchFallbackImage : image}
@@ -132,6 +134,7 @@ export const Landing: React.FC = () => {
   const [selectedPrefs, setSelectedPrefs] = useState<string[]>(() => readSearchCriteria().preferences);
   const [selectedRoomTypes, setSelectedRoomTypes] = useState<RoomTypeFilter[]>(() => readSearchCriteria().roomTypes);
   const [searchQuery, setSearchQuery] = useState('');
+  const [detailId, setDetailId] = useState<string | null>(null);
   const [activePopover, setActivePopover] = useState<'where' | 'price' | 'pref' | null>(null);
 
   const listingsRef = useRef<HTMLElement>(null);
@@ -667,10 +670,18 @@ export const Landing: React.FC = () => {
       ) : (
         <main className="airbnb-grid">
           {filteredProperties.map(item => (
-            <AirbnbPropertyCard key={item.id} item={item} saved={saved} compared={compared} match={matchResearchProperty(item, criteria)} />
+            <AirbnbPropertyCard key={item.id} item={item} saved={saved} compared={compared} match={matchResearchProperty(item, criteria)} onOpen={setDetailId} />
           ))}
         </main>
       )}
+
+      {detailId && (() => {
+        const item = (researchProperties as ResearchProperty[]).find(property => property.id === detailId);
+        return item ? <MapPropertySheet key={detailId} item={item} match={matchResearchProperty(item, criteria)} saved={saved} compared={compared} onExited={() => {
+          setDetailId(null);
+          window.requestAnimationFrame(() => document.getElementById(`home-card-${detailId}`)?.focus({ preventScroll: true }));
+        }} /> : null;
+      })()}
 
       {/* ── Floating Map Button ── */}
       <Link to={selectedRoomTypes.length ? `/search?rooms=${selectedRoomTypes.join(',')}` : '/search'} className="airbnb-float-map-btn" aria-label="Open accommodation map search">

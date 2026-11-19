@@ -1818,6 +1818,8 @@
   overflow: hidden;
   background: var(--navy-tint);
 }
+.cmp-prop-preview-hit { position: absolute; inset: 0; z-index: 1; width: 100%; border: 0; background: transparent; cursor: pointer; }
+.cmp-prop-thumb .cmp-best-badge, .cmp-prop-thumb .cmp-match-badge { z-index: 2; pointer-events: none; }
 
 .cmp-prop-thumb img {
   width: 100%;

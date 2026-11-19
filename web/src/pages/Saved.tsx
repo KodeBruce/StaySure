@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PropertyCard } from '../components/PropertyCard';
 import { INITIAL_PROPERTIES } from '../data/mockData';
@@ -7,11 +7,16 @@ import { useResearchSelection } from '../data/researchSelection';
 import { researchImages, researchFallbackImage } from '../data/researchMedia';
 import { researchPriceSummary } from '../data/researchPricing';
 import { Heart } from 'lucide-react';
+import { MapPropertySheet } from './ResearchMapSearch';
+import { matchResearchProperty, useSearchCriteria } from '../data/researchMatch';
+import { resolveAnyProperty } from './Research';
 
 export const Saved: React.FC = () => {
   // Single source of truth for both save and compare state
   const researchSaved = useResearchSelection('saved');
   const researchCompared = useResearchSelection('compare');
+  const criteria = useSearchCriteria();
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   // Split saved IDs into two buckets: research JSON props vs mock props
   const researchItems = researchSaved.ids
@@ -90,6 +95,7 @@ export const Saved: React.FC = () => {
                           }}>
                             {/* Thumbnail */}
                             <div style={{ height: '180px', background: 'var(--navy-tint)', position: 'relative' }}>
+                              <button type="button" onClick={() => setDetailId(item.id)} aria-label={`Preview ${item.name}`} style={{ position: 'absolute', inset: 0, zIndex: 1, border: 0, background: 'transparent', cursor: 'pointer' }} />
                               <img
                                 src={researchImages(item.id)[0]}
                                 onError={e => { e.currentTarget.src = researchFallbackImage; }}
@@ -109,7 +115,7 @@ export const Saved: React.FC = () => {
                                 aria-label="Remove from saved"
                                 onClick={() => researchSaved.toggle(item.id)}
                                 style={{
-                                  position: 'absolute', top: '10px', right: '10px',
+                                  position: 'absolute', top: '10px', right: '10px', zIndex: 2,
                                   background: 'rgba(255,255,255,0.92)', border: 'none', borderRadius: '50%',
                                   width: '34px', height: '34px', display: 'flex', alignItems: 'center',
                                   justifyContent: 'center', cursor: 'pointer', color: '#ef4444'
@@ -126,9 +132,7 @@ export const Saved: React.FC = () => {
                                 borderRadius: '999px', padding: '3px 9px', fontSize: '11px', fontWeight: 700,
                                 marginBottom: '2px', alignSelf: 'flex-start'
                               }}>Research record</span>
-                              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--navy)', margin: 0, lineHeight: 1.25 }}>
-                                {item.name}
-                              </h3>
+                              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--navy)', margin: 0, lineHeight: 1.25 }}><button type="button" onClick={() => setDetailId(item.id)} style={{ padding: 0, border: 0, background: 'none', color: 'inherit', font: 'inherit', textAlign: 'left', cursor: 'pointer' }}>{item.name}</button></h3>
                               <p style={{ fontSize: '13px', color: 'var(--green-ink)', fontWeight: 600, margin: 0 }}>
                                 {price?.label ?? 'Price not listed'}
                                 {price && <small style={{ fontSize: '11px', color: 'var(--ink-3)', fontWeight: 400, marginLeft: '4px' }}>advertised; confirm basis</small>}
@@ -138,13 +142,14 @@ export const Saved: React.FC = () => {
                               </p>
                               {/* Actions */}
                               <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', paddingTop: '10px', flexWrap: 'wrap' }}>
-                                <Link
-                                  to={`/research/${item.id}`}
+                                <button
+                                  type="button"
+                                  onClick={() => setDetailId(item.id)}
                                   className="btn btn--sm btn--ghost"
                                   style={{ textDecoration: 'none', flex: '1 1 auto', textAlign: 'center' }}
                                 >
                                   View details →
-                                </Link>
+                                </button>
                                 <button
                                   type="button"
                                   className={`btn btn--sm ${isComparing ? 'btn--navy' : 'btn--ghost'}`}
@@ -162,6 +167,11 @@ export const Saved: React.FC = () => {
                     </div>
                   </section>
                 )}
+                {detailId && (() => {
+                  const item = resolveAnyProperty(detailId);
+                  const mock = INITIAL_PROPERTIES.find(property => property.id === detailId);
+                  return item ? <MapPropertySheet key={detailId} item={item} image={mock?.images[0]} match={matchResearchProperty(item, criteria)} saved={researchSaved} compared={researchCompared} onExited={() => setDetailId(null)} /> : null;
+                })()}
 
                 {/* Mock / demo properties */}
                 {mockItems.length > 0 && (
@@ -173,7 +183,7 @@ export const Saved: React.FC = () => {
                     )}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
                       {mockItems.map(p => (
-                        <PropertyCard key={p.id} property={p} />
+                        <PropertyCard key={p.id} property={p} onOpen={setDetailId} />
                       ))}
                     </div>
                   </section>
