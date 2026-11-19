@@ -135,7 +135,7 @@ export const Landing: React.FC = () => {
   const [selectedRoomTypes, setSelectedRoomTypes] = useState<RoomTypeFilter[]>(() => readSearchCriteria().roomTypes);
   const [searchQuery, setSearchQuery] = useState('');
   const [detailId, setDetailId] = useState<string | null>(null);
-  const [activePopover, setActivePopover] = useState<'where' | 'price' | 'pref' | null>(null);
+  const [activePopover, setActivePopover] = useState<'where' | 'price' | 'room' | 'pref' | null>(null);
 
   const listingsRef = useRef<HTMLElement>(null);
 
@@ -296,6 +296,25 @@ export const Landing: React.FC = () => {
                   size={13}
                   className={`airbnb-segment-chevron ${activePopover === 'price' ? 'is-open' : ''}`}
                 />
+              </span>
+            </button>
+
+            <span className="airbnb-segment-divider" />
+
+            {/* Room type */}
+            <button
+              type="button"
+              className={`airbnb-search-segment ${activePopover === 'room' ? 'is-active' : ''}`}
+              onClick={() => setActivePopover(p => p === 'room' ? null : 'room')}
+            >
+              <span className="airbnb-segment-label">Room type</span>
+              <span className="airbnb-segment-row">
+                <span className={`airbnb-segment-val ${selectedRoomTypes.length === 0 ? 'is-placeholder' : ''}`}>
+                  {selectedRoomTypes.length === 0 ? 'Single, sharing, studio...' : selectedRoomTypes.length === 1
+                    ? ROOM_TYPE_OPTIONS.find(option => option.id === selectedRoomTypes[0])?.label
+                    : `${ROOM_TYPE_OPTIONS.find(option => option.id === selectedRoomTypes[0])?.label} (+${selectedRoomTypes.length - 1})`}
+                </span>
+                <ChevronDown size={13} className={`airbnb-segment-chevron ${activePopover === 'room' ? 'is-open' : ''}`} />
               </span>
             </button>
 
@@ -477,6 +496,34 @@ export const Landing: React.FC = () => {
               </div>
             )}
 
+            {/* ROOM TYPE */}
+            {activePopover === 'room' && (
+              <div className="airbnb-sheet-body">
+                <div className="airbnb-sheet-header">
+                  <div>
+                    <span className="airbnb-sheet-title">What kind of room?</span>
+                    <div className="airbnb-sheet-subtitle">Choose one or more · {selectedRoomTypes.length} selected</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    {selectedRoomTypes.length > 0 && <button type="button" className="airbnb-sheet-clear" onClick={() => setSelectedRoomTypes([])}>Clear</button>}
+                    <button type="button" className="airbnb-sheet-close" onClick={() => setActivePopover(null)} aria-label="Close"><X size={18} /></button>
+                  </div>
+                </div>
+                <div className="airbnb-room-sheet-options" role="group" aria-label="Room types">
+                  {ROOM_TYPE_OPTIONS.map(option => {
+                    const Icon = option.id === 'sharing' ? Users : BedDouble;
+                    const selected = selectedRoomTypes.includes(option.id);
+                    return <button key={option.id} type="button" className={`airbnb-room-filter-option ${selected ? 'is-active' : ''}`} onClick={() => toggleRoomType(option.id)} aria-pressed={selected}>
+                      <Icon size={17} /><span><b>{option.label}</b><small>{option.description}</small></span>{selected && <Check size={14} />}
+                    </button>;
+                  })}
+                </div>
+                <button type="button" className="airbnb-sheet-apply-btn" onClick={handleApply}>
+                  {filteredProperties.length === 0 ? 'No results — try another room type' : `Show ${filteredProperties.length} place${filteredProperties.length !== 1 ? 's' : ''}`}
+                </button>
+              </div>
+            )}
+
             {/* PREFERENCES */}
             {activePopover === 'pref' && (
               <div className="airbnb-sheet-body">
@@ -561,25 +608,6 @@ export const Landing: React.FC = () => {
           );
         })}
       </div>
-
-      <section className="airbnb-room-filter" aria-label="Filter by room type">
-        <div className="airbnb-room-filter-copy">
-          <strong>What kind of room?</strong>
-          <span>Choose one or more. Listings with any selected room type will appear.</span>
-        </div>
-        <div className="airbnb-room-filter-options" role="group" aria-label="Room types">
-          {ROOM_TYPE_OPTIONS.map(option => {
-            const Icon = option.id === 'sharing' ? Users : BedDouble;
-            const selected = selectedRoomTypes.includes(option.id);
-            return <button key={option.id} type="button" className={`airbnb-room-filter-option ${selected ? 'is-active' : ''}`} onClick={() => toggleRoomType(option.id)} aria-pressed={selected}>
-              <Icon size={16} />
-              <span><b>{option.label}</b><small>{option.description}</small></span>
-              {selected && <Check size={14} />}
-            </button>;
-          })}
-          {selectedRoomTypes.length > 0 && <button type="button" className="airbnb-room-filter-clear" onClick={() => setSelectedRoomTypes([])}>Any room type</button>}
-        </div>
-      </section>
 
       {/* ── Category Icon Tabs Bar ── */}
       <nav className="airbnb-categories-bar" aria-label="Accommodation category filters">
