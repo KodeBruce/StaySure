@@ -15,7 +15,7 @@ export const CompareTray: React.FC = () => {
 
   const isVisible =
     compareIds.length > 0 &&
-    !/^\/(search|compare|research)(\/|$)/.test(location.pathname);
+    !/^\/(search|compare|research|apply|applications)(\/|$)/.test(location.pathname);
 
   React.useEffect(() => {
     document.body.classList.toggle('has-compare-tray', isVisible);
