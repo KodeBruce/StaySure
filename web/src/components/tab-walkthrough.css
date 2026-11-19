@@ -1,0 +1,284 @@
+/* Tab Walkthrough — Minimalist Glowing Outline & Blurred Background */
+
+.walkthrough-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3999;
+  background: rgba(10, 20, 50, 0.52);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: walkFadeIn 0.3s ease-out;
+  cursor: pointer;
+}
+
+
+  /* Elevate navigation bars above the blur during walkthrough */
+  body.walkthrough-active .topnav,
+  body.walkthrough-active .app-floating-nav {
+    z-index: 4002 !important;
+  }
+
+
+    /* Dim everything in the nav EXCEPT the active tab */
+    body.walkthrough-active .topnav .logo,
+    body.walkthrough-active .topnav .desktop-links a:not(.walkthrough-active-tab),
+    body.walkthrough-active .topnav .nav-person-btn,
+    body.walkthrough-active .topnav .hide-mobile,
+    body.walkthrough-active .app-floating-nav a:not(.walkthrough-active-tab) {
+      opacity: 0.22 !important;
+      pointer-events: none !important;
+      transition: opacity 0.25s ease !important;
+    }
+
+    /* The Outlined & Glowing Active Tab */
+    body.walkthrough-active .walkthrough-active-tab {
+      opacity: 1 !important;
+      transform: scale(1.08) !important;
+      border-color: #249f60 !important;
+      box-shadow: 0 0 0 3px #249f60, 0 0 24px rgba(36, 159, 96, 0.7), 0 8px 20px rgba(0, 0, 0, 0.35) !important;
+      border-radius: 999px !important;
+      pointer-events: auto !important;
+      transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    /* For desktop pills */
+    body.walkthrough-active .desktop-links a.walkthrough-active-tab {
+      background: #13234f !important;
+      color: #ffffff !important;
+    }
+
+    /* For mobile floating nav */
+    body.walkthrough-active .app-floating-nav a.walkthrough-active-tab {
+      background: rgba(36, 159, 96, 0.12) !important;
+      color: #13234f !important;
+    }
+
+    /* Popover Card */
+    .walkthrough-card {
+      position: fixed;
+      z-index: 4005;
+      width: min(340px, calc(100vw - 32px));
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 18px 50px rgba(10, 20, 50, 0.35), 0 2px 10px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(19, 35, 79, 0.12);
+      padding: 18px 20px 16px;
+      box-sizing: border-box;
+      transition: top 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+        left 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: walkPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: top, left;
+    }
+
+    /* Pointer arrow */
+    .walkthrough-card::after {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: #ffffff;
+      border: 1px solid rgba(19, 35, 79, 0.12);
+      transform: rotate(45deg);
+      pointer-events: none;
+    }
+
+    /* Arrow when card is below topnav (pointing up) */
+    .walkthrough-card.arrow-top::after {
+      top: -8px;
+      left: var(--arrow-left, 32px);
+      border-right: none;
+      border-bottom: none;
+    }
+
+    /* Arrow when card is above bottom nav (pointing down) */
+    .walkthrough-card.arrow-bottom::after {
+      bottom: -8px;
+      left: var(--arrow-left, 32px);
+      border-left: none;
+      border-top: none;
+    }
+
+    .walkthrough-card-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .walkthrough-badge-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .walkthrough-icon-box {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: #249f60;
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(36, 159, 96, 0.35);
+    }
+
+    .walkthrough-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: #13234f;
+      background: #f1f5f9;
+      padding: 3px 9px;
+      border-radius: 999px;
+      letter-spacing: 0.02em;
+    }
+
+    .walkthrough-close {
+      border: 0;
+      background: rgba(19, 35, 79, 0.06);
+      color: #475569;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.15s ease;
+    }
+
+    .walkthrough-close:hover {
+      background: rgba(19, 35, 79, 0.12);
+      color: #0f172a;
+    }
+
+    .walkthrough-title {
+      margin: 0 0 6px;
+      font-size: 16px;
+      font-weight: 800;
+      color: #13234f;
+      line-height: 1.25;
+    }
+
+    .walkthrough-summary {
+      margin: 0 0 16px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #475569;
+    }
+
+    .walkthrough-progress {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 14px;
+    }
+
+    .walkthrough-dot {
+      flex: 1;
+      height: 3px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      transition: background 0.25s ease;
+    }
+
+    .walkthrough-dot.is-active {
+      background: #249f60;
+    }
+
+    .walkthrough-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(19, 35, 79, 0.07);
+    }
+
+    .walkthrough-btn-dismiss {
+      border: 0;
+      background: transparent;
+      color: #64748b;
+      font: inherit;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 6px 4px;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      transition: color 0.15s ease;
+    }
+
+    .walkthrough-btn-dismiss:hover {
+      color: #0f172a;
+    }
+
+    .walkthrough-nav-btns {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .walkthrough-btn-back {
+      border: 1px solid rgba(19, 35, 79, 0.12);
+      background: #ffffff;
+      color: #13234f;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .walkthrough-btn-back:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    .walkthrough-btn-next {
+      border: 0;
+      background: #249f60;
+      color: #ffffff;
+      font: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 7px 15px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(36, 159, 96, 0.35);
+      transition: all 0.15s ease;
+    }
+
+    .walkthrough-btn-next:hover {
+      background: #1e8751;
+      transform: translateY(-1px);
+    }
+
+    @keyframes walkFadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes walkPop {
+      from {
+        opacity: 0;
+        transform: scale(0.96) translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }

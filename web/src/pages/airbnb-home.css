@@ -215,7 +215,7 @@
   inset: 0;
   background: rgba(10, 20, 50, 0.38);
   z-index: 1000;
-  animation: sheetFadeIn 0.22s ease;
+  animation: sheetFadeIn 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes sheetFadeIn {
@@ -241,14 +241,15 @@
   box-shadow: 0 -12px 60px rgba(10, 20, 50, 0.22);
   max-height: 82vh;
   overflow-y: auto;
-  animation: sheetSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: sheetSlideUp 0.44s cubic-bezier(0.16, 1, 0.3, 1) both;
   overscroll-behavior: contain;
+  will-change: transform, opacity;
 }
 
 @keyframes sheetSlideUp {
   from {
-    transform: translate(-50%, 70px);
-    opacity: 0;
+    transform: translate(-50%, 100%);
+    opacity: 0.3;
   }
 
   to {

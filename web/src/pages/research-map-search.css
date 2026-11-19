@@ -752,7 +752,7 @@
   border-radius: 20px;
   background: #fff;
   box-shadow: 0 24px 70px rgba(13, 27, 52, .22);
-  animation: map-detail-enter .28s cubic-bezier(.2, .8, .2, 1) both;
+  animation: map-detail-enter .42s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .map-detail-layer.is-closing .map-detail-backdrop {
@@ -1336,8 +1336,8 @@
 
 @keyframes map-detail-enter {
   from {
-    opacity: .6;
-    transform: translateY(28px);
+    opacity: 0.3;
+    transform: translateY(60px);
   }
 
   to {

@@ -55,24 +55,24 @@ export const Navbar: React.FC = () => {
                 </Link>
 
                 <nav className="desktop-links row" style={{ gap: '6px' }}>
-                  <NavLink to="/" end className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
+                  <NavLink to="/" end data-walkthrough-tab="home" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
                     <House size={16} />
                     <span>Home</span>
                   </NavLink>
-                  <NavLink to="/search" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
+                  <NavLink to="/search" data-walkthrough-tab="search" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
                     <SearchIcon size={16} />
                     <span>Search</span>
                   </NavLink>
-                  <NavLink to="/compare" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
+                  <NavLink to="/compare" data-walkthrough-tab="compare" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
                     <GitCompareArrows size={16} />
                     <span>Compare</span>
                     {researchCompared.ids.length > 0 && <span className="chip" style={{ background: 'var(--green-soft)', color: 'var(--green-ink)', marginLeft: '4px' }}>{researchCompared.ids.length}</span>}
                   </NavLink>
-                  <NavLink to="/applications" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
+                  <NavLink to="/applications" data-walkthrough-tab="applications" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
                     <ClipboardList size={16} />
                     <span>Applications</span>
                   </NavLink>
-                  <NavLink to="/saved" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
+                  <NavLink to="/saved" data-walkthrough-tab="saved" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
                     <Heart size={16} />
                     <span>Saved</span>
                     {researchSaved.ids.length > 0 && <span className="chip" style={{ marginLeft: '4px' }}>{researchSaved.ids.length}</span>}
@@ -117,26 +117,26 @@ export const Navbar: React.FC = () => {
 
       {createPortal(
         <nav className="app-floating-nav" aria-label="Primary navigation">
-          <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>
+          <NavLink to="/" end data-walkthrough-tab="home" className={({ isActive }) => (isActive ? 'active' : '')}>
             <House size={20} />
             <span>Home</span>
           </NavLink>
-          <NavLink to="/search" className={({ isActive }) => (isActive ? 'active' : '')}>
+          <NavLink to="/search" data-walkthrough-tab="search" className={({ isActive }) => (isActive ? 'active' : '')}>
             <SearchIcon size={20} />
             <span>Search</span>
           </NavLink>
-          <NavLink to="/compare" className={({ isActive }) => (isActive ? 'active' : '')}>
+          <NavLink to="/compare" data-walkthrough-tab="compare" className={({ isActive }) => (isActive ? 'active' : '')}>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <GitCompareArrows size={20} />
               {researchCompared.ids.length > 0 && <span className="nav-badge">{researchCompared.ids.length}</span>}
             </div>
             <span>Compare</span>
           </NavLink>
-          <NavLink to="/applications" className={({ isActive }) => (isActive ? 'active' : '')}>
+          <NavLink to="/applications" data-walkthrough-tab="applications" className={({ isActive }) => (isActive ? 'active' : '')}>
             <ClipboardList size={20} />
             <span>Applications</span>
           </NavLink>
-          <NavLink to="/saved" className={({ isActive }) => (isActive ? 'active' : '')}>
+          <NavLink to="/saved" data-walkthrough-tab="saved" className={({ isActive }) => (isActive ? 'active' : '')}>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Heart size={20} />
               {researchSaved.ids.length > 0 && <span className="nav-badge">{researchSaved.ids.length}</span>}

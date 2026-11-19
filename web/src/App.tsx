@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { CompareProvider } from './context/CompareContext';
 import { Navbar } from './components/Navbar';
 import { CompareTray } from './components/CompareTray';
+import { TabWalkthrough } from './components/TabWalkthrough';
 import { Landing } from './pages/Landing';
 import { Search } from './pages/Search';
 import { Detail } from './pages/Detail';
@@ -48,13 +49,36 @@ const AppContent: React.FC = () => {
             </main>
 
             <CompareTray />
+            <TabWalkthrough />
 
             {!isMapSearch && <footer style={{ background: '#fff', borderTop: '1px solid var(--line)', padding: '32px 0', marginTop: '64px' }}>
               <div className="wrap tc" style={{ maxWidth: '1160px', margin: '0 auto', padding: '0 24px' }}>
                 <p className="tiny muted" style={{ maxWidth: '640px', margin: '0 auto', lineHeight: 1.6 }}>
                   StaySure is an independent decision-support platform for student accommodation. We are not officially affiliated with the University of the Witwatersrand (Wits) or the National Student Financial Aid Scheme (NSFAS). Funding indicators and match scores are indicative calculations.
                 </p>
-                <div className="tiny muted mt-12">© 2026 StaySure. All rights reserved.</div>
+                <div className="tiny muted mt-12" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                  <span>© 2026 StaySure. All rights reserved.</span>
+                  <span>·</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.removeItem('staysure_walkthrough_dismissed');
+                      window.dispatchEvent(new Event('staysure-open-walkthrough'));
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      font: 'inherit',
+                      color: 'var(--navy)',
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      fontWeight: 600
+                    }}
+                  >
+                    Tab walkthrough
+                  </button>
+                </div>
               </div>
             </footer>}
           </div>
