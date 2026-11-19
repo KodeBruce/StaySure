@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCompare } from '../context/CompareContext';
 import { INITIAL_PROPERTIES } from '../data/mockData';
 import researchProperties from '../data/researchProperties.json';
 import { researchImages, researchFallbackImage } from '../data/researchMedia';
+import { CompareAddSheet } from '../pages/Research';
+import '../pages/research.css';
 import { X } from 'lucide-react';
 
 export const CompareTray: React.FC = () => {
-  const { compareIds, removeFromCompare, clearCompare } = useCompare();
+  const { compareIds, addToCompare, removeFromCompare, clearCompare, savedIds } = useCompare();
+  const [addSheetOpen, setAddSheetOpen] = useState(false);
   const location = useLocation();
 
   const isVisible =
@@ -72,25 +75,28 @@ export const CompareTray: React.FC = () => {
           </div>
         ))}
         {Array.from({ length: 3 - comparedProps.length }).map((_, i) => (
-          <div
+            <button
             key={i}
+            type="button"
             className="compare-tray-slot compare-tray-slot--empty"
-            aria-hidden="true"
+            onClick={() => setAddSheetOpen(true)}
+            aria-label="Add accommodation to comparison"
+            title="Add place to compare"
           >
             +
-          </div>
+          </button>
         ))}
-      </div>
+    </div>
 
-      {/* Count + hint */}
-      <div className="compare-tray-info">
-        <div className="compare-tray-count">{comparedProps.length} of 3 selected</div>
-        <div className="compare-tray-hint">
-          {canCompare ? 'Ready to compare' : 'Add 1 more to compare'}
-        </div>
-      </div>
+      {/* Count + hint */ }
+  <div className="compare-tray-info">
+    <div className="compare-tray-count">{comparedProps.length} of 3 selected</div>
+    <div className="compare-tray-hint">
+      {canCompare ? 'Ready to compare' : 'Add 1 more to compare'}
+    </div>
+  </div>
 
-      {/* Action buttons */}
+  {/* Action buttons */ }
       <div className="compare-tray-actions">
         <button
           type="button"
@@ -113,6 +119,14 @@ export const CompareTray: React.FC = () => {
           </button>
         )}
       </div>
-    </div>
+
+      <CompareAddSheet
+        isOpen={addSheetOpen}
+        onClose={() => setAddSheetOpen(false)}
+        onSelect={id => addToCompare(id)}
+        savedIds={savedIds}
+        comparedIds={compareIds}
+      />
+    </div >
   );
 };

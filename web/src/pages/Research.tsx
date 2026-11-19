@@ -610,219 +610,219 @@ export function ResearchDetail() {
 }
 
 /* ── Fast Bottom Sheet / Modal to Pick Accommodations to Compare (Concept A) ── */
-function CompareAddSheet({
-  isOpen,
-  onClose,
-  onSelect,
-  savedIds,
-  comparedIds,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onSelect: (id: string) => void;
-  savedIds: string[];
-  comparedIds: string[];
-}) {
-  const [activeTab, setActiveTab] = useState<'saved' | 'all'>('saved');
-  const [searchQuery, setSearchQuery] = useState('');
+  export function CompareAddSheet({
+    isOpen,
+    onClose,
+    onSelect,
+    savedIds,
+    comparedIds,
+  }: {
+    isOpen: boolean;
+    onClose: () => void;
+    onSelect: (id: string) => void;
+    savedIds: string[];
+    comparedIds: string[];
+  }) {
+    const [activeTab, setActiveTab] = useState<'saved' | 'all'>('saved');
+    const [searchQuery, setSearchQuery] = useState('');
 
-  // Lock body scroll while open
-  useEffect(() => {
-    if (!isOpen) return;
-    const original = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, [isOpen]);
+    // Lock body scroll while open
+    useEffect(() => {
+      if (!isOpen) return;
+      const original = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = original;
+      };
+    }, [isOpen]);
 
-  // If user has no saved places, default to 'all'
-  useEffect(() => {
-    if (isOpen) {
-      if (savedIds.length === 0) {
-        setActiveTab('all');
-      } else {
-        setActiveTab('saved');
+    // If user has no saved places, default to 'all'
+    useEffect(() => {
+      if (isOpen) {
+        if (savedIds.length === 0) {
+          setActiveTab('all');
+        } else {
+          setActiveTab('saved');
+        }
+        setSearchQuery('');
       }
-      setSearchQuery('');
-    }
-  }, [isOpen, savedIds.length]);
+    }, [isOpen, savedIds.length]);
 
-  if (!isOpen) return null;
+    if (!isOpen) return null;
 
-  // Merge research JSON properties + mock properties into one unified pool
-  const mockAsResearch = INITIAL_PROPERTIES.map(convertMockToResearchProperty);
-  const allProperties: ResearchProperty[] = [
-    ...properties,
-    ...mockAsResearch.filter(m => !properties.some(p => p.id === m.id))
-  ];
+    // Merge research JSON properties + mock properties into one unified pool
+    const mockAsResearch = INITIAL_PROPERTIES.map(convertMockToResearchProperty);
+    const allProperties: ResearchProperty[] = [
+      ...properties,
+      ...mockAsResearch.filter(m => !properties.some(p => p.id === m.id))
+    ];
 
-  const savedProperties = allProperties.filter(p => savedIds.includes(p.id));
-  const listToFilter = activeTab === 'saved' ? savedProperties : allProperties;
+    const savedProperties = allProperties.filter(p => savedIds.includes(p.id));
+    const listToFilter = activeTab === 'saved' ? savedProperties : allProperties;
 
-  const filtered = listToFilter.filter(p => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      p.name.toLowerCase().includes(q) ||
-      p.locality.toLowerCase().includes(q) ||
-      (p.institutions && p.institutions.toLowerCase().includes(q))
-    );
-  });
+    const filtered = listToFilter.filter(p => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        p.name.toLowerCase().includes(q) ||
+        p.locality.toLowerCase().includes(q) ||
+        (p.institutions && p.institutions.toLowerCase().includes(q))
+      );
+    });
 
-  return createPortal(
-    <div className="cmp-sheet-backdrop" onClick={onClose}>
-      <div
-        className="cmp-sheet-dialog"
-        onClick={e => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Add accommodation to comparison"
-      >
-        <div className="cmp-sheet-handle" />
+    return createPortal(
+      <div className="cmp-sheet-backdrop" onClick={onClose}>
+        <div
+          className="cmp-sheet-dialog"
+          onClick={e => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Add accommodation to comparison"
+        >
+          <div className="cmp-sheet-handle" />
 
-        <div className="cmp-sheet-header">
-          <div>
-            <h3 className="cmp-sheet-title">Add place to compare</h3>
-            <p className="cmp-sheet-sub">
-              {comparedIds.length} of 3 selected · Pick from your saved wishlist or search all residences
-            </p>
-          </div>
-          <button
-            type="button"
-            className="cmp-sheet-close"
-            onClick={onClose}
-            aria-label="Close"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className="cmp-sheet-tabs">
-          <button
-            type="button"
-            className={`cmp-sheet-tab ${activeTab === 'saved' ? 'is-active' : ''}`}
-            onClick={() => setActiveTab('saved')}
-          >
-            <Heart size={14} fill={activeTab === 'saved' ? 'currentColor' : 'none'} />
-            <span>My Saved Places ({savedProperties.length})</span>
-          </button>
-          <button
-            type="button"
-            className={`cmp-sheet-tab ${activeTab === 'all' ? 'is-active' : ''}`}
-            onClick={() => setActiveTab('all')}
-          >
-            <SearchIcon size={14} />
-            <span>Search All Places ({properties.length})</span>
-          </button>
-        </div>
-
-        <div className="cmp-sheet-search-wrap">
-          <SearchIcon size={16} className="cmp-sheet-search-icon" />
-          <input
-            type="text"
-            className="cmp-sheet-search-input"
-            placeholder={
-              activeTab === 'saved'
-                ? 'Filter saved places...'
-                : 'Search by campus (e.g. Wits, UP, UJ) or area...'
-            }
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            autoFocus
-          />
-          {searchQuery && (
+          <div className="cmp-sheet-header">
+            <div>
+              <h3 className="cmp-sheet-title">Add place to compare</h3>
+              <p className="cmp-sheet-sub">
+                {comparedIds.length} of 3 selected · Pick from your saved wishlist or search all residences
+              </p>
+            </div>
             <button
               type="button"
-              className="cmp-sheet-search-clear"
-              onClick={() => setSearchQuery('')}
-              aria-label="Clear search"
+              className="cmp-sheet-close"
+              onClick={onClose}
+              aria-label="Close"
             >
-              <X size={14} />
+              <X size={18} />
             </button>
-          )}
-        </div>
+          </div>
 
-        <div className="cmp-sheet-list">
-          {filtered.length === 0 ? (
-            <div className="cmp-sheet-empty">
-              {activeTab === 'saved' && savedProperties.length === 0 ? (
-                <>
-                  <p>You haven't saved any places to your wishlist yet.</p>
-                  <button
-                    type="button"
-                    className="btn btn--sm btn--navy"
-                    onClick={() => setActiveTab('all')}
-                  >
-                    Search all accommodations →
-                  </button>
-                </>
-              ) : (
-                <p>No accommodations match "{searchQuery}"</p>
-              )}
-            </div>
-          ) : (
-            filtered.map(place => {
-              const isSelected = comparedIds.includes(place.id);
-              const price = researchPriceSummary(place.advertisedPrice);
-              const reviews = getPropertyReviews(place.id, place.name, place.locality);
-              const isFull = comparedIds.length >= 3 && !isSelected;
+          <div className="cmp-sheet-tabs">
+            <button
+              type="button"
+              className={`cmp-sheet-tab ${activeTab === 'saved' ? 'is-active' : ''}`}
+              onClick={() => setActiveTab('saved')}
+            >
+              <Heart size={14} fill={activeTab === 'saved' ? 'currentColor' : 'none'} />
+              <span>My Saved Places ({savedProperties.length})</span>
+            </button>
+            <button
+              type="button"
+              className={`cmp-sheet-tab ${activeTab === 'all' ? 'is-active' : ''}`}
+              onClick={() => setActiveTab('all')}
+            >
+              <SearchIcon size={14} />
+              <span>Search All Places ({properties.length})</span>
+            </button>
+          </div>
 
-              return (
-                <div key={place.id} className="cmp-sheet-item">
-                  <img
-                    src={getPropertyThumbnail(place)}
-                    alt={place.name}
-                    className="cmp-sheet-thumb"
-                    onError={e => { e.currentTarget.src = researchFallbackImage; }}
-                  />
-                  <div className="cmp-sheet-item-info">
-                    <div className="cmp-sheet-item-name">{place.name}</div>
-                    <div className="cmp-sheet-item-meta">
-                      {place.locality.split(',')[0]} · ★ {reviews.ratingFormatted}
+          <div className="cmp-sheet-search-wrap">
+            <SearchIcon size={16} className="cmp-sheet-search-icon" />
+            <input
+              type="text"
+              className="cmp-sheet-search-input"
+              placeholder={
+                activeTab === 'saved'
+                  ? 'Filter saved places...'
+                  : 'Search by campus (e.g. Wits, UP, UJ) or area...'
+              }
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              autoFocus
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="cmp-sheet-search-clear"
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          <div className="cmp-sheet-list">
+            {filtered.length === 0 ? (
+              <div className="cmp-sheet-empty">
+                {activeTab === 'saved' && savedProperties.length === 0 ? (
+                  <>
+                    <p>You haven't saved any places to your wishlist yet.</p>
+                    <button
+                      type="button"
+                      className="btn btn--sm btn--navy"
+                      onClick={() => setActiveTab('all')}
+                    >
+                      Search all accommodations →
+                    </button>
+                  </>
+                ) : (
+                  <p>No accommodations match "{searchQuery}"</p>
+                )}
+              </div>
+            ) : (
+              filtered.map(place => {
+                const isSelected = comparedIds.includes(place.id);
+                const price = researchPriceSummary(place.advertisedPrice);
+                const reviews = getPropertyReviews(place.id, place.name, place.locality);
+                const isFull = comparedIds.length >= 3 && !isSelected;
+
+                return (
+                  <div key={place.id} className="cmp-sheet-item">
+                    <img
+                      src={getPropertyThumbnail(place)}
+                      alt={place.name}
+                      className="cmp-sheet-thumb"
+                      onError={e => { e.currentTarget.src = researchFallbackImage; }}
+                    />
+                    <div className="cmp-sheet-item-info">
+                      <div className="cmp-sheet-item-name">{place.name}</div>
+                      <div className="cmp-sheet-item-meta">
+                        {place.locality.split(',')[0]} · ★ {reviews.ratingFormatted}
+                      </div>
+                      <div className="cmp-sheet-item-price">
+                        {price?.label ?? 'Ask for rates'}
+                      </div>
                     </div>
-                    <div className="cmp-sheet-item-price">
-                      {price?.label ?? 'Ask for rates'}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    className={`btn btn--sm ${isSelected
+                    <button
+                      type="button"
+                      className={`btn btn--sm ${isSelected
                         ? 'btn--ghost'
                         : isFull
                           ? 'btn--ghost'
                           : 'btn--navy'
-                      }`}
-                    disabled={isFull && !isSelected}
-                    onClick={() => {
-                      onSelect(place.id);
-                      if (!isSelected && comparedIds.length >= 2) {
-                        onClose();
-                      }
-                    }}
-                  >
-                    {isSelected ? (
-                      <>
-                        <Check size={14} /> Selected
-                      </>
-                    ) : isFull ? (
-                      'Full (3/3)'
-                    ) : (
-                      <>
-                        <Plus size={14} /> Add
-                      </>
-                    )}
-                  </button>
-                </div>
-              );
-            })
-          )}
+                        }`}
+                      disabled={isFull && !isSelected}
+                      onClick={() => {
+                        onSelect(place.id);
+                        if (!isSelected && comparedIds.length >= 2) {
+                          onClose();
+                        }
+                      }}
+                    >
+                      {isSelected ? (
+                        <>
+                          <Check size={14} /> Selected
+                        </>
+                      ) : isFull ? (
+                        'Full (3/3)'
+                      ) : (
+                        <>
+                          <Plus size={14} /> Add
+                        </>
+                      )}
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
-      </div>
-    </div>,
-    document.body
-  );
-}
+      </div>,
+      document.body
+    );
+  }
 
 /* ── Offering-based Smart Compare Component ── */
 export function ResearchCompare() {

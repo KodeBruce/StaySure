@@ -63,8 +63,6 @@ export const Apply: React.FC = () => {
     );
   }
 
-  const backUrl = property.id.startsWith('GSA-') ? `/research/${property.id}` : `/detail/${property.id}`;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!consent) {
@@ -111,7 +109,7 @@ export const Apply: React.FC = () => {
   return (
         <div className="wrap" style={{ maxWidth: '680px', margin: '32px auto', padding: '0 24px 80px' }}>
           {/* Top back navigation */}
-          <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ marginBottom: '16px' }}>
             <Link
               to="/compare"
               style={{
@@ -126,17 +124,6 @@ export const Apply: React.FC = () => {
             >
               <ArrowLeft size={16} strokeWidth={2.4} />
               <span>Back to Compare</span>
-            </Link>
-            <Link
-              to={backUrl}
-              style={{
-                fontSize: '12.5px',
-                fontWeight: 600,
-                color: 'var(--ink-2)',
-                textDecoration: 'none'
-              }}
-            >
-              View listing info
             </Link>
           </div>
 
