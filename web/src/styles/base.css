@@ -729,6 +729,30 @@ textarea.input { height: auto; min-height: 84px; padding: 12px 14px; resize: ver
 
 .nav-right { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
 
+/* Borderless person/account button for sign in */
+.nav-person-btn {
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--navy);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  line-height: 1;
+}
+.nav-person-btn:hover {
+  background: var(--navy-tint);
+  color: var(--green);
+}
+.nav-person-btn:active {
+  transform: scale(0.92);
+}
+
 .avatar {
   width: 38px;
   height: 38px;

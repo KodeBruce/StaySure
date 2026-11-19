@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { AuthModal } from './AuthModal';
 import { useResearchSelection } from '../data/researchSelection';
-import { House, Search as SearchIcon, GitCompareArrows, ClipboardList, Heart } from 'lucide-react';
+import { House, Search as SearchIcon, GitCompareArrows, ClipboardList, Heart, User } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, role, profile, signOut } = useAuth();
@@ -86,13 +86,29 @@ export const Navbar: React.FC = () => {
                 </Link>
 
                 {user ? (
-                  <div className="row" style={{ gap: '8px' }}>
+                  <div className="row" style={{ gap: '8px', alignItems: 'center' }}>
                     <span className="tiny hide-mobile" style={{ fontWeight: 600 }}>{user.email || profile.name}</span>
+                    <button
+                      type="button"
+                      className="nav-person-btn"
+                      onClick={() => signOut()}
+                      title="Signed in · Click to Sign Out"
+                      aria-label="Account profile"
+                      style={{ color: 'var(--green-ink)' }}
+                    >
+                      <User size={24} strokeWidth={2.2} />
+                    </button>
                     <button className="btn btn--sm btn--ghost" onClick={() => signOut()}>Sign Out</button>
                   </div>
                 ) : (
-                  <button className="btn btn--sm btn--navy" onClick={() => setShowAuth(true)}>
-                    Sign In
+                  <button
+                    type="button"
+                    className="nav-person-btn"
+                    onClick={() => setShowAuth(true)}
+                    title="Sign In"
+                    aria-label="Sign In"
+                  >
+                    <User size={24} strokeWidth={2.2} />
                   </button>
                 )}
               </div>
