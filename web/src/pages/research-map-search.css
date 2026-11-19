@@ -977,6 +977,251 @@
   gap: 6px;
 }
 
+.map-detail-reviews-heading,
+.map-detail-review > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.map-detail-reviews-heading h3 {
+  margin-bottom: 0;
+}
+
+.map-detail-reviews-heading > strong,
+.map-detail-review > div span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #a46b0c;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.map-detail-reviews-heading > strong small {
+  color: var(--ink-3);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.map-detail-reviews .map-detail-reviews-note {
+  margin: 7px 0 12px;
+  color: var(--ink-3);
+  font-size: 10.5px;
+}
+
+.map-detail-review-list {
+  display: grid;
+  gap: 8px;
+}
+
+.map-detail-review {
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #f8fafc;
+}
+
+.map-detail-review > div strong {
+  color: var(--navy);
+  font-size: 11px;
+}
+
+.map-detail-review p {
+  margin: 7px 0 0;
+  color: var(--ink-2);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.map-detail-review-toggle {
+  margin-top: 9px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--green-ink);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.map-detail-review-toggle:hover {
+  text-decoration: underline;
+}
+
+.map-detail-reviews.student-reviews-card {
+  margin: 16px 0 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.map-detail-reviews .student-reviews-title {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.3;
+}
+
+.map-detail-reviews .student-reviews-summary {
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 14px;
+  padding-bottom: 14px;
+}
+
+.map-detail-reviews .student-reviews-big-score {
+  font-size: 34px;
+}
+
+.map-detail-reviews .student-reviews-star-row,
+.map-detail-reviews .student-review-rating {
+  color: #b9770e;
+}
+
+.map-detail-reviews .student-reviews-list {
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.map-detail-reviews .student-review-item {
+  padding: 12px;
+}
+
+.map-detail-reviews .student-review-head {
+  margin-bottom: 7px;
+}
+
+.map-detail-reviews .student-review-text {
+  font-size: 11.5px;
+}
+
+.map-detail-reviews .student-reviews-toggle-btn {
+  margin-top: 12px;
+  padding: 6px;
+}
+
+.map-detail-reviews .map-detail-reviews-note {
+  margin: 10px 0 0;
+  color: var(--ink-3);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.map-detail-local-comments {
+  margin-top: 14px;
+}
+
+.map-detail-local-comments h4 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 11px;
+}
+
+.map-detail-remove-comment {
+  margin-top: 8px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.map-detail-remove-comment:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+.map-detail-comment-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.map-detail-comment-action button {
+  padding: 8px 12px;
+  border: 1px solid var(--green);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--green-ink);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.map-detail-comment-action span,
+.map-detail-comment-message {
+  color: var(--ink-3);
+  font-size: 10px;
+}
+
+.map-detail-comment-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.map-detail-comment-form label {
+  display: grid;
+  gap: 5px;
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.map-detail-comment-form input,
+.map-detail-comment-form select,
+.map-detail-comment-form textarea {
+  min-width: 0;
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 11px;
+  box-sizing: border-box;
+}
+
+.map-detail-comment-form .map-detail-comment-text,
+.map-detail-comment-form > button {
+  grid-column: 1 / -1;
+}
+
+.map-detail-comment-form textarea {
+  resize: vertical;
+}
+
+.map-detail-comment-form > button {
+  justify-self: start;
+  padding: 9px 13px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--green);
+  color: #fff;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .map-detail-reviews.student-reviews-card {
+    padding: 14px;
+  }
+}
+
 .map-detail-rate {
   display: flex;
   align-items: baseline;
@@ -1343,12 +1588,12 @@
 }
 
 @media (max-width: 600px) {
-  .research-map-drawer .map-drawer-fields {
-    grid-template-columns: minmax(0, 1fr);
+  .map-search-drawer.research-map-drawer .map-drawer-fields {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
-  .research-map-drawer .map-drawer-fields>* {
-    grid-column: 1 / -1;
+  .map-search-drawer.research-map-drawer .map-drawer-fields>* {
+    grid-column: 1 / -1 !important;
   }
 
   .research-map-drawer .map-drawer-fields>a {

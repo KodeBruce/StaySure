@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useSearchParams } from 'react-router-dom';
 import L from 'leaflet';
@@ -35,8 +35,10 @@ import { getRoomRates } from '../data/roomRates';
 import { matchResearchProperty, readSearchCriteria, saveSearchCriteria, type ResearchMatch, type SearchCriteria } from '../data/researchMatch';
 import { matchesSelectedRoomTypes, parseRoomTypes, ROOM_TYPE_OPTIONS, type RoomTypeFilter } from '../data/roomTypeFilter';
 import { getPropertyReviews } from '../data/propertyReviews';
+import { readLocalReviewComments, saveLocalReviewComments, type LocalReviewComment } from '../data/localReviewComments';
 import { AREA_CENTRES, distanceKm, withinBounds, UNIVERSITIES, isNearUniversity, getPropertyUniversities, type Coordinates, type MapBounds } from '../data/mapLocations';
 import './airbnb-home.css';
+import '../components/StudentReviews.css';
 import './research-map-search.css';
 
 const MAP_PREFERENCES = [
@@ -69,6 +71,13 @@ export function MapPropertySheet({ item, match, onExited, saved, compared, image
   image?: string;
 }) {
   const [closing, setClosing] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false);
+  const [localComments, setLocalComments] = useState<LocalReviewComment[]>(() => readLocalReviewComments(item.id));
+  const [commentFormOpen, setCommentFormOpen] = useState(false);
+  const [commentName, setCommentName] = useState('');
+  const [commentRating, setCommentRating] = useState(5);
+  const [commentText, setCommentText] = useState('');
+  const [commentMessage, setCommentMessage] = useState('');
   const closingRef = useRef(false);
   const panelRef = useRef<HTMLElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -79,6 +88,42 @@ export function MapPropertySheet({ item, match, onExited, saved, compared, image
   const reviews = getPropertyReviews(item.id, item.name, item.locality);
   const isSaved = saved.ids.includes(item.id);
   const isCompared = compared.ids.includes(item.id);
+
+  const submitComment = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const author = commentName.trim();
+    const text = commentText.trim();
+    if (author.length < 2 || text.length < 10) {
+      setCommentMessage('Enter your name and a comment of at least 10 characters.');
+      return;
+    }
+    const comment: LocalReviewComment = {
+      id: typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : String(Date.now()),
+      author: author.slice(0, 40),
+      rating: commentRating,
+      text: text.slice(0, 1000),
+      date: new Intl.DateTimeFormat('en-ZA', { month: 'long', year: 'numeric' }).format(new Date()),
+    };
+    const next = [comment, ...localComments];
+    if (!saveLocalReviewComments(item.id, next)) {
+      setCommentMessage('Your browser could not save the comment. Please try again.');
+      return;
+    }
+    setLocalComments(next);
+    setCommentText('');
+    setCommentFormOpen(false);
+    setCommentMessage('Your comment was saved on this device.');
+  };
+
+  const removeComment = (commentId: string) => {
+    const next = localComments.filter(comment => comment.id !== commentId);
+    if (!saveLocalReviewComments(item.id, next)) {
+      setCommentMessage('Your browser could not remove the comment. Please try again.');
+      return;
+    }
+    setLocalComments(next);
+    setCommentMessage('Comment removed from this device.');
+  };
 
   const dismiss = () => {
     if (closingRef.current) return;
@@ -128,7 +173,7 @@ export function MapPropertySheet({ item, match, onExited, saved, compared, image
             <div>
               <span className="map-detail-provider">{item.provider || 'Student accommodation'}</span>
               <h2 id="map-detail-title">{item.name}</h2>
-              <p><MapPin size={14} /> {item.locality.split(',')[0]} <span>·</span> <Star size={13} fill="currentColor" /> {reviews.ratingFormatted} ({reviews.reviewsCount})</p>
+              <p><MapPin size={14} /> {item.locality.split(',')[0]} <span>·</span> <Star size={13} fill="currentColor" /> {reviews.ratingFormatted} example rating</p>
             </div>
             <strong className="map-detail-price">{price?.label ?? 'Ask for rates'}<small>{price ? 'Advertised monthly range' : 'Rent not published'}</small></strong>
           </div>
@@ -145,6 +190,46 @@ export function MapPropertySheet({ item, match, onExited, saved, compared, image
               <strong>{rate.monthly}<small>{rate.period ? '' : '/mo'}</small></strong>
             </div>)}</div> : <p>Room-specific rates are not published. Ask the provider for the current price of your preferred room.</p>}
           </div>
+
+          <section className="map-detail-section student-reviews-card map-detail-reviews" aria-labelledby="map-detail-reviews-title">
+            <div className="student-reviews-header"><h3 id="map-detail-reviews-title" className="student-reviews-title">Student reviews</h3></div>
+            <div className="student-reviews-summary">
+              <div className="student-reviews-score-col">
+                <span className="student-reviews-big-score">{reviews.ratingFormatted}</span>
+                <span className="student-reviews-star-row"><Star size={15} fill="currentColor" /> {reviews.ratingFormatted}</span>
+                <span className="student-reviews-count-text">Example rating</span>
+              </div>
+              <div className="student-reviews-bars-col">{reviews.distribution.map(bar => <div className="student-reviews-bar-row" key={bar.stars}>
+                <span className="student-reviews-bar-label">{bar.stars}★</span>
+                <span className="student-reviews-track"><span className="student-reviews-fill" style={{ display: 'block', width: `${bar.percent}%` }} /></span>
+              </div>)}</div>
+            </div>
+            <p className="map-detail-reviews-note">The rating and example comments below are illustrative; they are not verified student reviews for this property.</p>
+            {localComments.length > 0 && <div className="map-detail-local-comments">
+              <h4>Comments saved on this device</h4>
+              <div className="student-reviews-list">{localComments.map(comment => <article className="student-review-item" key={comment.id}>
+                <div className="student-review-head"><span className="student-review-avatar">{comment.author.slice(0, 2).toUpperCase()}</span><span className="student-review-author-info"><strong className="student-review-author-name">{comment.author}</strong><span className="student-review-date">{comment.date}</span></span><span className="student-review-rating"><Star size={14} fill="currentColor" /> {comment.rating}</span></div>
+                <p className="student-review-text">{comment.text}</p>
+                <button type="button" className="map-detail-remove-comment" onClick={() => removeComment(comment.id)} aria-label={`Remove comment by ${comment.author}`}>Remove</button>
+              </article>)}</div>
+            </div>}
+            <div className="student-reviews-list">{reviews.reviews.slice(0, showAllReviews ? undefined : 2).map((review, index) => <article className="student-review-item" key={`${review.author}-${index}`}>
+              <div className="student-review-head"><span className="student-review-avatar">{review.author.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase()}</span><span className="student-review-author-info"><strong className="student-review-author-name">{review.author}</strong><span className="student-review-date">{review.date} · Example</span></span><span className="student-review-rating"><Star size={14} fill="currentColor" /> {review.rating}</span></div>
+              <p className="student-review-text">{review.text}</p>
+            </article>)}</div>
+            {reviews.reviews.length > 2 && <button type="button" className="student-reviews-toggle-btn" onClick={() => setShowAllReviews(value => !value)} aria-expanded={showAllReviews}>{showAllReviews ? 'Show fewer examples ↑' : `Read all ${reviews.reviews.length} examples ↓`}</button>}
+            <div className="map-detail-comment-action">
+              <button type="button" onClick={() => { setCommentFormOpen(value => !value); setCommentMessage(''); }} aria-expanded={commentFormOpen}>{commentFormOpen ? 'Cancel' : 'Write a comment'}</button>
+              <span>Comments are saved on this device only.</span>
+            </div>
+            {commentFormOpen && <form className="map-detail-comment-form" onSubmit={submitComment}>
+              <label>Your name<input value={commentName} onChange={event => setCommentName(event.target.value)} minLength={2} maxLength={40} required placeholder="Name or initials" /></label>
+              <label>Rating<select value={commentRating} onChange={event => setCommentRating(Number(event.target.value))}>{[5, 4, 3, 2, 1].map(value => <option key={value} value={value}>{value} star{value === 1 ? '' : 's'}</option>)}</select></label>
+              <label className="map-detail-comment-text">Your comment<textarea value={commentText} onChange={event => setCommentText(event.target.value)} minLength={10} maxLength={1000} required rows={4} placeholder="What should other students know?" /></label>
+              <button type="submit">Post comment on this device</button>
+            </form>}
+            {commentMessage && <p className="map-detail-comment-message" role="status">{commentMessage}</p>}
+          </section>
 
           <div className="map-detail-section">
             <h3>At a glance</h3>
@@ -287,8 +372,6 @@ export function ResearchMapSearch() {
   const [maxRent, setMaxRent] = useState(() => readSearchCriteria().maxRent ?? 12000);
   const [selectedPrefs, setSelectedPrefs] = useState<string[]>(() => readSearchCriteria().preferences);
   const [selectedRoomTypes, setSelectedRoomTypes] = useState<RoomTypeFilter[]>(() => searchParams.has('rooms') ? parseRoomTypes(searchParams.get('rooms')) : readSearchCriteria().roomTypes);
-  const [includeUnpriced, setIncludeUnpriced] = useState(true);
-  const [mappedOnly, setMappedOnly] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(records.find(hasCoordinates)?.id ?? null);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -368,14 +451,11 @@ export function ResearchMapSearch() {
       }
       if (area && !item.locality.toLocaleLowerCase().includes(area.toLocaleLowerCase())) return false;
       if (region && item.region !== region) return false;
-      if (mappedOnly && !hasCoordinates(item)) return false;
       if (mapBounds && (!hasCoordinates(item) || !withinBounds(position(item), mapBounds))) return false;
       if (nearby && userPosition && (!hasCoordinates(item) || distanceKm(position(item), userPosition) > radiusKm)) return false;
       if (maxRent < 12000) {
         const minP = extractMinPrice(item.advertisedPrice);
-        if (minP === null) {
-          if (!includeUnpriced) return false;
-        } else if (minP > maxRent) {
+        if (minP !== null && minP > maxRent) {
           return false;
         }
       }
@@ -417,7 +497,7 @@ export function ResearchMapSearch() {
       }
       return Number(hasCoordinates(b)) - Number(hasCoordinates(a));
     });
-  }, [selectedUniversity, area, region, maxRent, selectedPrefs, selectedRoomTypes, includeUnpriced, mappedOnly, mapBounds, nearby, userPosition, radiusKm, criteria]);
+  }, [selectedUniversity, area, region, maxRent, selectedPrefs, selectedRoomTypes, mapBounds, nearby, userPosition, radiusKm, criteria]);
 
   const mapped = useMemo(() => results.filter(hasCoordinates), [results]);
   const center = useMemo<Coordinates>(() => {
@@ -486,7 +566,7 @@ export function ResearchMapSearch() {
       setUserPosition([coords.latitude, coords.longitude]);
       setNearby(true);
       setMapBounds(null); setPendingBounds(null);
-      setRegion(''); setArea(''); setMappedOnly(false);
+      setRegion(''); setArea('');
       setLocating(false); setDrawerOpen(false);
       setLocationMessage('Showing researched places with map points near you. Distances are approximate.');
     }, () => { setLocating(false); setLocationMessage('Location unavailable. Search by name or region instead.'); },
@@ -823,24 +903,6 @@ export function ResearchMapSearch() {
             })}
           </div>
 
-          <label className="map-drawer-check">
-            <input
-              type="checkbox"
-              checked={includeUnpriced}
-              onChange={event => setIncludeUnpriced(event.target.checked)}
-            />
-            Include places with rent on request
-          </label>
-
-          <label className="map-drawer-check">
-            <input
-              type="checkbox"
-              checked={mappedOnly}
-              onChange={event => setMappedOnly(event.target.checked)}
-            />
-            Mapped locations only
-          </label>
-
           {nearby && <button type="button" className="btn btn--ghost" onClick={() => { setNearby(false); setLocationMessage(''); }}>Turn off Near me</button>}
         </div>
         <div className="map-drawer-actions">
@@ -854,8 +916,6 @@ export function ResearchMapSearch() {
               setMaxRent(12000);
               setSelectedPrefs([]);
               updateRoomTypes([]);
-              setIncludeUnpriced(true);
-              setMappedOnly(false);
               setNearby(false);
               setMapBounds(null);
               setPendingBounds(null);
