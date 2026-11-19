@@ -5,7 +5,7 @@ import {
   Sparkles, GraduationCap, Bus, Wifi, ShieldCheck, BookOpen,
   BedDouble, Users, Armchair, WashingMachine,
   Search as SearchIcon, MapPin, Banknote, Heart, Plus, Check,
-  Star, Map, X, ChevronDown
+  Star, X, ChevronDown
 } from 'lucide-react';
 import researchProperties from '../data/researchProperties.json';
 import { researchFallbackImage, researchImages } from '../data/researchMedia';
@@ -488,11 +488,11 @@ export const Landing: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                  <button type="button" className="airbnb-sheet-apply-btn" onClick={handleApply}>
-                    {filteredProperties.length === 0
-                      ? 'No results — try a higher budget'
-                      : `Show ${filteredProperties.length} place${filteredProperties.length !== 1 ? 's' : ''}`}
-                  </button>
+                <button type="button" className="airbnb-sheet-apply-btn" onClick={handleApply}>
+                  {filteredProperties.length === 0
+                    ? 'No results — try a higher budget'
+                    : `Show ${filteredProperties.length} place${filteredProperties.length !== 1 ? 's' : ''}`}
+                </button>
               </div>
             )}
 
@@ -566,13 +566,13 @@ export const Landing: React.FC = () => {
                     );
                   })}
                 </div>
-                  <button type="button" className="airbnb-sheet-apply-btn" onClick={handleApply}>
-                    {selectedPrefs.length === 0
+                <button type="button" className="airbnb-sheet-apply-btn" onClick={handleApply}>
+                  {selectedPrefs.length === 0
                     ? `Show all ${filteredProperties.length} places`
                     : filteredProperties.length === 0
-                    ? 'No results — try fewer preferences'
-                    : `Show ${filteredProperties.length} place${filteredProperties.length !== 1 ? 's' : ''}`}
-                  </button>
+                      ? 'No results — try fewer preferences'
+                      : `Show ${filteredProperties.length} place${filteredProperties.length !== 1 ? 's' : ''}`}
+                </button>
               </div>
             )}
           </div>
@@ -710,12 +710,6 @@ export const Landing: React.FC = () => {
           window.requestAnimationFrame(() => document.getElementById(`home-card-${detailId}`)?.focus({ preventScroll: true }));
         }} /> : null;
       })()}
-
-      {/* ── Floating Map Button ── */}
-      <Link to={selectedRoomTypes.length ? `/search?rooms=${selectedRoomTypes.join(',')}` : '/search'} className="airbnb-float-map-btn" aria-label="Open accommodation map search">
-        <Map size={16} />
-        <span>Show map</span>
-      </Link>
     </div >
   );
 };

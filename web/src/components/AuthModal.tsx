@@ -46,7 +46,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
     setError('');
 
     if (!isFirebaseConfigured) {
-      setError("Firebase keys are not configured yet. Add them in web/.env to enable live authentication.");
+      setError("We can't sign you in at the moment. Please try again later.");
       return;
     }
 
@@ -59,15 +59,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
       }
       onClose();
     } catch (err: any) {
-      setError(err.message || "Authentication failed");
+      const msg = err?.message || '';
+      if (/user-not-found|wrong-password|invalid-credential/i.test(msg)) {
+        setError("Invalid email or password. Please verify your details.");
+      } else if (/email-already-in-use/i.test(msg)) {
+        setError("An account with this email already exists. Please sign in instead.");
+      } else if (/weak-password/i.test(msg)) {
+        setError("Password is too short. Please use at least 6 characters.");
+      } else {
+        setError("We can't sign you in at the moment. Please try again later.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogle = async () => {
+    setError('');
+
     if (!isFirebaseConfigured) {
-      setError("Firebase keys are not configured yet. Add them in web/.env to enable live authentication.");
+      setError("We can't sign you in at the moment. Please try again later.");
       return;
     }
 
@@ -76,7 +87,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
       await signInWithGoogle();
       onClose();
     } catch (err: any) {
-      setError(err.message || "Google sign-in failed");
+      setError("We can't sign you in at the moment. Please try again later.");
     } finally {
       setLoading(false);
     }

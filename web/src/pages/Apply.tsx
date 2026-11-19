@@ -103,7 +103,7 @@ export const Apply: React.FC = () => {
 
       navigate(`/applications?submitted=${created.ref}`);
     } catch (err: any) {
-      setError(err.message || "Failed to submit application");
+      setError("We couldn't submit your application at the moment. Please try again shortly.");
       setSubmitting(false);
     }
   };

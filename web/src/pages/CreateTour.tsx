@@ -134,7 +134,7 @@ export const CreateTour: React.FC = () => {
 
       {canCreate ? <form className="card card--pad capture-form" onSubmit={submit}>
         <h2>Upload capture</h2>
-        {!isFirebaseConfigured && <p className="pill pill--amber">Firebase must be configured to upload and generate tours.</p>}
+        {!isFirebaseConfigured && <p className="pill pill--amber">3D tour uploads are temporarily unavailable at the moment.</p>}
         <label>Property
           <CustomSelect
             value={propertyId}
@@ -165,7 +165,7 @@ export const CreateTour: React.FC = () => {
       </form> : <section className="card card--pad">
         <h2>Ready to create a tour?</h2>
         <p>{authLoading ? 'Checking your account…' : 'Use Sign In at the top of the app with a property provider account to upload a capture. StaySure reviewers can also create a tour.'}</p>
-        {!isFirebaseConfigured && <p className="tiny muted">This demo has no Firebase connection yet, so uploads and 3D generation are unavailable. You can still use this capture guide to prepare your room.</p>}
+        {!isFirebaseConfigured && <p className="tiny muted">Uploads and 3D generation are temporarily unavailable. You can still use this capture guide to prepare your spaces.</p>}
       </section>}
     </div>
 

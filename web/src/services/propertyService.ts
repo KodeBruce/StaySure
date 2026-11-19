@@ -103,7 +103,7 @@ export async function getPropertyById(id: string): Promise<Property | null> {
        */
       export async function seedPropertiesToFirestore(): Promise<{ count: number; error?: string }> {
         if (!isFirebaseConfigured) {
-          return { count: 0, error: "Firebase is not configured with valid API keys." };
+          return { count: 0, error: "Database service is currently unavailable." };
         }
 
         try {
