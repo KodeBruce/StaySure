@@ -73,19 +73,7 @@ export const TabWalkthrough: React.FC = () => {
 
     const activeElementRef = useRef<HTMLElement | null>(null);
 
-    // Auto-trigger on reload / initial mount unless permanently dismissed
-    useEffect(() => {
-  const isDismissed = localStorage.getItem(WALKTHROUGH_STORAGE_KEY) === 'true';
-  if (!isDismissed) {
-    const timer = window.setTimeout(() => {
-      setIsOpen(true);
-      setCurrentStepIndex(0);
-  }, 500);
-  return () => window.clearTimeout(timer);
-}
-  }, []);
-
-// Listen for manual replay event from footer or menu
+// Open only when the student chooses the walkthrough from the footer.
 useEffect(() => {
   const handleOpen = () => {
     setCurrentStepIndex(0);

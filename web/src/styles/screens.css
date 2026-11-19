@@ -4099,6 +4099,12 @@ button.compare-tray-slot--empty:hover,
     transition: all 0.15s ease;
   }
 
+  .app-floating-nav a svg {
+    display: block;
+    flex: 0 0 auto;
+    stroke: currentColor;
+  }
+
   .app-floating-nav a:hover {
     color: #0f172a;
   }

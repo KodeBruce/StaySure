@@ -8,7 +8,7 @@ import { useResearchSelection } from '../data/researchSelection';
 import { researchFallbackImage, researchImages } from '../data/researchMedia';
 import { researchPriceSummary } from '../data/researchPricing';
 import { getRoomRates, roomCategoryRates, type RoomCategory, type RoomRate } from '../data/roomRates';
-import { parseOfferings, type OfferingItem } from '../data/researchOfferings';
+import { parseOfferings } from '../data/researchOfferings';
 import { StudentReviews } from '../components/StudentReviews';
 import { getPropertyReviews } from '../data/propertyReviews';
 import { CustomSelect } from '../components/CustomSelect';
@@ -18,14 +18,15 @@ import {
   ChevronLeft, ChevronRight, Heart, MapPin,
   Banknote, BedDouble, Wifi, BookOpen, Armchair, Bus,
   ShieldCheck, Fingerprint, WashingMachine, UtensilsCrossed,
-  Tv, Bath, CheckCircle2, XCircle, GraduationCap, ChevronDown,
-  Info, ArrowRight, Star, X, Check, Plus, Sparkles, Search as SearchIcon
+  Tv, Bath, CheckCircle2, GraduationCap, ChevronDown,
+  Info, ArrowRight, Star, X, Check, Plus, Search as SearchIcon
 } from 'lucide-react';
 import './research.css';
 import { INITIAL_PROPERTIES } from '../data/mockData';
 import { MapPropertySheet } from './ResearchMapSearch';
 
 type ResearchProperty = (typeof records)[number];
+type CompareFocus = 'price' | 'distance' | 'room' | 'wifi' | 'furniture' | 'study' | 'security';
 const properties: ResearchProperty[] = records;
 
 function convertMockToResearchProperty(p: (typeof INITIAL_PROPERTIES)[number]): ResearchProperty {
@@ -830,9 +831,9 @@ export function ResearchCompare() {
   const criteria = useSearchCriteria();
   const [addSheetOpen, setAddSheetOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
-  const [expandNotes, setExpandNotes] = useState(false);
-  const [diffOnly, setDiffOnly] = useState(false);
-  const [mobilePair, setMobilePair] = useState<'all' | '0-1' | '1-2' | '0-2'>('all');
+  const [selectedPriorities, setSelectedPriorities] = useState<CompareFocus[]>(['price']);
+  const [roomChoice, setRoomChoice] = useState<RoomCategory>('single');
+  const carouselRefs = useRef<Partial<Record<CompareFocus, HTMLDivElement | null>>>({});
 
   // Resolve ALL compared IDs — both research JSON props AND mock/CompareContext props
   const items = useMemo(() =>
@@ -847,204 +848,72 @@ export function ResearchCompare() {
     offerings: parseOfferings(item),
     priceSummary: researchPriceSummary(item.advertisedPrice)
   })), [items]);
-  const matches = useMemo(() => items.map(item => ({ item, match: matchResearchProperty(item, criteria) })), [items, criteria]);
-  const hasCriteria = matches.some(({ match }) => match.score !== null);
-  const bestMatch = hasCriteria ? [...matches].sort((a, b) => (b.match.score ?? 0) - (a.match.score ?? 0))[0] : null;
-  const priced = items.map(item => ({ item, rent: relevantRent(item, criteria) })).filter((entry): entry is { item: ResearchProperty; rent: { amount: number; basisKnown: boolean } } => Boolean(entry.rent?.basisKnown));
-  const bestBudget = priced.length && criteria.maxRent !== null ? [...priced].sort((a, b) => a.rent.amount - b.rent.amount)[0] : null;
-  const university = UNIVERSITIES.find(value => value.id === criteria.universityId);
-  const located = university ? items.filter(item => typeof item.latitude === 'number' && typeof item.longitude === 'number').map(item => ({ item, km: distanceKm([item.latitude as number, item.longitude as number], university.position) })) : [];
-  const closest = located.length ? [...located].sort((a, b) => a.km - b.km)[0] : null;
-
-  // Find lowest price
-  const minPrice = useMemo(() => {
-    const validPrices = parsedItems
-      .map(p => {
-        const match = p.priceSummary?.label.match(/R([\d,]+)/);
-        return match ? Number(match[1].replace(/,/g, '')) : Infinity;
-      })
-      .filter(p => Number.isFinite(p));
-    return validPrices.length > 0 ? Math.min(...validPrices) : 0;
-  }, [parsedItems]);
-
-  // Handle active items based on mobile pair selection if 3 items
-  const activeItems = useMemo(() => {
-    if (parsedItems.length === 3 && mobilePair !== 'all') {
-      if (mobilePair === '0-1') return [parsedItems[0], parsedItems[1]];
-      if (mobilePair === '1-2') return [parsedItems[1], parsedItems[2]];
-      if (mobilePair === '0-2') return [parsedItems[0], parsedItems[2]];
-    }
-    return parsedItems;
-  }, [parsedItems, mobilePair]);
-
-  // Feature definitions
-  const renderCheck = (isOk: boolean, labelOk: string, labelNo: string) => (
-    <div className="cmp-check-cell" title={isOk ? labelOk : labelNo}>
-      {isOk ? (
-        <Check size={18} strokeWidth={2.4} className="cmp-mark cmp-mark--check" aria-label={labelOk} />
-      ) : (
-        <X size={16} strokeWidth={2.2} className="cmp-mark cmp-mark--cross" aria-label={labelNo} />
-      )}
-    </div>
-  );
-
-  const roomPriceFeature = (category: RoomCategory, name: string) => ({
-    id: `${category}-price`,
-    name,
-    icon: <BedDouble size={15} />,
-    getValueKey: (_p: ReturnType<typeof parseOfferings>, item?: ResearchProperty) =>
-      item ? roomCategoryRates(item.id, category).map(rate => `${rate.monthly}:${rate.basis}:${rate.note ?? ''}`).join('|') : '',
-    render: (_p: ReturnType<typeof parseOfferings>, item?: ResearchProperty) =>
-      <RoomRateList rates={item ? roomCategoryRates(item.id, category) : []} compact />
-  });
-
-  const features = useMemo(() => [
-    {
-      id: 'price',
-      name: 'Rent / Month',
-      icon: <Banknote size={15} />,
-      getValueKey: (p: ReturnType<typeof parseOfferings>) => p.priceLabel,
-      render: (p: ReturnType<typeof parseOfferings>) => (
-        <div className="cmp-val-price-wrap">
-          <strong className="cmp-val-price">{p.priceLabel}</strong>
-          <span className="cmp-val-sub">{p.priceNote}</span>
-        </div>
-      )
-    },
-    roomPriceFeature('single', 'Single / private prices'),
-    roomPriceFeature('sharing', 'Shared room prices'),
-    roomPriceFeature('studio', 'Studio prices'),
-    roomPriceFeature('apartment', 'Apartment prices'),
-    {
-      id: 'rooms',
-      name: 'Room Types',
-      icon: <BedDouble size={15} />,
-      getValueKey: (p: ReturnType<typeof parseOfferings>) => [...p.roomTypes].sort().join(','),
-      render: (p: ReturnType<typeof parseOfferings>) => (
-        <div className="cmp-val-chips">
-          {p.roomTypes.map(r => (
-            <span key={r} className="cmp-chip-sm"><BedDouble size={11} /> {r}</span>
-          ))}
-        </div>
-      )
-    },
-    {
-      id: 'distance',
-      name: 'Campus Proximity',
-      icon: <MapPin size={15} />,
-      getValueKey: (p: ReturnType<typeof parseOfferings>) => p.campusDistance,
-      render: (p: ReturnType<typeof parseOfferings>) => (
-        <div className="cmp-val-text-wrap">
-          <span className="cmp-val-strong">{p.campusDistance}</span>
-          <span className="cmp-val-sub">{p.localityShort}</span>
-        </div>
-      )
-    },
-    {
-      id: 'wifi',
-      name: 'Wi-Fi Included',
-      icon: <Wifi size={15} />,
-      getValueKey: (p: ReturnType<typeof parseOfferings>) => String(p.hasWifi),
-      render: (p: ReturnType<typeof parseOfferings>) =>
-        renderCheck(p.hasWifi, 'High-Speed Wi-Fi', 'Not stated')
-    },
-    {
-      id: 'furniture',
-      name: 'Furniture',
-      icon: <Armchair size={15} />,
-      getValueKey: (p: ReturnType<typeof parseOfferings>) => String(p.hasFurniture),
-      render: (p: ReturnType<typeof parseOfferings>) =>
-        renderCheck(p.hasFurniture, 'Bed & Wardrobe', 'Unfurnished')
-    },
-    {
-      id: 'study',
-      name: 'Study Space',
-      icon: <BookOpen size={15} />,
-      getValueKey: (p: ReturnType<typeof parseOfferings>) => String(p.hasStudyArea),
-      render: (p: ReturnType<typeof parseOfferings>) =>
-        renderCheck(p.hasStudyArea, 'Dedicated Study Desks', 'In-room study')
-    },
-    {
-      id: 'transport',
-      name: 'Campus Transport',
-      icon: <Bus size={15} />,
-      getValueKey: (p: ReturnType<typeof parseOfferings>) => String(p.hasTransport),
-      render: (p: ReturnType<typeof parseOfferings>) =>
-        renderCheck(p.hasTransport, 'Free Campus Shuttle', 'Direct Walking Access')
-    },
-    {
-      id: 'security',
-      name: '24/7 Security',
-      icon: <ShieldCheck size={15} />,
-      getValueKey: (p: ReturnType<typeof parseOfferings>) => String(p.hasSecurity),
-      render: (p: ReturnType<typeof parseOfferings>) =>
-        renderCheck(p.hasSecurity, '24/7 Guards & CCTV', 'Secured Entrance')
-    },
-    {
-      id: 'biometrics',
-      name: 'Biometrics',
-      icon: <Fingerprint size={15} />,
-      getValueKey: (p: ReturnType<typeof parseOfferings>) => String(p.hasBiometrics),
-      render: (p: ReturnType<typeof parseOfferings>) =>
-        renderCheck(p.hasBiometrics, 'Biometric Access', 'Standard Keys / Tags')
-    },
-    {
-      id: 'laundry',
-      name: 'Laundry',
-      icon: <WashingMachine size={15} />,
-      getValueKey: (p: ReturnType<typeof parseOfferings>) => String(p.hasLaundry),
-      render: (p: ReturnType<typeof parseOfferings>) =>
-        renderCheck(p.hasLaundry, 'On-site Laundry', 'Not stated')
-    },
-    {
-      id: 'kitchen',
-      name: 'Kitchen',
-      icon: <UtensilsCrossed size={15} />,
-      getValueKey: (p: ReturnType<typeof parseOfferings>) => String(p.hasKitchen),
-      render: (p: ReturnType<typeof parseOfferings>) =>
-        renderCheck(p.hasKitchen, 'Equipped Kitchen / Fridge', 'Shared Kitchen')
-    },
-    {
-      id: 'nsfas',
-      name: 'NSFAS Accreditation',
-      icon: <GraduationCap size={15} />,
-      getValueKey: (p: ReturnType<typeof parseOfferings>) => String(p.isNsfasClaimed),
-      render: (p: ReturnType<typeof parseOfferings>) =>
-        renderCheck(p.isNsfasClaimed, 'NSFAS Rates Claimed', 'Self-Funded Only')
-    },
-    {
-      id: 'rating',
-      name: 'Student Reviews',
-      icon: <Star size={15} />,
-      getValueKey: (_p: ReturnType<typeof parseOfferings>, item?: ResearchProperty) => item ? getPropertyReviews(item.id, item.name, item.locality).ratingFormatted : '',
-      render: (_p: ReturnType<typeof parseOfferings>, item?: ResearchProperty) => {
-        const rev = item ? getPropertyReviews(item.id, item.name, item.locality) : { ratingFormatted: '4,6', reviewsCount: 128 };
-        return (
-          <div className="cmp-val-rating">
-            <span className="cmp-val-strong">★ {rev.ratingFormatted}</span>
-            <span className="cmp-val-sub">({rev.reviewsCount} reviews)</span>
-          </div>
-        );
+  const selectedUniversity = UNIVERSITIES.find(value => value.id === criteria.universityId);
+  const focusLabels = {
+    price: 'Monthly price', distance: 'Campus distance', room: 'Room type',
+    wifi: 'Wi-Fi', furniture: 'Furniture', study: 'Study area', security: 'Security'
+  } as const;
+  const rankItems = (compareBy: CompareFocus) => {
+    const scored = parsedItems.map(entry => {
+      const { item, offerings } = entry;
+      const match = matchResearchProperty(item, criteria).score ?? 0;
+      let value = '';
+      let detail = '';
+      let rank = Number.POSITIVE_INFINITY;
+      let confirmed = false;
+      if (compareBy === 'price') {
+        const rent = relevantRent(item, criteria);
+        if (rent) {
+          rank = rent.amount;
+          confirmed = true;
+          value = 'From R' + rent.amount.toLocaleString('en-ZA') + '/mo';
+          detail = rent.basisKnown ? (criteria.maxRent === null ? 'Advertised monthly price' : rent.amount <= criteria.maxRent ? 'Within your budget' : 'Above your budget') : 'Billing basis needs confirmation';
+        } else {
+          value = 'Price not published';
+          detail = criteria.roomTypes.length ? 'No listed rate for your room choice' : 'Ask the provider for a rate';
+        }
+      } else if (compareBy === 'distance') {
+        if (typeof item.latitude === 'number' && typeof item.longitude === 'number') {
+          const campuses = selectedUniversity ? [selectedUniversity] : UNIVERSITIES;
+          const nearest = campuses.map(campus => ({ campus, km: distanceKm([item.latitude as number, item.longitude as number], campus.position) })).sort((x, y) => x.km - y.km)[0];
+          if (nearest) {
+            rank = nearest.km;
+            confirmed = true;
+            value = nearest.km.toFixed(1) + ' km';
+            detail = 'Straight line to ' + nearest.campus.shortName + (selectedUniversity ? '' : ' (nearest campus)');
+          }
+        }
+        if (!confirmed) { value = 'Location not mapped'; detail = 'Campus distance unavailable'; }
+      } else if (compareBy === 'room') {
+        const rates = roomCategoryRates(item.id, roomChoice);
+        const cheapest = rates.map(rate => ({ rate, amount: Number(rate.monthly.match(/R\s*([\d,]+(?:\.\d{2})?)/)?.[1].replace(/,/g, '')) })).filter(x => Number.isFinite(x.amount)).sort((x, y) => x.amount - y.amount)[0];
+        if (cheapest) {
+          confirmed = true;
+          rank = cheapest.amount;
+          value = cheapest.rate.monthly;
+          detail = cheapest.rate.name + ' · ' + cheapest.rate.basis;
+        } else {
+          value = 'No listed match';
+          detail = 'Rate for this room type not published';
+        }
+      } else {
+        const supported = compareBy === 'wifi' ? offerings.hasWifi : compareBy === 'furniture' ? offerings.hasFurniture : compareBy === 'study' ? offerings.hasStudyArea : offerings.hasSecurity;
+        confirmed = supported;
+        rank = supported ? 0 : Number.POSITIVE_INFINITY;
+        value = supported ? focusLabels[compareBy] + ' listed' : 'Not confirmed';
+        detail = supported ? 'Mentioned in the property listing' : focusLabels[compareBy] + ' is not stated by the provider';
       }
-    }
-  ], []);
+      return { ...entry, match, value, detail, rank, confirmed };
+    });
+    return scored.sort((a, b) => a.rank - b.rank || b.match - a.match || a.item.name.localeCompare(b.item.name));
+  };
 
-  // Compute differences
-  const diffSet = useMemo(() => {
-    const diffs = new Set<string>();
-    if (activeItems.length < 2) return diffs;
-    for (const feat of features) {
-      const firstVal = feat.getValueKey(activeItems[0].offerings, activeItems[0].item);
-      const isDiff = activeItems.slice(1).some(p => feat.getValueKey(p.offerings, p.item) !== firstVal);
-      if (isDiff) diffs.add(feat.id);
-    }
-    return diffs;
-  }, [activeItems, features]);
-
-  const displayedFeatures = useMemo(() => {
-    if (!diffOnly) return features;
-    return features.filter(f => diffSet.has(f.id));
-  }, [diffOnly, features, diffSet]);
+  const moveCarousel = (focus: CompareFocus, direction: number) => {
+    const track = carouselRefs.current[focus];
+    if (!track) return;
+    const card = track.querySelector<HTMLElement>('.cmp-priority-card');
+    track.scrollBy({ left: direction * ((card?.offsetWidth ?? 300) + 12), behavior: 'smooth' });
+  };
 
   // Uncompared saved items — includes both research JSON props AND mock/CompareContext props
   const uncomparedSaved = useMemo(() => {
@@ -1059,7 +928,7 @@ export function ResearchCompare() {
       <div className="research-heading" style={{ marginBottom: '20px' }}>
         <h1>Compare accommodations</h1>
         <p style={{ color: 'var(--ink-2)', fontSize: '14px', margin: 0 }}>
-          Side-by-side decision support: choose up to 3 places to compare rent, amenities and offerings.
+          Choose up to 3 places and select several topics to compare one after another.
         </p>
       </div>
 
@@ -1104,7 +973,7 @@ export function ResearchCompare() {
               {items.length} of 3 selected
             </div>
             <div className="cmp-capsule-sub">
-              {items.length < 2 ? 'Add 1 more' : 'Comparing side by side'}
+              {items.length < 2 ? 'Add 1 more' : 'Choose topics below'}
             </div>
           </div>
 
@@ -1166,295 +1035,60 @@ export function ResearchCompare() {
           </div>
         )}
 
-        {/* Feature Comparison Table (when 2 or 3 places are slotted) */}
         {items.length >= 2 ? (
           <>
-            {hasCriteria && <div className="cmp-match-summary" aria-label="How these places match your preferences">
-              <p>Based on your search preferences <span>Scores count supported criteria; unpublished details need confirmation.</span></p>
-              {bestMatch && <div className="cmp-match-summary-card"><span>✦ Best overall fit</span><strong>{bestMatch.item.name}</strong><small>{bestMatch.match.score}% of selected criteria supported</small></div>}
-              {bestBudget && <div className="cmp-match-summary-card"><span>◉ Lowest relevant listed rent</span><strong>{bestBudget.item.name}</strong><small>From R{bestBudget.rent.amount.toLocaleString('en-ZA')}/month {bestBudget.rent.amount <= criteria.maxRent! ? '· within budget' : '· above budget'}</small></div>}
-              {closest && <div className="cmp-match-summary-card"><span>⌖ Closest to {university?.shortName}</span><strong>{closest.item.name}</strong><small>{closest.km.toFixed(1)} km straight line from campus</small></div>}
-            </div>}
-            {/* 3-Place Mobile Segmented Toggle */}
-            {parsedItems.length === 3 && (
-              <div className="cmp-mobile-pair-switcher" aria-label="Mobile view switcher">
-                <span className="cmp-switcher-label">View:</span>
-                <button
-                  type="button"
-                  className={`cmp-switch-btn ${mobilePair === 'all' ? 'active' : ''}`}
-                  onClick={() => setMobilePair('all')}
-                >
-                  All 3
-                </button>
-                <button
-                  type="button"
-                  className={`cmp-switch-btn ${mobilePair === '0-1' ? 'active' : ''}`}
-                  onClick={() => setMobilePair('0-1')}
-                >
-                  1 vs 2
-                </button>
-                <button
-                  type="button"
-                  className={`cmp-switch-btn ${mobilePair === '1-2' ? 'active' : ''}`}
-                  onClick={() => setMobilePair('1-2')}
-                >
-                  2 vs 3
-                </button>
-                <button
-                  type="button"
-                  className={`cmp-switch-btn ${mobilePair === '0-2' ? 'active' : ''}`}
-                  onClick={() => setMobilePair('0-2')}
-                >
-                  1 vs 3
-                </button>
+            <section className="cmp-priority" aria-label="Choose comparison topics">
+              <div className="cmp-priority-heading">
+                <div>
+                  <span className="cmp-priority-eyebrow">YOUR COMPARISON</span>
+                  <h2>What matters most?</h2>
+                  <p>Select one or more topics. Each comparison appears below in its own row.</p>
+                </div>
               </div>
-            )}
-
-            {/* Smart Toolbar: Filter Differences */}
-            <div className="cmp-filter-bar">
-              <div className="cmp-filter-pills">
-                <button
-                  type="button"
-                  className={`cmp-filter-pill ${!diffOnly ? 'active' : ''}`}
-                  onClick={() => setDiffOnly(false)}
-                >
-                  All Offerings ({features.length})
-                </button>
-                <button
-                  type="button"
-                  className={`cmp-filter-pill ${diffOnly ? 'active' : ''}`}
-                  onClick={() => setDiffOnly(true)}
-                >
-                  Differences Only ({diffSet.size})
-                </button>
+              <div className="cmp-priority-filters" role="group" aria-label="Comparison topics; select multiple">
+                {(Object.keys(focusLabels) as CompareFocus[]).map(focus => (
+                  <button key={focus} type="button" className={selectedPriorities.includes(focus) ? 'is-active' : ''} aria-pressed={selectedPriorities.includes(focus)} onClick={() => setSelectedPriorities(current => current.includes(focus) ? current.length > 1 ? current.filter(value => value !== focus) : current : [...current, focus])}>{selectedPriorities.includes(focus) && <Check size={13} />} {focusLabels[focus]}</button>
+                ))}
               </div>
-              {diffOnly && diffSet.size > 0 && (
-                <span className="cmp-diff-hint">Showing only {diffSet.size} distinguishing features</span>
-              )}
-            </div>
-
-            {/* Property Header Cards */}
-            <div
-              className="cmp-header-cards"
-              style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
-            >
-              {activeItems.map(({ item, offerings, priceSummary }) => {
-                const priceNum = priceSummary?.label.match(/R([\d,]+)/);
-                const isLowest = priceNum && Number(priceNum[1].replace(/,/g, '')) === minPrice && items.length > 1;
-
-                return (
-                  <div key={item.id} className="cmp-prop-card">
-                    <button
-                      type="button"
-                      className="cmp-prop-remove"
-                      onClick={() => compared.toggle(item.id)}
-                      aria-label={`Remove ${item.name}`}
-                      title="Remove from comparison"
-                    >
-                      <X size={15} strokeWidth={2.4} />
-                    </button>
-                    <div className="cmp-prop-thumb">
+            </section>
+            {(Object.keys(focusLabels) as CompareFocus[]).filter(focus => selectedPriorities.includes(focus)).map(compareBy => {
+              const rankedItems = rankItems(compareBy);
+              return <section key={compareBy} className="cmp-priority cmp-priority-section" aria-label={'Comparison by ' + focusLabels[compareBy]}>
+                <div className="cmp-priority-section-heading">
+                  <div><span className="cmp-priority-eyebrow">RANKED COMPARISON</span><h3>{focusLabels[compareBy]}</h3></div>
+                  <div className="cmp-priority-arrows">
+                    <button type="button" onClick={() => moveCarousel(compareBy, -1)} aria-label={'Previous ' + focusLabels[compareBy] + ' card'}><ChevronLeft size={18} /></button>
+                    <button type="button" onClick={() => moveCarousel(compareBy, 1)} aria-label={'Next ' + focusLabels[compareBy] + ' card'}><ChevronRight size={18} /></button>
+                  </div>
+                </div>
+                {compareBy === 'room' && <div className="cmp-room-filters" role="group" aria-label="Room type to compare">
+                  {(['single', 'sharing', 'studio', 'apartment'] as RoomCategory[]).map(room => <button key={room} type="button" className={roomChoice === room ? 'is-active' : ''} aria-pressed={roomChoice === room} onClick={() => { setRoomChoice(room); carouselRefs.current.room?.scrollTo({ left: 0, behavior: 'smooth' }); }}>{room === 'single' ? 'Single room' : room === 'sharing' ? 'Sharing room' : room === 'studio' ? 'Studio' : 'Apartment'}</button>)}
+                </div>}
+                <div className="cmp-priority-track" ref={node => { carouselRefs.current[compareBy] = node; }} aria-label={'Properties ranked by ' + focusLabels[compareBy]}>
+                  {rankedItems.map(({ item, offerings, value, detail, confirmed, match }, index) => (
+                  <article key={item.id} className={'cmp-priority-card ' + (index === 0 && confirmed ? 'is-top' : '')}>
+                    <div className="cmp-priority-image">
                       <ResearchImage src={getPropertyThumbnail(item)} name={item.name} />
-                      <button type="button" className="cmp-prop-preview-hit" onClick={() => setDetailId(item.id)} aria-label={`Preview ${item.name}`} />
-                      {isLowest && <span className="cmp-best-badge"><Star size={10} /> Best Price</span>}
-                      {hasCriteria && <span className="cmp-match-badge">✦ {matchResearchProperty(item, criteria).score}% fit</span>}
+                      <button type="button" className="cmp-prop-preview-hit" onClick={() => setDetailId(item.id)} aria-label={'Preview ' + item.name} />
+                      <span className={'cmp-priority-rank ' + (confirmed ? '' : 'is-unconfirmed')}>{confirmed ? index === 0 ? 'Top match' : index === 1 ? '2nd match' : '3rd match' : 'No confirmed match'}</span>
+                      <button type="button" className="cmp-prop-remove" onClick={() => compared.toggle(item.id)} aria-label={'Remove ' + item.name}><X size={15} /></button>
                     </div>
-                    <Link to={`/research/${item.id}`} className="cmp-prop-name" title={item.name} onClick={event => { event.preventDefault(); setDetailId(item.id); }}>
-                      {item.name}
-                    </Link>
-                    <div className="cmp-prop-locality">
-                      <MapPin size={11} /> {offerings.localityShort}
+                    <div className="cmp-priority-body">
+                      <button type="button" className="cmp-priority-name" onClick={() => setDetailId(item.id)}>{item.name}</button>
+                      <span className="cmp-priority-locality"><MapPin size={13} /> {offerings.localityShort}</span>
+                      <div className="cmp-priority-result"><small>{focusLabels[compareBy]}</small><strong>{value}</strong><span>{detail}</span></div>
+                      <div className="cmp-priority-footer"><span><Star size={12} fill="currentColor" /> {getPropertyReviews(item.id, item.name, item.locality).ratingFormatted}</span>{match > 0 && <span>{match}% preference fit</span>}</div>
+                      <div className="cmp-priority-actions"><button type="button" onClick={() => setDetailId(item.id)}>Details</button><Link to={'/apply/' + item.id}>Apply now <ArrowRight size={14} /></Link></div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--navy)', fontWeight: 700 }}>
-                      <Star size={11} fill="var(--star, #e3a626)" stroke="none" />
-                      <span>{getPropertyReviews(item.id, item.name, item.locality).ratingFormatted} ({getPropertyReviews(item.id, item.name, item.locality).reviewsCount})</span>
-                    </div>
-                    <div className="cmp-prop-price">{offerings.priceLabel}</div>
-                    <Link to={`/research/${item.id}`} className="cmp-prop-cta" aria-label={`View details for ${item.name}`} onClick={event => { event.preventDefault(); setDetailId(item.id); }}>
-                      View details <span className="arrow-glyph">→</span>
-                    </Link>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Offering Rows */}
-            <div className="cmp-rows-wrap">
-              {hasCriteria && <div className="cmp-feature-row cmp-match-row">
-                <div className="cmp-feature-title-bar"><span className="cmp-feature-icon"><Sparkles size={15} /></span><span className="cmp-feature-name">Preference fit</span></div>
-                <div className="cmp-feature-values" style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}>
-                  {activeItems.map(({ item }) => { const match = matchResearchProperty(item, criteria); return <div key={item.id} className="cmp-val-cell"><strong className="cmp-match-score">{match.score}%</strong><small>{match.matched} of {match.total} criteria supported{match.unknown ? ` · ${match.unknown} unconfirmed` : ''}</small><span className="cmp-match-reasons">{match.reasons.filter(reason => reason.status === 'match').slice(0, 2).map(reason => reason.text).join(' · ')}</span></div>; })}
+                  </article>
+                  ))}
+                  {Array.from({ length: Math.max(0, 3 - rankedItems.length) }).map((_, index) => <button key={'empty-' + index} type="button" className="cmp-priority-card cmp-priority-empty" onClick={() => setAddSheetOpen(true)}><Plus size={24} /><strong>Add a place</strong><span>Compare up to three residences</span></button>)}
                 </div>
-              </div>}
-              {displayedFeatures.map(feat => {
-                const isDiff = diffSet.has(feat.id);
-                return (
-                  <div key={feat.id} className={`cmp-feature-row ${isDiff ? 'has-diff' : ''}`}>
-                    <div className="cmp-feature-title-bar">
-                      <span className="cmp-feature-icon">{feat.icon}</span>
-                      <span className="cmp-feature-name">{feat.name}</span>
-                      {isDiff && activeItems.length > 1 && (
-                        <span className="cmp-diff-tag">Differs</span>
-                      )}
-                    </div>
-                    <div
-                      className="cmp-feature-values"
-                      style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
-                    >
-                      {activeItems.map(({ item, offerings }) => (
-                        <div key={item.id} className="cmp-val-cell">
-                          {feat.render(offerings, item)}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+                {compareBy === 'price' && <p className="cmp-priority-note">Prices are advertised rates; room billing terms and availability may need confirmation.</p>}
+                {compareBy === 'distance' && <p className="cmp-priority-note">Distances are straight line estimates from mapped locations.</p>}
+              </section>;
+            })}
 
-              {displayedFeatures.length === 0 && diffOnly && (
-                <div className="cmp-no-diffs">
-                  <CheckCircle2 size={24} className="cmp-no-diffs-icon" />
-                  <p>All core offerings match between these accommodations!</p>
-                  <button
-                    type="button"
-                    className="btn btn--sm btn--ghost"
-                    onClick={() => setDiffOnly(false)}
-                  >
-                    Show all offerings
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Column Action Buttons */}
-            <div
-              className="cmp-header-cards"
-              style={{
-                gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))`,
-                marginTop: '16px'
-              }}
-            >
-              {activeItems.map(({ item }) => (
-                <div key={`actions-${item.id}`} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <Link
-                    to={`/apply/${item.id}`}
-                    className="btn btn--green btn--sm"
-                    style={{ width: '100%', justifyContent: 'center' }}
-                  >
-                    Apply now →
-                  </Link>
-                  <Link
-                    to={`/research/${item.id}`}
-                    className="btn btn--ghost btn--sm"
-                    onClick={event => { event.preventDefault(); setDetailId(item.id); }}
-                    style={{ width: '100%', justifyContent: 'center' }}
-                  >
-                    View details
-                  </Link>
-                </div>
-              ))}
-            </div>
-
-            {/* Cascading Legal & Verification Accordion Drawer */}
-            <div className="cmp-drawer-wrap">
-              <button
-                type="button"
-                className="cmp-drawer-toggle"
-                onClick={() => setExpandNotes(!expandNotes)}
-                aria-expanded={expandNotes}
-              >
-                <span className="cmp-drawer-toggle-left">
-                  <Info size={16} />
-                  <span>Inspect Full Legal Statements & Verification Records</span>
-                </span>
-                <span className="cmp-drawer-chevron">{expandNotes ? '▲ Collapse' : '▼ Expand'}</span>
-              </button>
-
-              {expandNotes && (
-                <div className="cmp-drawer-body">
-                  {/* 1. Advertised Price Text */}
-                  <div className="cmp-drawer-section">
-                    <h4>Advertised Price Wording</h4>
-                    <div
-                      className="cmp-drawer-grid"
-                      style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
-                    >
-                      {activeItems.map(({ item }) => (
-                        <div key={item.id} className="cmp-drawer-cell">
-                          <strong>{item.name}:</strong>
-                          <p>{item.advertisedPrice}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 2. Validity Period */}
-                  <div className="cmp-drawer-section">
-                    <h4>Price Validity & Academic Year</h4>
-                    <div
-                      className="cmp-drawer-grid"
-                      style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
-                    >
-                      {activeItems.map(({ item }) => (
-                        <div key={item.id} className="cmp-drawer-cell">
-                          <strong>{item.name}:</strong>
-                          <p>{item.pricePeriod || 'Academic year applicability not verified by provider.'}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 3. Rooms statement */}
-                  <div className="cmp-drawer-section">
-                    <h4>Room & Occupancy Statement</h4>
-                    <div
-                      className="cmp-drawer-grid"
-                      style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
-                    >
-                      {activeItems.map(({ item }) => (
-                        <div key={item.id} className="cmp-drawer-cell">
-                          <strong>{item.name}:</strong>
-                          <p>{item.rooms || 'Specific room descriptions not detailed on provider page.'}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 4. Funding Evidence */}
-                  <div className="cmp-drawer-section">
-                    <h4>Funding Evidence & University Status</h4>
-                    <div
-                      className="cmp-drawer-grid"
-                      style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
-                    >
-                      {activeItems.map(({ item }) => (
-                        <div key={item.id} className="cmp-drawer-cell">
-                          <strong>{item.name}:</strong>
-                          <p>{item.funding || 'Private student rate'}</p>
-                          {item.fundingEvidence && <p className="tiny-note">Evidence: {item.fundingEvidence}</p>}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 5. Gaps */}
-                  <div className="cmp-drawer-section">
-                    <h4>Outstanding Verification Gaps</h4>
-                    <div
-                      className="cmp-drawer-grid"
-                      style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}
-                    >
-                      {activeItems.map(({ item }) => (
-                        <div key={item.id} className="cmp-drawer-cell">
-                          <strong>{item.name}:</strong>
-                          <p>{item.gaps || 'No outstanding verification gaps recorded.'}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
           </>
         ) : (
           /* Empty or Single item guidance (minimal, neat, no duplicate catalog) */
