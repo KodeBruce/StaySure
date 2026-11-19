@@ -729,7 +729,6 @@ export function ResearchDetail() {
               }
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              autoFocus
             />
             {searchQuery && (
               <button

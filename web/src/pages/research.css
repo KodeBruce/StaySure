@@ -1449,7 +1449,11 @@
   inset: 0;
   background: rgba(10, 20, 50, 0.42);
   z-index: 3500;
-  animation: cmpSheetFadeIn 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: cmpSheetFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes cmpSheetFadeIn {
@@ -1462,13 +1466,11 @@
 }
 
 .cmp-sheet-dialog {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 0;
+  position: relative;
   width: 100%;
   max-width: 620px;
   max-height: 85vh;
+  max-height: 85dvh;
   background: #ffffff;
   border-radius: 26px 26px 0 0;
   z-index: 3501;
@@ -1476,18 +1478,18 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: cmpSheetSlideUp 0.44s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: cmpSheetSlideUp 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
   overscroll-behavior: contain;
-  will-change: transform, opacity;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
 }
 
 @keyframes cmpSheetSlideUp {
   from {
-    transform: translate(-50%, 100%);
-    opacity: 0.3;
+    transform: translateY(100%);
+    opacity: 0.4;
   }
   to {
-    transform: translate(-50%, 0);
+    transform: translateY(0);
     opacity: 1;
   }
 }
@@ -1602,12 +1604,18 @@
   border: 1.5px solid var(--line-2);
   border-radius: 12px;
   font: inherit;
-  font-size: 13.5px;
+  font-size: 16px; /* 16px prevents iOS Safari from automatically zooming in and displacing the sheet */
   color: var(--navy);
   background: #ffffff;
   outline: none;
   transition: border-color 0.14s ease;
   box-sizing: border-box;
+}
+
+@media (min-width: 769px) {
+  .cmp-sheet-search-input {
+    font-size: 13.5px;
+  }
 }
 
 .cmp-sheet-search-input:focus {
@@ -1635,6 +1643,10 @@
   flex-direction: column;
   gap: 10px;
   max-height: 50vh;
+  max-height: 48dvh;
+  flex: 1 1 auto;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .cmp-sheet-item {
