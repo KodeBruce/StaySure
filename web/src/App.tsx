@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from './context/AuthContext';
 import { CompareProvider } from './context/CompareContext';
 import { Navbar } from './components/Navbar';
@@ -87,7 +88,12 @@ const AppContent: React.FC = () => {
   );
 };
 
-export const App: React.FC = () => <BrowserRouter><AppContent /></BrowserRouter>;
+export const App: React.FC = () => (
+  <BrowserRouter>
+    <AppContent />
+    <Analytics />
+  </BrowserRouter>
+);
 
 export default App;
 
