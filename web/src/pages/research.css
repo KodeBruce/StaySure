@@ -706,6 +706,102 @@
   line-height: 1.3;
 }
 
+.research-room-pricing {
+  border: 1px solid rgba(19, 35, 79, .12);
+  border-radius: 14px;
+  padding: 16px;
+  background: #fff;
+}
+
+.research-room-pricing-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.research-room-pricing-heading h2 {
+  margin: 0;
+  font: 800 17px/1.25 var(--display);
+  color: var(--navy);
+}
+
+.research-room-pricing-heading span,
+.research-room-pricing p,
+.room-rate-unlisted {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
+.research-room-pricing p { margin: 8px 0 0; }
+
+.room-rate-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.room-rate-item {
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(19, 35, 79, .1);
+  border-radius: 9px;
+  background: var(--navy-tint);
+}
+
+.room-rate-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.room-rate-main span {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.room-rate-main strong {
+  white-space: nowrap;
+  font: 800 15px/1.2 var(--display);
+  color: var(--navy);
+}
+
+.room-rate-main strong small { font-size: 10px; font-weight: 500; }
+
+.research-card-room-rates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  color: var(--navy);
+  font-size: 11.5px;
+}
+
+.research-card-room-rates b { font-weight: 800; }
+
+.room-rate-item > small {
+  display: block;
+  margin-top: 5px;
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+
+.room-rate-list.is-compact { grid-template-columns: 1fr; gap: 5px; }
+.room-rate-list.is-compact .room-rate-item { padding: 7px 8px; }
+.room-rate-list.is-compact .room-rate-main { display: block; }
+.room-rate-list.is-compact .room-rate-main span,
+.room-rate-list.is-compact .room-rate-main strong { display: block; }
+.room-rate-list.is-compact .room-rate-main strong { margin-top: 3px; font-size: 13px; }
+
+@media (max-width: 640px) {
+  .room-rate-list { grid-template-columns: 1fr; }
+}
+
 /* Room options row */
 .research-offerings-row {
   display: flex;
@@ -1664,6 +1760,19 @@
   gap: 10px;
   width: 100%;
 }
+
+.cmp-match-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0 0 18px; }
+.cmp-match-summary > p { grid-column: 1 / -1; margin: 0 0 3px; color: var(--navy); font-size: 13px; font-weight: 800; }
+.cmp-match-summary > p span { display: block; margin-top: 4px; color: var(--ink-3); font-size: 11px; font-weight: 500; }
+.cmp-match-summary-card { display: flex; flex-direction: column; gap: 5px; min-width: 0; padding: 12px; border: 1px solid #d3e9db; border-radius: 10px; background: #f2faf5; }
+.cmp-match-summary-card > span { color: var(--green-ink); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.cmp-match-summary-card strong { color: var(--navy); font-size: 13px; }
+.cmp-match-summary-card small { color: var(--ink-3); font-size: 10px; line-height: 1.4; }
+.cmp-match-badge { position: absolute; top: 6px; left: 6px; padding: 5px 7px; border-radius: 99px; background: rgba(17, 49, 36, .92); color: #fff; font-size: 10px; font-weight: 800; }
+.cmp-match-row { background: #f2faf5; }
+.cmp-match-score { color: var(--green-ink); font-size: 18px; line-height: 1; }
+.cmp-match-row small, .cmp-match-reasons { color: var(--ink-3); font-size: 10px; line-height: 1.4; }
+@media (max-width: 700px) { .cmp-match-summary { grid-template-columns: 1fr; } }
 
 .cmp-prop-card {
   position: relative;

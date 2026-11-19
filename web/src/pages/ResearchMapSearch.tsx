@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
@@ -22,6 +22,7 @@ import {
   Armchair,
   WashingMachine,
   BedDouble,
+  Heart,
   X
 } from 'lucide-react';
 import { CustomSelect } from '../components/CustomSelect';
@@ -30,6 +31,9 @@ import { parseOfferings } from '../data/researchOfferings';
 import { researchFallbackImage, researchImages } from '../data/researchMedia';
 import { extractMinPrice, researchPriceSummary } from '../data/researchPricing';
 import { useResearchSelection } from '../data/researchSelection';
+import { getRoomRates } from '../data/roomRates';
+import { matchResearchProperty, readSearchCriteria, saveSearchCriteria, type ResearchMatch, type SearchCriteria } from '../data/researchMatch';
+import { matchesSelectedRoomTypes, parseRoomTypes, ROOM_TYPE_OPTIONS, type RoomTypeFilter } from '../data/roomTypeFilter';
 import { getPropertyReviews } from '../data/propertyReviews';
 import { AREA_CENTRES, distanceKm, withinBounds, UNIVERSITIES, getPropertyUniversities, isNearUniversity, type Coordinates, type MapBounds, type UniversityInfo } from '../data/mapLocations';
 import './research-map-search.css';
@@ -40,8 +44,6 @@ const MAP_PREFERENCES = [
   { id: 'wifi', label: 'Wi-Fi', icon: Wifi },
   { id: 'security', label: '24/7 Security', icon: ShieldCheck },
   { id: 'study', label: 'Study Desks', icon: BookOpen },
-  { id: 'single', label: 'Single Rooms', icon: BedDouble },
-  { id: 'sharing', label: 'Sharing Rooms', icon: Users },
   { id: 'furniture', label: 'Furnished', icon: Armchair },
   { id: 'laundry', label: 'Laundry', icon: WashingMachine },
 ];
@@ -57,6 +59,109 @@ function position(item: ResearchProperty): Coordinates {
   return [item.latitude!, item.longitude!];
 }
 
+function MapPropertySheet({ item, match, onExited, saved, compared }: {
+  item: ResearchProperty;
+  match: ResearchMatch;
+  onExited: () => void;
+  saved: ReturnType<typeof useResearchSelection>;
+  compared: ReturnType<typeof useResearchSelection>;
+}) {
+  const [closing, setClosing] = useState(false);
+  const closingRef = useRef(false);
+  const panelRef = useRef<HTMLElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const timerRef = useRef<number | null>(null);
+  const price = researchPriceSummary(item.advertisedPrice);
+  const rates = getRoomRates(item.id);
+  const offerings = parseOfferings(item);
+  const reviews = getPropertyReviews(item.id, item.name, item.locality);
+  const isSaved = saved.ids.includes(item.id);
+  const isCompared = compared.ids.includes(item.id);
+
+  const dismiss = () => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setClosing(true);
+    timerRef.current = window.setTimeout(onExited, 240);
+  };
+
+  useEffect(() => {
+    closeRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); dismiss(); }
+      if (event.key !== 'Tab' || !panelRef.current) return;
+      const controls = [...panelRef.current.querySelectorAll<HTMLElement>('button:not(:disabled), a[href]')];
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  return createPortal(<div className={`map-detail-layer ${closing ? 'is-closing' : ''}`}>
+    <div className="map-detail-backdrop" onClick={dismiss} />
+    <section ref={panelRef} className="map-detail-sheet" role="dialog" aria-modal="true" aria-labelledby="map-detail-title">
+      <div className="map-detail-handle" aria-hidden="true" />
+      <div className="map-detail-topline">
+        <span>Property preview</span>
+        <button ref={closeRef} type="button" className="map-detail-close" onClick={dismiss} aria-label="Close property preview"><X size={19} /></button>
+      </div>
+      <div className="map-detail-content">
+        <div className="map-detail-media">
+          <img src={researchImages(item.id)[0]} onError={event => { event.currentTarget.src = researchFallbackImage; }} alt={`Illustrative accommodation image for ${item.name}`} />
+          <span>Illustrative image</span>
+        </div>
+        <div className="map-detail-info">
+          <div className="map-detail-heading">
+            <div>
+              <span className="map-detail-provider">{item.provider || 'Student accommodation'}</span>
+              <h2 id="map-detail-title">{item.name}</h2>
+              <p><MapPin size={14} /> {item.locality.split(',')[0]} <span>·</span> <Star size={13} fill="currentColor" /> {reviews.ratingFormatted} ({reviews.reviewsCount})</p>
+            </div>
+            <strong className="map-detail-price">{price?.label ?? 'Ask for rates'}<small>{price ? 'Advertised monthly range' : 'Rent not published'}</small></strong>
+          </div>
+
+          {match.score !== null && <div className="map-detail-match">
+            <div><strong>✦ {match.score}% preference fit</strong><span>{match.matched} of {match.total} selected criteria supported{match.unknown ? ` · ${match.unknown} need confirmation` : ''}</span></div>
+            <ul>{match.reasons.map((reason, index) => <li key={`${reason.text}-${index}`} className={`is-${reason.status}`}><span aria-hidden="true">{reason.status === 'match' ? '✓' : reason.status === 'miss' ? '×' : '?'}</span>{reason.text}</li>)}</ul>
+          </div>}
+
+          <div className="map-detail-section">
+            <h3>Room prices</h3>
+            {rates.length ? <div className="map-detail-rates">{rates.map(rate => <div key={`${rate.category}-${rate.name}`} className="map-detail-rate">
+              <span>{rate.name}<small>{rate.basis}{rate.period ? ` · ${rate.period}` : ''}{rate.note ? ` · ${rate.note}` : ''}</small></span>
+              <strong>{rate.monthly}<small>{rate.period ? '' : '/mo'}</small></strong>
+            </div>)}</div> : <p>Room-specific rates are not published. Ask the provider for the current price of your preferred room.</p>}
+          </div>
+
+          <div className="map-detail-section">
+            <h3>At a glance</h3>
+            <div className="map-detail-chips">{offerings.roomTypes.map(type => <span key={type}>{type}</span>)}{offerings.keyOfferings.filter(offering => offering.available).slice(0, 4).map(offering => <span key={offering.id}>{offering.name}</span>)}</div>
+            <p>{item.rooms || 'Ask the provider for room configuration and availability.'}</p>
+          </div>
+
+          <div className="map-detail-source">
+            <strong>Check before you apply</strong>
+            <p>{item.advertisedPrice}</p>
+            {item.pricePeriod && <small>{item.pricePeriod}</small>}
+          </div>
+
+          <div className="map-detail-actions">
+            <button type="button" onClick={() => saved.toggle(item.id)} aria-pressed={isSaved}><Heart size={16} fill={isSaved ? 'currentColor' : 'none'} /> {isSaved ? 'Saved' : 'Save'}</button>
+            <button type="button" onClick={() => compared.toggle(item.id)} disabled={!isCompared && compared.ids.length >= 3} aria-pressed={isCompared}><Plus size={16} /> {isCompared ? 'Comparing' : 'Compare'}</button>
+            <Link to={`/apply/${item.id}`} className="map-detail-apply">Apply now →</Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>, document.body);
+}
+
 function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition, radiusKm, onSelect, onViewChange }: {
   items: ResearchProperty[];
   selectedId: string | null;
@@ -70,6 +175,7 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
   const element = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const markers = useRef<L.LayerGroup | null>(null);
+  const pinMarkers = useRef<{ marker: L.Marker; ids: string[] }[]>([]);
   const [zoom, setZoom] = useState(12);
   const selectRef = useRef(onSelect);
   const viewRef = useRef(onViewChange);
@@ -97,7 +203,7 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
 
   useEffect(() => {
     if (!map.current) return;
-    if (items.length > 1) {
+    if (items.length > 1 && items.length <= 6) {
       const bounds = L.latLngBounds(items.map(position));
       map.current.fitBounds(bounds.pad(0.25), { maxZoom: 15 });
     } else if (items.length === 1) {
@@ -109,19 +215,23 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
 
   useEffect(() => {
     const selected = items.find(item => item.id === selectedId);
-    if (selected && hasCoordinates(selected)) map.current?.panTo(position(selected));
+    if (selected && hasCoordinates(selected)) {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      map.current?.panTo(position(selected), { animate: !reduceMotion, duration: 0.35 });
+    }
   }, [selectedId, items]);
   useEffect(() => {
     const group = markers.current;
     const instance = map.current;
     if (!group || !instance) return;
     group.clearLayers();
+    pinMarkers.current = [];
     const clusters: ResearchProperty[][] = [];
     for (const item of items) {
       const point = instance.latLngToLayerPoint(position(item));
       const cluster = clusters.find(bucket => {
         const other = instance.latLngToLayerPoint(position(bucket[0]));
-        return point.distanceTo(other) < 22;
+        return point.distanceTo(other) < 88;
       });
       if (cluster) cluster.push(item);
       else clusters.push([item]);
@@ -129,7 +239,7 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
     for (const cluster of clusters) {
       if (cluster.length > 1) {
         const average: Coordinates = [cluster.reduce((sum, item) => sum + item.latitude!, 0) / cluster.length, cluster.reduce((sum, item) => sum + item.longitude!, 0) / cluster.length];
-        const icon = L.divIcon({ className: 'accom-map-pin-shell', html: `<span class="accom-map-pin${cluster.some(item => item.id === selectedId) ? ' is-selected' : ''}">${cluster.length} places</span>`, iconSize: [112, 38], iconAnchor: [56, 38] });
+        const icon = L.divIcon({ className: 'accom-map-pin-shell', html: `<span class="accom-map-pin">${cluster.length} places</span>`, iconSize: [112, 38], iconAnchor: [56, 38] });
         const marker = L.marker(average, { icon, title: `${cluster.length} researched places near this location` });
         marker.on('click', () => {
           const latLngs = cluster.map(p => position(p));
@@ -149,6 +259,7 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
         }
         marker.bindPopup(popup);
         group.addLayer(marker);
+        pinMarkers.current.push({ marker, ids: cluster.map(item => item.id) });
         continue;
       }
       const item = cluster[0];
@@ -156,7 +267,7 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
       const label = price ?? 'Rate details';
       const icon = L.divIcon({
         className: 'accom-map-pin-shell',
-        html: `<span class="accom-map-pin${item.id === selectedId ? ' is-selected' : ''}"><span aria-hidden="true">⌂</span> ${label}</span>`,
+        html: `<span class="accom-map-pin"><span aria-hidden="true">⌂</span> ${label}</span>`,
         iconSize: [112, 38], iconAnchor: [56, 38]
       });
       const marker = L.marker(position(item), { icon, title: `${item.name}: ${label}; approximate location` });
@@ -169,29 +280,40 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
       marker.bindPopup(popup);
       marker.on('click', () => selectRef.current(item.id));
       group.addLayer(marker);
+      pinMarkers.current.push({ marker, ids: [item.id] });
     }
     if (userPosition) {
       L.circle(userPosition, { radius: radiusKm * 1000, color: '#1f9d5c', fillColor: '#1f9d5c', fillOpacity: 0.08, weight: 2 }).addTo(group);
       L.circleMarker(userPosition, { radius: 8, color: '#fff', weight: 3, fillColor: '#1f9d5c', fillOpacity: 1 }).bindTooltip('Your location').addTo(group);
     }
-  }, [items, selectedId, userPosition, radiusKm, zoom]);
+  }, [items, userPosition, radiusKm, zoom]);
+
+  useEffect(() => {
+    for (const { marker, ids } of pinMarkers.current) {
+      marker.getElement()?.querySelector('.accom-map-pin')?.classList.toggle('is-selected', selectedId !== null && ids.includes(selectedId));
+    }
+  }, [selectedId, items, userPosition, radiusKm, zoom]);
 
   return <div ref={element} className="accom-map" role="region" aria-label="Map of researched accommodation with approximate locations" />;
 }
 
 export function ResearchMapSearch() {
   const compared = useResearchSelection('compare');
+  const saved = useResearchSelection('saved');
+  const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState('');
-  const [selectedUniversity, setSelectedUniversity] = useState('all');
-  const [area, setArea] = useState('');
-  const [region, setRegion] = useState('');
-  const [maxRent, setMaxRent] = useState(12000);
-  const [selectedPrefs, setSelectedPrefs] = useState<string[]>([]);
+  const [selectedUniversity, setSelectedUniversity] = useState(() => readSearchCriteria().universityId);
+  const [area, setArea] = useState(() => readSearchCriteria().area);
+  const [region, setRegion] = useState(() => readSearchCriteria().region);
+  const [maxRent, setMaxRent] = useState(() => readSearchCriteria().maxRent ?? 12000);
+  const [selectedPrefs, setSelectedPrefs] = useState<string[]>(() => readSearchCriteria().preferences);
+  const [selectedRoomTypes, setSelectedRoomTypes] = useState<RoomTypeFilter[]>(() => searchParams.has('rooms') ? parseRoomTypes(searchParams.get('rooms')) : readSearchCriteria().roomTypes);
   const [includeUnpriced, setIncludeUnpriced] = useState(true);
   const [sortBy, setSortBy] = useState<'best' | 'price-asc' | 'price-desc'>('best');
   const [mappedOnly, setMappedOnly] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(records.find(hasCoordinates)?.id ?? null);
+  const [detailId, setDetailId] = useState<string | null>(null);
   const [pendingBounds, setPendingBounds] = useState<MapBounds | null>(null);
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
   const [userPosition, setUserPosition] = useState<Coordinates | null>(null);
@@ -201,6 +323,11 @@ export function ResearchMapSearch() {
   const [locating, setLocating] = useState(false);
   const railRef = useRef<HTMLDivElement>(null);
   const railSelectionLock = useRef<number | null>(null);
+  const railScrollTimer = useRef<number | null>(null);
+  useEffect(() => () => {
+    if (railSelectionLock.current !== null) window.clearTimeout(railSelectionLock.current);
+    if (railScrollTimer.current !== null) window.clearTimeout(railScrollTimer.current);
+  }, []);
   const closeRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLElement>(null);
   const regions = useMemo(() => [...new Set(records.map(item => item.region))].sort(), []);
@@ -237,9 +364,28 @@ export function ResearchMapSearch() {
     );
   };
 
+  const updateRoomTypes = (next: RoomTypeFilter[]) => {
+    setSelectedRoomTypes(next);
+    const params = new URLSearchParams(searchParams);
+    if (next.length) params.set('rooms', next.join(','));
+    else params.delete('rooms');
+    setSearchParams(params, { replace: true });
+  };
+
+  const toggleRoomType = (id: RoomTypeFilter) => {
+    updateRoomTypes(selectedRoomTypes.includes(id) ? selectedRoomTypes.filter(type => type !== id) : [...selectedRoomTypes, id]);
+  };
+
+  const criteria = useMemo<SearchCriteria>(() => ({
+    universityId: selectedUniversity, area, region, maxRent: maxRent < 12000 ? maxRent : null,
+    roomTypes: selectedRoomTypes, preferences: selectedPrefs
+  }), [selectedUniversity, area, region, maxRent, selectedRoomTypes, selectedPrefs]);
+  useEffect(() => saveSearchCriteria(criteria), [criteria]);
+
   const results = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase();
     const filtered = records.filter(item => {
+      if (!matchesSelectedRoomTypes(item, selectedRoomTypes)) return false;
       if (selectedUniversity && selectedUniversity !== 'all') {
         if (!isNearUniversity(item, selectedUniversity)) return false;
       }
@@ -287,12 +433,6 @@ export function ResearchMapSearch() {
             case 'study':
               if (!offerings.hasStudyArea) return false;
               break;
-            case 'single':
-              if (!offerings.roomTypes.some(r => /single/i.test(r))) return false;
-              break;
-            case 'sharing':
-              if (!offerings.roomTypes.some(r => /sharing|studio/i.test(r))) return false;
-              break;
             case 'furniture':
               if (!offerings.hasFurniture) return false;
               break;
@@ -306,6 +446,10 @@ export function ResearchMapSearch() {
     });
 
     return filtered.sort((a, b) => {
+      if (sortBy === 'best' && matchResearchProperty(a, criteria).score !== null) {
+        const scoreDifference = (matchResearchProperty(b, criteria).score ?? 0) - (matchResearchProperty(a, criteria).score ?? 0);
+        if (scoreDifference) return scoreDifference;
+      }
       if (sortBy === 'price-asc') {
         const priceA = extractMinPrice(a.advertisedPrice) ?? Infinity;
         const priceB = extractMinPrice(b.advertisedPrice) ?? Infinity;
@@ -318,7 +462,7 @@ export function ResearchMapSearch() {
       }
       return Number(hasCoordinates(b)) - Number(hasCoordinates(a));
     });
-  }, [selectedUniversity, query, area, region, maxRent, selectedPrefs, includeUnpriced, sortBy, mappedOnly, mapBounds, nearby, userPosition, radiusKm]);
+  }, [selectedUniversity, query, area, region, maxRent, selectedPrefs, selectedRoomTypes, includeUnpriced, sortBy, mappedOnly, mapBounds, nearby, userPosition, radiusKm, criteria]);
 
   const mapped = useMemo(() => results.filter(hasCoordinates), [results]);
   const center = useMemo<Coordinates>(() => {
@@ -340,7 +484,7 @@ export function ResearchMapSearch() {
     if (nearby) return 13;
     if (area) return 14;
     if (region) return 12;
-    return 12;
+    return 13;
   }, [selectedUniversity, nearby, area, region]);
 
   useEffect(() => {
@@ -348,21 +492,35 @@ export function ResearchMapSearch() {
   }, [results, selectedId]);
 
   function selectProperty(id: string) {
+    if (railScrollTimer.current !== null) window.clearTimeout(railScrollTimer.current);
+    railScrollTimer.current = null;
     setSelectedId(id);
     if (railSelectionLock.current !== null) window.clearTimeout(railSelectionLock.current);
     railSelectionLock.current = window.setTimeout(() => { railSelectionLock.current = null; }, 700);
-    document.getElementById(`research-map-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    document.getElementById(`research-map-${id}`)?.scrollIntoView({
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      block: 'nearest', inline: 'center'
+    });
+  }
+
+  function openDetail(id: string) {
+    setSelectedId(id);
+    setDetailId(id);
   }
 
   function onRailScroll() {
     if (railSelectionLock.current !== null) return;
-    const rail = railRef.current;
-    if (!rail) return;
-    const centre = rail.scrollLeft + rail.clientWidth / 2;
-    const cards = [...rail.querySelectorAll<HTMLElement>('[data-property-id]')];
-    const closest = cards.reduce<HTMLElement | null>((best, card) =>
-      !best || Math.abs(card.offsetLeft + card.offsetWidth / 2 - centre) < Math.abs(best.offsetLeft + best.offsetWidth / 2 - centre) ? card : best, null);
-    if (closest?.dataset.propertyId) setSelectedId(previous => previous === closest.dataset.propertyId ? previous : closest.dataset.propertyId!);
+    if (railScrollTimer.current !== null) window.clearTimeout(railScrollTimer.current);
+    railScrollTimer.current = window.setTimeout(() => {
+      railScrollTimer.current = null;
+      const rail = railRef.current;
+      if (!rail) return;
+      const centre = rail.scrollLeft + rail.clientWidth / 2;
+      const cards = [...rail.querySelectorAll<HTMLElement>('[data-property-id]')];
+      const closest = cards.reduce<HTMLElement | null>((best, card) =>
+        !best || Math.abs(card.offsetLeft + card.offsetWidth / 2 - centre) < Math.abs(best.offsetLeft + best.offsetWidth / 2 - centre) ? card : best, null);
+      if (closest?.dataset.propertyId) setSelectedId(previous => previous === closest.dataset.propertyId ? previous : closest.dataset.propertyId!);
+    }, 100);
   }
 
   function useMyLocation() {
@@ -384,6 +542,7 @@ export function ResearchMapSearch() {
   const activeLocationLabel = activeUni ? `Near ${activeUni.shortName}` : area || region || (query ? `"${query}"` : 'All locations');
   const activePriceLabel = maxRent < 12000 ? `≤ R${maxRent.toLocaleString('en-ZA')}` : 'Any budget';
   const activePrefsLabel = selectedPrefs.length > 0 ? `${selectedPrefs.length} pref${selectedPrefs.length > 1 ? 's' : ''}` : '';
+  const activeRoomLabel = selectedRoomTypes.length === 1 ? ROOM_TYPE_OPTIONS.find(option => option.id === selectedRoomTypes[0])?.label : selectedRoomTypes.length > 1 ? `${selectedRoomTypes.length} room types` : '';
 
   return <div className="fullscreen-search research-map-search" aria-label="Research accommodation map search">
     <ResearchPins items={mapped} selectedId={selectedId} center={center} targetZoom={targetZoom} userPosition={nearby ? userPosition : null} radiusKm={radiusKm} onSelect={selectProperty} onViewChange={setPendingBounds} />
@@ -395,11 +554,11 @@ export function ResearchMapSearch() {
           type="button"
           className="map-top-search-pill"
           onClick={() => setDrawerOpen(true)}
-          aria-label="Filter accommodation by location, price, and living preferences"
+          aria-label="Filter accommodation by location, price, room type, and living preferences"
         >
           <SearchIcon size={15} />
           <span className="map-top-pill-label">
-            {activeLocationLabel} · {activePriceLabel}{activePrefsLabel ? ` · ${activePrefsLabel}` : ''}
+            {activeLocationLabel} · {activePriceLabel}{activeRoomLabel ? ` · ${activeRoomLabel}` : ''}{activePrefsLabel ? ` · ${activePrefsLabel}` : ''}
           </span>
           <span className="map-top-pill-count">{results.length}</span>
         </button>
@@ -450,7 +609,8 @@ export function ResearchMapSearch() {
         const price = researchPriceSummary(item.advertisedPrice);
         const isCompared = compared.ids.includes(item.id);
         const reviews = getPropertyReviews(item.id, item.name, item.locality);
-        return <article key={item.id} id={`research-map-${item.id}`} data-property-id={item.id} className={`map-rail-card${selectedId === item.id ? ' is-selected' : ''}`} onClick={() => setSelectedId(item.id)}>
+        const match = matchResearchProperty(item, criteria);
+        return <article key={item.id} id={`research-map-${item.id}`} data-property-id={item.id} className={`map-rail-card${selectedId === item.id ? ' is-selected' : ''}`} role="button" tabIndex={0} aria-label={`Explore ${item.name}`} onClick={() => openDetail(item.id)} onKeyDown={event => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); openDetail(item.id); } }}>
           {/* Top-Right Pure Minimalist + Icon */}
           <button
             type="button"
@@ -468,36 +628,32 @@ export function ResearchMapSearch() {
 
           <div className="research-rail-media">
             <img src={image} onError={event => { event.currentTarget.src = researchFallbackImage; }} alt={item.name} loading="lazy" />
+            {match.score !== null && <span className="map-rail-match" title={`${match.matched} of ${match.total} criteria supported`}>{match.score}% fit</span>}
           </div>
 
           <div className="map-rail-card-body">
-            <div className="map-rail-card-title">
-              <strong title={item.name}>{item.name}</strong>
-              <span className="map-rail-card-price">{price?.label ?? 'Ask for price'}</span>
-            </div>
+            <div className="map-rail-card-title"><strong title={item.name}>{item.name}</strong></div>
+            <span className="map-rail-card-price">{price?.label ?? 'Ask for rates'}<small>{price ? ' / month' : ''}</small></span>
             <div className="map-rail-meta">
               <MapPin size={11} />
               <span>{item.locality.split(',')[0]}</span>
-              <span className="map-rail-dot">·</span>
-              <span className="map-rail-rating"><Star size={10} fill="currentColor" stroke="none" /> {reviews.ratingFormatted}</span>
+              <span className="map-rail-dot">·</span><Star size={10} fill="currentColor" stroke="none" /><span>{reviews.ratingFormatted}</span>
             </div>
-            {(() => {
-              const nearUnis = getPropertyUniversities(item);
-              return nearUnis.length > 0 ? (
-                <div className="map-rail-uni-tag" title={`Near ${nearUnis.map(u => u.fullName).join(', ')}`}>
-                  <GraduationCap size={11} strokeWidth={2.4} /> Near {nearUnis.map(u => u.shortName).join(' & ')}
-                </div>
-              ) : null;
-            })()}
             <div className="map-rail-footer">
-              <Link to={`/research/${item.id}`} className="rail-card-details-link" aria-label={`View details for ${item.name}`}>
-                View details <span className="arrow-glyph">→</span>
-              </Link>
+              <button type="button" className="map-rail-open" onClick={event => { event.stopPropagation(); openDetail(item.id); }}>Explore <span aria-hidden="true">↗</span></button>
             </div>
           </div>
         </article>;
       })}
     </div>
+
+    {detailId && (() => {
+      const detailItem = records.find(item => item.id === detailId);
+      return detailItem ? <MapPropertySheet key={detailId} item={detailItem} match={matchResearchProperty(detailItem, criteria)} saved={saved} compared={compared} onExited={() => {
+        setDetailId(null);
+        window.requestAnimationFrame(() => document.getElementById(`research-map-${detailId}`)?.focus({ preventScroll: true }));
+      }} /> : null;
+    })()}
 
     {createPortal(<>
       <div className={`map-search-drawer-backdrop${drawerOpen ? ' is-open' : ''}`} onClick={() => setDrawerOpen(false)} aria-hidden="true" />
@@ -620,6 +776,22 @@ export function ResearchMapSearch() {
             </button>
           </div>
 
+          <div className="map-drawer-section-title" style={{ marginTop: '12px' }}>
+            <BedDouble size={14} />
+            <span>Room type</span>
+          </div>
+          <p className="map-room-type-hint">Choose one or more. A place appears if it offers any selected type.</p>
+          <div className="map-room-type-options" role="group" aria-label="Filter by room type">
+            {ROOM_TYPE_OPTIONS.map(option => {
+              const Icon = option.id === 'sharing' ? Users : BedDouble;
+              const selected = selectedRoomTypes.includes(option.id);
+              return <button key={option.id} type="button" className={`map-room-type-option ${selected ? 'is-active' : ''}`} onClick={() => toggleRoomType(option.id)} aria-pressed={selected}>
+                <Icon size={16} /><span><b>{option.label}</b><small>{option.description}</small></span>{selected && <Check size={14} />}
+              </button>;
+            })}
+          </div>
+          {selectedRoomTypes.length > 0 && <button type="button" className="map-room-type-clear" onClick={() => updateRoomTypes([])}>Any room type</button>}
+
           {/* Living Preferences (Multi-Select) */}
           <div className="map-drawer-section-title" style={{ marginTop: '12px' }}>
             <Sparkles size={14} />
@@ -660,7 +832,7 @@ export function ResearchMapSearch() {
               value={sortBy}
               onChange={(val) => setSortBy(val as 'best' | 'price-asc' | 'price-desc')}
               options={[
-                { value: 'best', label: 'Best match (mapped first)' },
+                { value: 'best', label: 'Best match' },
                 { value: 'price-asc', label: 'Lowest price first' },
                 { value: 'price-desc', label: 'Highest price first' }
               ]}
@@ -699,6 +871,7 @@ export function ResearchMapSearch() {
               setRegion('');
               setMaxRent(12000);
               setSelectedPrefs([]);
+              updateRoomTypes([]);
               setIncludeUnpriced(true);
               setSortBy('best');
               setMappedOnly(false);

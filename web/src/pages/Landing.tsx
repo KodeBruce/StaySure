@@ -11,6 +11,8 @@ import researchProperties from '../data/researchProperties.json';
 import { researchFallbackImage, researchImages } from '../data/researchMedia';
 import { researchPriceSummary, extractMinPrice } from '../data/researchPricing';
 import { parseOfferings, type ResearchProperty } from '../data/researchOfferings';
+import { matchesSelectedRoomTypes, ROOM_TYPE_OPTIONS, type RoomTypeFilter } from '../data/roomTypeFilter';
+import { matchResearchProperty, readSearchCriteria, saveSearchCriteria, type ResearchMatch, type SearchCriteria } from '../data/researchMatch';
 import { useResearchSelection } from '../data/researchSelection';
 import { getPropertyReviews } from '../data/propertyReviews';
 import { UNIVERSITIES, getPropertyUniversities, isNearUniversity, type UniversityInfo } from '../data/mapLocations';
@@ -23,8 +25,6 @@ const CATEGORIES = [
   { id: 'wifi', label: 'High-Speed Wi-Fi', icon: Wifi },
   { id: 'security', label: '24/7 Security', icon: ShieldCheck },
   { id: 'study', label: 'Study Desks', icon: BookOpen },
-  { id: 'single', label: 'Single Rooms', icon: BedDouble },
-  { id: 'sharing', label: 'Sharing Rooms', icon: Users },
   { id: 'furniture', label: 'Furnished', icon: Armchair },
   { id: 'laundry', label: 'On-site Laundry', icon: WashingMachine },
 ];
@@ -36,11 +36,12 @@ const POPULAR_AREAS = [
 ];
 
 function AirbnbPropertyCard({
-  item, saved, compared,
+  item, saved, compared, match,
 }: {
   item: ResearchProperty;
   saved: ReturnType<typeof useResearchSelection>;
   compared: ReturnType<typeof useResearchSelection>;
+  match: ResearchMatch;
 }) {
   const image = researchImages(item.id)[0];
   const price = researchPriceSummary(item.advertisedPrice);
@@ -60,6 +61,9 @@ function AirbnbPropertyCard({
           alt={item.name}
           loading="lazy"
         />
+        {match.score !== null && <span className="airbnb-card-match" title={`${match.matched} of ${match.total} selected criteria supported${match.unknown ? `; ${match.unknown} need confirmation` : ''}`}>
+          ✦ {match.score}% preference fit
+        </span>}
         <button
           type="button"
           className={`airbnb-card-plus ${isCompared ? 'is-active' : ''}`}
@@ -122,10 +126,11 @@ export const Landing: React.FC = () => {
   const saved = useResearchSelection('saved');
   const compared = useResearchSelection('compare');
 
-  const [selectedUniversity, setSelectedUniversity] = useState<string>('all');
-  const [activeArea, setActiveArea] = useState('');
-  const [maxPrice, setMaxPrice] = useState(12000);
-  const [selectedPrefs, setSelectedPrefs] = useState<string[]>([]);
+  const [selectedUniversity, setSelectedUniversity] = useState<string>(() => readSearchCriteria().universityId);
+  const [activeArea, setActiveArea] = useState(() => readSearchCriteria().area);
+  const [maxPrice, setMaxPrice] = useState(() => readSearchCriteria().maxRent ?? 12000);
+  const [selectedPrefs, setSelectedPrefs] = useState<string[]>(() => readSearchCriteria().preferences);
+  const [selectedRoomTypes, setSelectedRoomTypes] = useState<RoomTypeFilter[]>(() => readSearchCriteria().roomTypes);
   const [searchQuery, setSearchQuery] = useState('');
   const [activePopover, setActivePopover] = useState<'where' | 'price' | 'pref' | null>(null);
 
@@ -152,9 +157,20 @@ export const Landing: React.FC = () => {
     setSelectedPrefs(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
   };
 
+  const toggleRoomType = (id: RoomTypeFilter) => {
+    setSelectedRoomTypes(prev => prev.includes(id) ? prev.filter(type => type !== id) : [...prev, id]);
+  };
+
+  const criteria = useMemo<SearchCriteria>(() => ({
+    universityId: selectedUniversity, area: activeArea, region: '',
+    maxRent: maxPrice < 12000 ? maxPrice : null, roomTypes: selectedRoomTypes, preferences: selectedPrefs
+  }), [selectedUniversity, activeArea, maxPrice, selectedRoomTypes, selectedPrefs]);
+  useEffect(() => saveSearchCriteria(criteria), [criteria]);
+
   const filteredProperties = useMemo(() => {
     return (researchProperties as ResearchProperty[]).filter(item => {
       const offerings = parseOfferings(item);
+      if (!matchesSelectedRoomTypes(item, selectedRoomTypes)) return false;
       if (selectedUniversity && selectedUniversity !== 'all') {
         if (!isNearUniversity(item, selectedUniversity)) return false;
       }
@@ -187,16 +203,14 @@ export const Landing: React.FC = () => {
             case 'wifi': if (!offerings.hasWifi) return false; break;
             case 'security': if (!offerings.hasSecurity && !offerings.hasBiometrics) return false; break;
             case 'study': if (!offerings.hasStudyArea) return false; break;
-            case 'single': if (!offerings.roomTypes.some(r => /single/i.test(r))) return false; break;
-            case 'sharing': if (!offerings.roomTypes.some(r => /sharing|studio/i.test(r))) return false; break;
             case 'furniture': if (!offerings.hasFurniture) return false; break;
             case 'laundry': if (!offerings.hasLaundry) return false; break;
           }
         }
       }
       return true;
-    });
-  }, [selectedUniversity, activeArea, searchQuery, maxPrice, selectedPrefs]);
+    }).sort((a, b) => (matchResearchProperty(b, criteria).score ?? 0) - (matchResearchProperty(a, criteria).score ?? 0));
+  }, [selectedUniversity, activeArea, searchQuery, maxPrice, selectedPrefs, selectedRoomTypes, criteria]);
 
   const handleSearchClick = () => {
     setActivePopover(null);
@@ -211,13 +225,14 @@ export const Landing: React.FC = () => {
     }, 120);
   };
 
-  const hasActiveFilters = selectedUniversity !== 'all' || activeArea !== '' || maxPrice < 12000 || selectedPrefs.length > 0 || searchQuery !== '';
+  const hasActiveFilters = selectedUniversity !== 'all' || activeArea !== '' || maxPrice < 12000 || selectedPrefs.length > 0 || selectedRoomTypes.length > 0 || searchQuery !== '';
 
   const clearAllFilters = () => {
     setSelectedUniversity('all');
     setActiveArea('');
     setMaxPrice(12000);
     setSelectedPrefs([]);
+    setSelectedRoomTypes([]);
     setSearchQuery('');
     setActivePopover(null);
   };
@@ -544,6 +559,25 @@ export const Landing: React.FC = () => {
         })}
       </div>
 
+      <section className="airbnb-room-filter" aria-label="Filter by room type">
+        <div className="airbnb-room-filter-copy">
+          <strong>What kind of room?</strong>
+          <span>Choose one or more. Listings with any selected room type will appear.</span>
+        </div>
+        <div className="airbnb-room-filter-options" role="group" aria-label="Room types">
+          {ROOM_TYPE_OPTIONS.map(option => {
+            const Icon = option.id === 'sharing' ? Users : BedDouble;
+            const selected = selectedRoomTypes.includes(option.id);
+            return <button key={option.id} type="button" className={`airbnb-room-filter-option ${selected ? 'is-active' : ''}`} onClick={() => toggleRoomType(option.id)} aria-pressed={selected}>
+              <Icon size={16} />
+              <span><b>{option.label}</b><small>{option.description}</small></span>
+              {selected && <Check size={14} />}
+            </button>;
+          })}
+          {selectedRoomTypes.length > 0 && <button type="button" className="airbnb-room-filter-clear" onClick={() => setSelectedRoomTypes([])}>Any room type</button>}
+        </div>
+      </section>
+
       {/* ── Category Icon Tabs Bar ── */}
       <nav className="airbnb-categories-bar" aria-label="Accommodation category filters">
         {CATEGORIES.map(cat => {
@@ -609,6 +643,9 @@ export const Landing: React.FC = () => {
                 </button>
               );
             })}
+            {selectedRoomTypes.map(type => <button key={type} type="button" className="airbnb-chip" onClick={() => toggleRoomType(type)}>
+              <BedDouble size={12} /><span>{ROOM_TYPE_OPTIONS.find(option => option.id === type)?.label}</span><X size={12} />
+            </button>)}
             <button type="button" className="airbnb-clear-all-btn" onClick={clearAllFilters}>
               Clear all
             </button>
@@ -617,6 +654,8 @@ export const Landing: React.FC = () => {
       </div>
 
       {/* ── Listings Grid ── */}
+      {criteria.maxRent !== null || criteria.roomTypes.length || criteria.preferences.length || criteria.universityId !== 'all' || criteria.area ?
+        <p className="airbnb-match-intro"><Sparkles size={15} /> Ranked by the preferences you selected. A match percentage counts supported criteria; unpublished details need confirmation.</p> : null}
       {filteredProperties.length === 0 ? (
         <div className="research-empty cmp-empty-card" style={{ margin: '40px auto', maxWidth: '560px' }}>
           <h2>No matching accommodations found</h2>
@@ -628,13 +667,13 @@ export const Landing: React.FC = () => {
       ) : (
         <main className="airbnb-grid">
           {filteredProperties.map(item => (
-            <AirbnbPropertyCard key={item.id} item={item} saved={saved} compared={compared} />
+            <AirbnbPropertyCard key={item.id} item={item} saved={saved} compared={compared} match={matchResearchProperty(item, criteria)} />
           ))}
         </main>
       )}
 
       {/* ── Floating Map Button ── */}
-      <Link to="/search" className="airbnb-float-map-btn" aria-label="Open accommodation map search">
+      <Link to={selectedRoomTypes.length ? `/search?rooms=${selectedRoomTypes.join(',')}` : '/search'} className="airbnb-float-map-btn" aria-label="Open accommodation map search">
         <Map size={16} />
         <span>Show map</span>
       </Link>

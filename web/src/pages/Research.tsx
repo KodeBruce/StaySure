@@ -7,11 +7,13 @@ import records from '../data/researchProperties.json';
 import { useResearchSelection } from '../data/researchSelection';
 import { researchFallbackImage, researchImages } from '../data/researchMedia';
 import { researchPriceSummary } from '../data/researchPricing';
+import { getRoomRates, roomCategoryRates, type RoomCategory, type RoomRate } from '../data/roomRates';
 import { parseOfferings, type OfferingItem } from '../data/researchOfferings';
 import { StudentReviews } from '../components/StudentReviews';
 import { getPropertyReviews } from '../data/propertyReviews';
 import { CustomSelect } from '../components/CustomSelect';
-import { getPropertyUniversities } from '../data/mapLocations';
+import { distanceKm, getPropertyUniversities, UNIVERSITIES } from '../data/mapLocations';
+import { matchResearchProperty, relevantRent, useSearchCriteria } from '../data/researchMatch';
 import {
   ChevronLeft, ChevronRight, Heart, MapPin,
   Banknote, BedDouble, Wifi, BookOpen, Armchair, Bus,
@@ -92,6 +94,16 @@ function getOfferingIcon(id: string) {
   }
 }
 
+function RoomRateList({ rates, compact = false }: { rates: RoomRate[]; compact?: boolean }) {
+  if (!rates.length) return <span className="room-rate-unlisted">Room-specific rate not published</span>;
+  return <div className={compact ? 'room-rate-list is-compact' : 'room-rate-list'}>
+    {rates.map(rate => <div className="room-rate-item" key={`${rate.category}-${rate.name}`}>
+      <div className="room-rate-main"><span>{rate.name}</span><strong>{rate.monthly}<small>{rate.period ? '' : '/month'}</small></strong></div>
+      <small>{rate.basis}{rate.period ? ` · ${rate.period}` : ''}{rate.note ? ` · ${rate.note}` : ''}</small>
+    </div>)}
+  </div>;
+}
+
 function ResearchImage({ src, name }: { src: string; name: string }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [src]);
@@ -105,6 +117,7 @@ function ResearchCard({ item, saved, compared }: {
 }) {
   const image = researchImages(item.id)[0];
   const price = researchPriceSummary(item.advertisedPrice);
+  const visibleRates = getRoomRates(item.id).filter(rate => rate.category === 'single' || rate.category === 'sharing');
   const isCompared = compared.ids.includes(item.id);
   const isSaved = saved.ids.includes(item.id);
   const shortLocality = item.locality.split(',')[0];
@@ -185,6 +198,13 @@ function ResearchCard({ item, saved, compared }: {
           </span>
         </div>
       </div>
+      {visibleRates.length > 0 && <div className="research-card-room-rates" aria-label="Room prices">
+        {(['single', 'sharing'] as const).map(category => {
+          const categoryRates = visibleRates.filter(rate => rate.category === category);
+          if (!categoryRates.length) return null;
+          return <span key={category}><b>{category === 'single' ? 'Single' : 'Sharing'}</b> {categoryRates[0].monthly}/mo <small>{categoryRates[0].basis}</small></span>;
+        })}
+      </div>}
       <p className="research-card-type">{item.classification}</p>
       {nearUnis.length > 0 && (
         <span
@@ -376,6 +396,7 @@ export function ResearchDetail() {
   if (!item) return <div className="research-page"><h1>Research property not found</h1><Link to="/search">Back to accommodation map</Link></div>;
 
   const offerings = parseOfferings(item);
+  const roomRates = getRoomRates(item.id);
   const isCompared = compared.ids.includes(item.id);
   const isSaved = saved.ids.includes(item.id);
 
@@ -470,6 +491,15 @@ export function ResearchDetail() {
               <strong className="research-metric-val">{offerings.isNsfasClaimed ? 'NSFAS Rates Claimed' : 'Private / Self-Funded'}</strong>
               <small>{offerings.isNsfasClaimed ? 'Listed in accreditation claims' : 'Private student rate'}</small>
             </div>
+          </div>
+
+          <div className="research-room-pricing" aria-label="Room prices by type">
+            <div className="research-room-pricing-heading">
+              <h2>Room prices by type</h2>
+              <span>Advertised rates · confirm before applying</span>
+            </div>
+            {roomRates.length ? <RoomRateList rates={roomRates} /> : <p>Room-specific rent has not been published for this property. Ask the provider for a current rate for your preferred room.</p>}
+            {roomRates.some(rate => rate.basis === 'basis unconfirmed') && <p className="room-rate-caveat">“Basis unconfirmed” means the source does not clearly say whether the amount is per person, per bed, or per room.</p>}
           </div>
 
           {/* ── 2. Room Types available ── */}
@@ -797,6 +827,7 @@ function CompareAddSheet({
 export function ResearchCompare() {
   const compared = useResearchSelection('compare');
   const saved = useResearchSelection('saved');
+  const criteria = useSearchCriteria();
   const [addSheetOpen, setAddSheetOpen] = useState(false);
   const [expandNotes, setExpandNotes] = useState(false);
   const [diffOnly, setDiffOnly] = useState(false);
@@ -815,6 +846,14 @@ export function ResearchCompare() {
     offerings: parseOfferings(item),
     priceSummary: researchPriceSummary(item.advertisedPrice)
   })), [items]);
+  const matches = useMemo(() => items.map(item => ({ item, match: matchResearchProperty(item, criteria) })), [items, criteria]);
+  const hasCriteria = matches.some(({ match }) => match.score !== null);
+  const bestMatch = hasCriteria ? [...matches].sort((a, b) => (b.match.score ?? 0) - (a.match.score ?? 0))[0] : null;
+  const priced = items.map(item => ({ item, rent: relevantRent(item, criteria) })).filter((entry): entry is { item: ResearchProperty; rent: { amount: number; basisKnown: boolean } } => Boolean(entry.rent?.basisKnown));
+  const bestBudget = priced.length && criteria.maxRent !== null ? [...priced].sort((a, b) => a.rent.amount - b.rent.amount)[0] : null;
+  const university = UNIVERSITIES.find(value => value.id === criteria.universityId);
+  const located = university ? items.filter(item => typeof item.latitude === 'number' && typeof item.longitude === 'number').map(item => ({ item, km: distanceKm([item.latitude as number, item.longitude as number], university.position) })) : [];
+  const closest = located.length ? [...located].sort((a, b) => a.km - b.km)[0] : null;
 
   // Find lowest price
   const minPrice = useMemo(() => {
@@ -848,6 +887,16 @@ export function ResearchCompare() {
     </div>
   );
 
+  const roomPriceFeature = (category: RoomCategory, name: string) => ({
+    id: `${category}-price`,
+    name,
+    icon: <BedDouble size={15} />,
+    getValueKey: (_p: ReturnType<typeof parseOfferings>, item?: ResearchProperty) =>
+      item ? roomCategoryRates(item.id, category).map(rate => `${rate.monthly}:${rate.basis}:${rate.note ?? ''}`).join('|') : '',
+    render: (_p: ReturnType<typeof parseOfferings>, item?: ResearchProperty) =>
+      <RoomRateList rates={item ? roomCategoryRates(item.id, category) : []} compact />
+  });
+
   const features = useMemo(() => [
     {
       id: 'price',
@@ -861,11 +910,15 @@ export function ResearchCompare() {
         </div>
       )
     },
+    roomPriceFeature('single', 'Single / private prices'),
+    roomPriceFeature('sharing', 'Shared room prices'),
+    roomPriceFeature('studio', 'Studio prices'),
+    roomPriceFeature('apartment', 'Apartment prices'),
     {
       id: 'rooms',
       name: 'Room Types',
       icon: <BedDouble size={15} />,
-      getValueKey: (p: ReturnType<typeof parseOfferings>) => p.roomTypes.sort().join(','),
+      getValueKey: (p: ReturnType<typeof parseOfferings>) => [...p.roomTypes].sort().join(','),
       render: (p: ReturnType<typeof parseOfferings>) => (
         <div className="cmp-val-chips">
           {p.roomTypes.map(r => (
@@ -1115,6 +1168,12 @@ export function ResearchCompare() {
         {/* Feature Comparison Table (when 2 or 3 places are slotted) */}
         {items.length >= 2 ? (
           <>
+            {hasCriteria && <div className="cmp-match-summary" aria-label="How these places match your preferences">
+              <p>Based on your search preferences <span>Scores count supported criteria; unpublished details need confirmation.</span></p>
+              {bestMatch && <div className="cmp-match-summary-card"><span>✦ Best overall fit</span><strong>{bestMatch.item.name}</strong><small>{bestMatch.match.score}% of selected criteria supported</small></div>}
+              {bestBudget && <div className="cmp-match-summary-card"><span>◉ Lowest relevant listed rent</span><strong>{bestBudget.item.name}</strong><small>From R{bestBudget.rent.amount.toLocaleString('en-ZA')}/month {bestBudget.rent.amount <= criteria.maxRent! ? '· within budget' : '· above budget'}</small></div>}
+              {closest && <div className="cmp-match-summary-card"><span>⌖ Closest to {university?.shortName}</span><strong>{closest.item.name}</strong><small>{closest.km.toFixed(1)} km straight line from campus</small></div>}
+            </div>}
             {/* 3-Place Mobile Segmented Toggle */}
             {parsedItems.length === 3 && (
               <div className="cmp-mobile-pair-switcher" aria-label="Mobile view switcher">
@@ -1196,6 +1255,7 @@ export function ResearchCompare() {
                     <div className="cmp-prop-thumb">
                       <ResearchImage src={getPropertyThumbnail(item)} name={item.name} />
                       {isLowest && <span className="cmp-best-badge"><Star size={10} /> Best Price</span>}
+                      {hasCriteria && <span className="cmp-match-badge">✦ {matchResearchProperty(item, criteria).score}% fit</span>}
                     </div>
                     <Link to={`/research/${item.id}`} className="cmp-prop-name" title={item.name}>
                       {item.name}
@@ -1218,6 +1278,12 @@ export function ResearchCompare() {
 
             {/* Offering Rows */}
             <div className="cmp-rows-wrap">
+              {hasCriteria && <div className="cmp-feature-row cmp-match-row">
+                <div className="cmp-feature-title-bar"><span className="cmp-feature-icon"><Sparkles size={15} /></span><span className="cmp-feature-name">Preference fit</span></div>
+                <div className="cmp-feature-values" style={{ gridTemplateColumns: `repeat(${activeItems.length}, minmax(0, 1fr))` }}>
+                  {activeItems.map(({ item }) => { const match = matchResearchProperty(item, criteria); return <div key={item.id} className="cmp-val-cell"><strong className="cmp-match-score">{match.score}%</strong><small>{match.matched} of {match.total} criteria supported{match.unknown ? ` · ${match.unknown} unconfirmed` : ''}</small><span className="cmp-match-reasons">{match.reasons.filter(reason => reason.status === 'match').slice(0, 2).map(reason => reason.text).join(' · ')}</span></div>; })}
+                </div>
+              </div>}
               {displayedFeatures.map(feat => {
                 const isDiff = diffSet.has(feat.id);
                 return (
