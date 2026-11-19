@@ -5,6 +5,7 @@ import { CompareProvider } from './context/CompareContext';
 import { Navbar } from './components/Navbar';
 import { CompareTray } from './components/CompareTray';
 import { TabWalkthrough } from './components/TabWalkthrough';
+import { Analytics } from '@vercel/analytics/react';
 import { Landing } from './pages/Landing';
 import { Search } from './pages/Search';
 import { Detail } from './pages/Detail';
@@ -50,6 +51,7 @@ const AppContent: React.FC = () => {
 
             <CompareTray />
             <TabWalkthrough />
+            <Analytics />
 
             {!isMapSearch && <footer style={{ background: '#fff', borderTop: '1px solid var(--line)', padding: '32px 0', marginTop: '64px' }}>
               <div className="wrap tc" style={{ maxWidth: '1160px', margin: '0 auto', padding: '0 24px' }}>
