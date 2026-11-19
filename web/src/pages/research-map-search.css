@@ -341,26 +341,50 @@
   display: none;
 }
 
-/* Minimalist, Neat & Elegant Map Rail Card */
+/* Minimalist, Neat & Beautiful Map Rail Card (Vertical Airbnb Style matching Home) */
+.research-map-search .map-card-rail {
+  position: absolute;
+  z-index: 500;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  display: flex;
+  gap: 14px;
+  padding: 10px 20px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.research-map-search .map-card-rail::-webkit-scrollbar {
+  display: none;
+}
+
 .research-map-search .map-rail-card,
 .research-map-search .map-rail-empty {
-  flex: 0 0 min(310px, 84vw);
+  flex: 0 0 min(320px, 88vw);
   scroll-snap-align: center;
   border: 1px solid rgba(19, 35, 79, 0.1);
-  border-radius: 14px;
+  border-radius: 18px;
   background: #ffffff;
-  box-shadow: 0 8px 28px rgba(19, 35, 79, 0.11);
+  box-shadow: 0 8px 28px rgba(19, 35, 79, 0.13);
   overflow: hidden;
   position: relative;
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.18s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.2s ease;
 }
 
 .research-map-search .map-rail-card {
   display: flex;
-  height: 126px;
+  flex-direction: column;
+  height: auto;
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
 .research-map-search .map-rail-card:focus-visible {
@@ -369,81 +393,116 @@
 }
 
 .research-map-search .map-rail-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px -2px rgba(15, 23, 42, 0.11);
-  border-color: rgba(15, 23, 42, 0.16);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.15);
+  border-color: rgba(15, 23, 42, 0.18);
 }
 
 .research-map-search .map-rail-card.is-selected {
   border-color: var(--green);
-  box-shadow: 0 10px 28px rgba(31, 157, 92, 0.18), 0 0 0 1px var(--green);
+  box-shadow: 0 10px 30px rgba(31, 157, 92, 0.25), 0 0 0 2px var(--green);
 }
 
-/* Minimalist Top-Right + Button (pure icon, no oval/circle border) */
-.rail-card-plus-btn {
-  position: absolute;
-  top: 9px;
-  right: 11px;
-  z-index: 10;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  cursor: pointer;
-  box-shadow: none;
-  backdrop-filter: none;
-  line-height: 1;
-  transition: all 0.15s ease;
-}
-
-.rail-card-plus-btn:hover {
-  color: #0f172a;
-  transform: scale(1.15);
-}
-
-.rail-card-plus-btn.is-active {
-  color: #059669;
-}
-
-.rail-card-plus-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Image Media */
-.research-rail-media {
+/* Media image — no clipping of image on small screens */
+.research-map-search .map-rail-card .airbnb-card-media {
   position: relative;
-  width: 106px;
-  height: 100%;
-  flex: 0 0 106px;
-  background: #f1f5f9;
+  width: 100%;
+  height: 160px;
+  flex-shrink: 0;
+  background: var(--navy-tint);
   overflow: hidden;
 }
 
-.research-rail-media img {
+.research-map-search .map-rail-card .airbnb-card-media img {
   width: 100%;
   height: 100%;
-  display: block;
   object-fit: cover;
-  transition: transform 0.25s ease;
+  display: block;
+  transition: transform 0.35s ease;
 }
 
-.research-map-search .map-rail-card:hover .research-rail-media img {
-  transform: scale(1.04);
+.research-map-search .map-rail-card:hover .airbnb-card-media img {
+  transform: scale(1.05);
 }
 
-/* Card Body */
-.research-map-search .map-rail-card-body {
+/* Card Body — generous padding, comfortable line-heights */
+.research-map-search .map-rail-card .airbnb-card-body {
+  padding: 14px 16px 16px;
   display: flex;
-  flex: 1;
-  min-width: 0;
   flex-direction: column;
-  padding: 13px 13px 11px;
+  gap: 6px;
+}
+
+/* Property name: allow wrapping, never truncate mid-word */
+.research-map-search .map-rail-card .airbnb-card-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--navy);
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  line-height: 1.3;
+}
+
+/* Rating row */
+.research-map-search .map-rail-card .airbnb-card-rating {
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Sub line: location + campus — never break mid-word */
+.research-map-search .map-rail-card .airbnb-card-sub {
+  font-size: 12px;
+  color: var(--ink-2);
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  white-space: normal;
+  overflow-wrap: break-word;
+  line-height: 1.4;
+}
+
+.research-map-search .map-rail-card .airbnb-card-sub svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Tags row — wrap cleanly */
+.research-map-search .map-rail-card .airbnb-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 2px 0;
+}
+
+.research-map-search .map-rail-card .airbnb-card-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* Price row */
+.research-map-search .map-rail-card .airbnb-card-price {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--green-ink);
+}
+
+.research-map-search .map-rail-card .airbnb-card-period {
+  font-size: 12px;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+/* Match badge */
+.research-map-search .map-rail-card .airbnb-card-match {
+  top: 10px;
+  left: 10px;
+  font-size: 10.5px;
+  padding: 5px 9px;
 }
 
 .research-map-search .map-rail-card-title {
@@ -718,34 +777,24 @@
 }
 
 .research-map-search .accom-map-pin {
-  min-width: 112px;
+  min-width: auto;
   white-space: nowrap;
-}
-
-.research-map-cluster-popup {
-  display: grid;
-  gap: 7px;
-  min-width: 190px;
-}
-
-.research-map-cluster-popup strong {
-  color: var(--navy);
-}
-
-.research-map-cluster-popup button {
-  border: 0;
-  border-radius: 7px;
-  padding: 8px 10px;
-  background: var(--navy-tint);
-  color: var(--navy);
-  font: inherit;
-  text-align: left;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 800;
   cursor: pointer;
 }
 
-.research-map-cluster-popup button:hover,
-.research-map-cluster-popup button:focus-visible {
-  background: var(--navy-soft);
+.research-map-search .accom-map-pin.is-selected {
+  background: var(--navy);
+  color: #ffffff;
+  border-color: #ffffff;
+  transform: scale(1.12);
+  box-shadow: 0 8px 24px rgba(19, 35, 79, 0.4);
+}
+
+.research-map-search .accom-map-pin.is-selected span {
+  color: #38ef7d;
 }
 
 .research-map-search .map-results-count {
@@ -797,17 +846,24 @@
 }
 
 @media (max-width: 520px) {
+  .research-map-search .map-card-rail {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    padding-inline: 14px;
+    gap: 10px;
+  }
+
   .research-map-search .map-rail-card {
+    flex: 0 0 min(300px, 86vw);
+    height: auto;
+    border-radius: 16px;
+  }
+
+  .research-map-search .map-rail-card .airbnb-card-media {
     height: 150px;
   }
 
-  .research-map-search .map-rail-card-body {
-    padding: 10px;
-  }
-
-  .research-rail-media {
-    width: 90px;
-    flex-basis: 90px;
+  .research-map-search .map-rail-card .airbnb-card-body {
+    padding: 12px 14px 14px;
   }
 
   .research-map-search .map-results-count {
@@ -816,6 +872,6 @@
   }
 
   .research-map-search .map-approx-note {
-    bottom: calc(250px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(290px + env(safe-area-inset-bottom, 0px));
   }
 }

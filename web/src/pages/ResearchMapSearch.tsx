@@ -35,7 +35,8 @@ import { getRoomRates } from '../data/roomRates';
 import { matchResearchProperty, readSearchCriteria, saveSearchCriteria, type ResearchMatch, type SearchCriteria } from '../data/researchMatch';
 import { matchesSelectedRoomTypes, parseRoomTypes, ROOM_TYPE_OPTIONS, type RoomTypeFilter } from '../data/roomTypeFilter';
 import { getPropertyReviews } from '../data/propertyReviews';
-import { AREA_CENTRES, distanceKm, withinBounds, UNIVERSITIES, isNearUniversity, type Coordinates, type MapBounds } from '../data/mapLocations';
+import { AREA_CENTRES, distanceKm, withinBounds, UNIVERSITIES, isNearUniversity, getPropertyUniversities, type Coordinates, type MapBounds } from '../data/mapLocations';
+import './airbnb-home.css';
 import './research-map-search.css';
 
 const MAP_PREFERENCES = [
@@ -218,60 +219,35 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
     const selected = items.find(item => item.id === selectedId);
     if (selected && hasCoordinates(selected)) {
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      map.current?.panTo(position(selected), { animate: !reduceMotion, duration: 0.35 });
+      const targetZoom = Math.max(map.current?.getZoom() || 12, 15);
+      map.current?.flyTo(position(selected), targetZoom, {
+        animate: !reduceMotion,
+        duration: 0.45
+      });
     }
   }, [selectedId, items]);
+
   useEffect(() => {
     const group = markers.current;
     const instance = map.current;
     if (!group || !instance) return;
     group.clearLayers();
     pinMarkers.current = [];
-    const clusters: ResearchProperty[][] = [];
+
     for (const item of items) {
-      const point = instance.latLngToLayerPoint(position(item));
-      const cluster = clusters.find(bucket => {
-        const other = instance.latLngToLayerPoint(position(bucket[0]));
-        return point.distanceTo(other) < 88;
-      });
-      if (cluster) cluster.push(item);
-      else clusters.push([item]);
-    }
-    for (const cluster of clusters) {
-      if (cluster.length > 1) {
-        const average: Coordinates = [cluster.reduce((sum, item) => sum + item.latitude!, 0) / cluster.length, cluster.reduce((sum, item) => sum + item.longitude!, 0) / cluster.length];
-        const icon = L.divIcon({ className: 'accom-map-pin-shell', html: `<span class="accom-map-pin">${cluster.length} places</span>`, iconSize: [112, 38], iconAnchor: [56, 38] });
-        const marker = L.marker(average, { icon, title: `${cluster.length} researched places near this location` });
-        marker.on('click', () => {
-          const latLngs = cluster.map(p => position(p));
-          instance.fitBounds(L.latLngBounds(latLngs).pad(0.3), { maxZoom: 16 });
-        });
-        const popup = document.createElement('div');
-        popup.className = 'research-map-cluster-popup';
-        const heading = document.createElement('strong');
-        heading.textContent = `${cluster.length} researched places nearby`;
-        popup.append(heading);
-        for (const item of cluster) {
-          const button = document.createElement('button');
-          button.type = 'button';
-          button.textContent = `${item.name} · ${researchPriceSummary(item.advertisedPrice)?.pinLabel ?? 'Rate details'}`;
-          button.addEventListener('click', () => selectRef.current(item.id));
-          popup.append(button);
-        }
-        marker.bindPopup(popup);
-        group.addLayer(marker);
-        pinMarkers.current.push({ marker, ids: cluster.map(item => item.id) });
-        continue;
-      }
-      const item = cluster[0];
-      const price = researchPriceSummary(item.advertisedPrice)?.pinLabel;
-      const label = price ?? 'Rate details';
+      const price = researchPriceSummary(item.advertisedPrice)?.pinLabel ?? 'Rate details';
+      const isSelected = selectedId === item.id;
       const icon = L.divIcon({
         className: 'accom-map-pin-shell',
-        html: `<span class="accom-map-pin"><span aria-hidden="true">⌂</span> ${label}</span>`,
-        iconSize: [112, 38], iconAnchor: [56, 38]
+        html: `<span class="accom-map-pin${isSelected ? ' is-selected' : ''}"><span aria-hidden="true">⌂</span> ${price}</span>`,
+        iconSize: [112, 38],
+        iconAnchor: [56, 19]
       });
-      const marker = L.marker(position(item), { icon, title: `${item.name}: ${label}; approximate location` });
+      const marker = L.marker(position(item), {
+        icon,
+        title: `${item.name}: ${price}`,
+        zIndexOffset: isSelected ? 1000 : 0
+      });
       const popup = document.createElement('div');
       const name = document.createElement('strong');
       name.textContent = item.name;
@@ -283,17 +259,20 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
       group.addLayer(marker);
       pinMarkers.current.push({ marker, ids: [item.id] });
     }
+
     if (userPosition) {
       L.circle(userPosition, { radius: radiusKm * 1000, color: '#1f9d5c', fillColor: '#1f9d5c', fillOpacity: 0.08, weight: 2 }).addTo(group);
       L.circleMarker(userPosition, { radius: 8, color: '#fff', weight: 3, fillColor: '#1f9d5c', fillOpacity: 1 }).bindTooltip('Your location').addTo(group);
     }
-  }, [items, userPosition, radiusKm, zoom]);
+  }, [items, userPosition, radiusKm]);
 
   useEffect(() => {
     for (const { marker, ids } of pinMarkers.current) {
-      marker.getElement()?.querySelector('.accom-map-pin')?.classList.toggle('is-selected', selectedId !== null && ids.includes(selectedId));
+      const isSelected = selectedId !== null && ids.includes(selectedId);
+      marker.getElement()?.querySelector('.accom-map-pin')?.classList.toggle('is-selected', isSelected);
+      marker.setZIndexOffset(isSelected ? 1000 : 0);
     }
-  }, [selectedId, items, userPosition, radiusKm, zoom]);
+  }, [selectedId]);
 
   return <div ref={element} className="accom-map" role="region" aria-label="Map of researched accommodation with approximate locations" />;
 }
@@ -581,43 +560,108 @@ export function ResearchMapSearch() {
       {results.length === 0 ? <div className="map-rail-empty"><b>No researched places match.</b><span>Clear the map area or change the search filters.</span></div> : results.map(item => {
         const image = researchImages(item.id)[0];
         const price = researchPriceSummary(item.advertisedPrice);
-        const isCompared = compared.ids.includes(item.id);
+        const offerings = parseOfferings(item);
         const reviews = getPropertyReviews(item.id, item.name, item.locality);
+        const nearUnis = getPropertyUniversities(item);
+        const isCompared = compared.ids.includes(item.id);
+        const isSaved = saved.ids.includes(item.id);
         const match = matchResearchProperty(item, criteria);
-        return <article key={item.id} id={`research-map-${item.id}`} data-property-id={item.id} className={`map-rail-card${selectedId === item.id ? ' is-selected' : ''}`} role="button" tabIndex={0} aria-label={`Explore ${item.name}`} onClick={() => openDetail(item.id)} onKeyDown={event => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); openDetail(item.id); } }}>
-          {/* Top-Right Pure Minimalist + Icon */}
-          <button
-            type="button"
-            className={`rail-card-plus-btn ${isCompared ? 'is-active' : ''}`}
-            onClick={event => {
-              event.stopPropagation();
-              compared.toggle(item.id);
+        const isSelected = selectedId === item.id;
+
+        return (
+          <article
+            key={item.id}
+            id={`research-map-${item.id}`}
+            data-property-id={item.id}
+            className={`map-rail-card airbnb-card${isSelected ? ' is-selected' : ''}`}
+            role="button"
+            tabIndex={0}
+            aria-label={`Explore ${item.name}`}
+            onClick={() => openDetail(item.id)}
+            onKeyDown={event => {
+              if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
+                event.preventDefault();
+                openDetail(item.id);
+              }
             }}
-            disabled={!isCompared && compared.ids.length >= 3}
-            title={isCompared ? `Remove ${item.name} from comparison` : compared.ids.length >= 3 ? 'Max 3 places' : `Compare ${item.name}`}
-            aria-label={isCompared ? `Remove ${item.name} from comparison` : `Compare ${item.name}`}
           >
-            {isCompared ? <Check size={17} strokeWidth={2.5} /> : <Plus size={18} strokeWidth={2} />}
-          </button>
-
-          <div className="research-rail-media">
-            <img src={image} onError={event => { event.currentTarget.src = researchFallbackImage; }} alt={item.name} loading="lazy" />
-            {match.score !== null && <span className="map-rail-match" title={`${match.matched} of ${match.total} criteria supported`}>{match.score}% fit</span>}
-          </div>
-
-          <div className="map-rail-card-body">
-            <div className="map-rail-card-title"><strong title={item.name}>{item.name}</strong></div>
-            <span className="map-rail-card-price">{price?.label ?? 'Ask for rates'}<small>{price ? ' / month' : ''}</small></span>
-            <div className="map-rail-meta">
-              <MapPin size={11} />
-              <span>{item.locality.split(',')[0]}</span>
-              <span className="map-rail-dot">·</span><Star size={10} fill="currentColor" stroke="none" /><span>{reviews.ratingFormatted}</span>
+            <div className="airbnb-card-media">
+              <img
+                src={image}
+                onError={event => { event.currentTarget.src = researchFallbackImage; }}
+                alt={item.name}
+                loading="lazy"
+              />
+              {match.score !== null && (
+                <span className="airbnb-card-match" title={`${match.matched} of ${match.total} selected criteria supported`}>
+                  ✦ {match.score}% fit
+                </span>
+              )}
+              <button
+                type="button"
+                className={`airbnb-card-plus ${isCompared ? 'is-active' : ''}`}
+                onClick={e => {
+                  e.stopPropagation();
+                  compared.toggle(item.id);
+                }}
+                disabled={!isCompared && compared.ids.length >= 3}
+                title={isCompared ? `Remove ${item.name} from comparison` : compared.ids.length >= 3 ? 'Max 3 places' : `Compare ${item.name}`}
+                aria-label={isCompared ? `Remove ${item.name} from comparison` : `Compare ${item.name}`}
+              >
+                {isCompared ? <Check size={16} strokeWidth={2.5} /> : <Plus size={16} strokeWidth={2.2} />}
+              </button>
+              <button
+                type="button"
+                className={`airbnb-card-heart ${isSaved ? 'is-saved' : ''}`}
+                onClick={e => {
+                  e.stopPropagation();
+                  saved.toggle(item.id);
+                }}
+                title={isSaved ? 'Saved to wishlist' : 'Save to wishlist'}
+                aria-label={isSaved ? `Unsave ${item.name}` : `Save ${item.name}`}
+              >
+                <Heart size={18} fill={isSaved ? '#ef4444' : 'none'} strokeWidth={2} />
+              </button>
             </div>
-            <div className="map-rail-footer">
-              <button type="button" className="map-rail-open" onClick={event => { event.stopPropagation(); openDetail(item.id); }}>Explore <span aria-hidden="true">↗</span></button>
+
+            <div className="airbnb-card-body">
+              <div className="airbnb-card-header">
+                <div className="airbnb-card-name" title={item.name}>{item.name}</div>
+                <div className="airbnb-card-rating">
+                  <Star size={12} fill="currentColor" stroke="none" />
+                  <span>{reviews.ratingFormatted}</span>
+                </div>
+              </div>
+
+              <div className="airbnb-card-sub">
+                <MapPin size={11} />
+                <span>{offerings.localityShort} · {offerings.campusDistance}</span>
+              </div>
+
+              <div className="airbnb-card-tags">
+                {nearUnis.length > 0 && (
+                  <span
+                    className="airbnb-card-tag airbnb-card-tag--uni"
+                    title={`Near ${nearUnis.map(u => u.fullName).join(', ')}`}
+                  >
+                    <GraduationCap size={10} strokeWidth={2.4} /> Near {nearUnis.map(u => u.shortName).join(' & ')}
+                  </span>
+                )}
+                {offerings.roomTypes.slice(0, 2).map(r => (
+                  <span key={r} className="airbnb-card-tag">{r}</span>
+                ))}
+                {offerings.isNsfasClaimed && (
+                  <span className="airbnb-card-tag" style={{ background: '#ecfdf5', color: '#047857' }}>NSFAS</span>
+                )}
+              </div>
+
+              <div className="airbnb-card-price-row">
+                <span className="airbnb-card-price">{price?.label ?? 'Ask for rates'}</span>
+                <span className="airbnb-card-period">/ month</span>
+              </div>
             </div>
-          </div>
-        </article>;
+          </article>
+        );
       })}
     </div>
 
