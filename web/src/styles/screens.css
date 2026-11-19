@@ -4003,6 +4003,29 @@ body.has-tray .screen {
 /* Nav pill hidden by default (desktop uses topnav) */
 .app-floating-nav { display: none; }
 
+/* Keep the map and its controls in one viewport at every screen size. */
+.app-root.is-map-search {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.app-root.is-map-search .view {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.app-root.is-map-search .research-map-search {
+  height: 100%;
+  min-height: 0;
+}
+
+.app-root.is-map-search .tray-wrap {
+  display: none;
+}
+
 /* Pill nav visible on tablet & mobile (≤1024px) */
 @media (max-width: 1024px) {
   /* ── Floating pill nav ── */
@@ -4473,8 +4496,8 @@ body.has-tray .screen {
   .map-drawer-fields {
     display: grid;
     align-content: start;
-    gap: 10px;
-    padding: 14px 18px 10px;
+    gap: 8px;
+    padding: 12px 18px 10px;
     overflow-y: auto;
     flex: 1;
     -webkit-overflow-scrolling: touch;

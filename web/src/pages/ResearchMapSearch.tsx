@@ -556,7 +556,7 @@ export function ResearchMapSearch() {
     {mapBounds && <button type="button" className="map-area-clear" onClick={() => { setMapBounds(null); setPendingBounds(null); }}>Clear map area</button>}
     {locationMessage && <p className="map-location-toast" role="status">{locationMessage}</p>}
 
-    <div className="map-card-rail" ref={railRef} onScroll={onRailScroll} aria-label="Researched accommodation listings" tabIndex={0}>
+    <div className={`map-card-rail${detailId ? ' is-hidden' : ''}`} ref={railRef} onScroll={onRailScroll} aria-label="Researched accommodation listings" tabIndex={0}>
       {results.length === 0 ? <div className="map-rail-empty"><b>No researched places match.</b><span>Clear the map area or change the search filters.</span></div> : results.map(item => {
         const image = researchImages(item.id)[0];
         const price = researchPriceSummary(item.advertisedPrice);
@@ -777,16 +777,23 @@ export function ResearchMapSearch() {
 
           <div className="map-drawer-section-title" style={{ marginTop: '12px' }}>
             <BedDouble size={14} />
-            <span>Room type</span>
+            <span>Room Type</span>
           </div>
           <p className="map-room-type-hint">Choose one or more. A place appears if it offers any selected type.</p>
           <div className="map-room-type-options" role="group" aria-label="Filter by room type">
             {ROOM_TYPE_OPTIONS.map(option => {
               const Icon = option.id === 'sharing' ? Users : BedDouble;
               const selected = selectedRoomTypes.includes(option.id);
-              return <button key={option.id} type="button" className={`map-room-type-option ${selected ? 'is-active' : ''}`} onClick={() => toggleRoomType(option.id)} aria-pressed={selected}>
-                <Icon size={16} /><span><b>{option.label}</b><small>{option.description}</small></span>{selected && <Check size={14} />}
-              </button>;
+              return (
+                <button key={option.id} type="button" className={`map-room-type-option ${selected ? 'is-active' : ''}`} onClick={() => toggleRoomType(option.id)} aria-pressed={selected}>
+                  <Icon size={18} />
+                  <span>
+                    <b>{option.label}</b>
+                    <small>{option.description}</small>
+                  </span>
+                  {selected && <Check size={15} className="check-icon" />}
+                </button>
+              );
             })}
           </div>
           {selectedRoomTypes.length > 0 && <button type="button" className="map-room-type-clear" onClick={() => updateRoomTypes([])}>Any room type</button>}
@@ -794,10 +801,10 @@ export function ResearchMapSearch() {
           {/* Living Preferences (Multi-Select) */}
           <div className="map-drawer-section-title" style={{ marginTop: '12px' }}>
             <Sparkles size={14} />
-            <span>Living Preferences (select as many as apply)</span>
+            <span>Living Preferences</span>
           </div>
 
-          <div className="map-drawer-pills" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+          <div className="map-pref-grid">
             {MAP_PREFERENCES.map(p => {
               const Icon = p.icon;
               const isSelected = selectedPrefs.includes(p.id);
@@ -805,22 +812,12 @@ export function ResearchMapSearch() {
                 <button
                   key={p.id}
                   type="button"
-                  className={`map-drawer-pill ${isSelected ? 'is-active' : ''}`}
+                  className={`map-pref-pill ${isSelected ? 'is-active' : ''}`}
                   onClick={() => togglePref(p.id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px',
-                    fontSize: '12px',
-                    borderRadius: '10px'
-                  }}
                 >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Icon size={14} />
-                    <span>{p.label}</span>
-                  </span>
-                  {isSelected && <Check size={13} strokeWidth={2.5} />}
+                  <Icon size={14} />
+                  <span>{p.label}</span>
+                  {isSelected && <Check size={12} strokeWidth={2.5} />}
                 </button>
               );
             })}

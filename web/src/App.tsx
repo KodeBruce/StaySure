@@ -24,7 +24,7 @@ const AppContent: React.FC = () => {
   return (
       <AuthProvider>
         <CompareProvider>
-          <div className={`app-root${isMapSearch ? ' is-map-search' : ''}`} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <div className={`app-root${isMapSearch ? ' is-map-search' : ''}`} style={{ minHeight: isMapSearch ? 0 : '100vh', display: 'flex', flexDirection: 'column' }}>
             <Navbar />
             
             <main className="view" style={{ flexGrow: 1 }}>
@@ -49,14 +49,14 @@ const AppContent: React.FC = () => {
 
             <CompareTray />
 
-            <footer style={{ background: '#fff', borderTop: '1px solid var(--line)', padding: '32px 0', marginTop: '64px' }}>
+            {!isMapSearch && <footer style={{ background: '#fff', borderTop: '1px solid var(--line)', padding: '32px 0', marginTop: '64px' }}>
               <div className="wrap tc" style={{ maxWidth: '1160px', margin: '0 auto', padding: '0 24px' }}>
                 <p className="tiny muted" style={{ maxWidth: '640px', margin: '0 auto', lineHeight: 1.6 }}>
                   StaySure is an independent decision-support platform for student accommodation. We are not officially affiliated with the University of the Witwatersrand (Wits) or the National Student Financial Aid Scheme (NSFAS). Funding indicators and match scores are indicative calculations.
                 </p>
                 <div className="tiny muted mt-12">© 2026 StaySure. All rights reserved.</div>
               </div>
-            </footer>
+            </footer>}
           </div>
         </CompareProvider>
       </AuthProvider>
