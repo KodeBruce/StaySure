@@ -69,6 +69,7 @@
 }
 
 .research-map-search .map-basemap-toggle[aria-pressed="true"],
+.research-map-search .map-nearby-toggle[aria-pressed="true"],
 .research-map-search .wits-campus-toggle[aria-expanded="true"] {
   background: var(--navy);
   color: #fff;

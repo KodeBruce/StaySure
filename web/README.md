@@ -50,6 +50,8 @@ The search page has a Leaflet map with province, university, area, and Near me f
 
 ## Seeding Initial Wits Accommodation Listings
 
+Home and the map default to requesting browser location and sorting residences closest first. An unavailable or denied location leaves normal browsing available. Location coordinates remain in memory; only the student's near-me/explore preference is saved for the tab session. Manual university, area and map-area selections cancel automatic location selection, including late callbacks. Budget, room and living-preference filters continue to work with nearby sorting. Explore all locations broadens the search; the location control returns to closest-first. Distances are approximate straight-line distances from recorded map points; missing coordinates sort last. Nearby mode has no distance cutoff by default, with optional radius choices in map filters.
+
 ### Johannesburg workbook research
 
 Wits campus outlines use one clear blue colour (`#0ea5e9`) with a thin stroke and translucent fill. Campus labels and a compact campus icon appear only when Wits is selected under Nearby University; otherwise only the outlines remain. The icon slides out the campus choices and collapses after selection, outside click or Escape. The satellite icon below the location control switches between the grey OpenStreetMap view and full-colour Esri World Imagery, preserving the camera, campus grounds and property selection. Imagery provider credits appear on the map. Mouse-wheel, trackpad pinch, touch and map-focused keyboard zoom affect the map, with visible +/− controls above the carousel.

@@ -37,6 +37,8 @@ async function screenHarness(reducedMotion = false, university = 'all') {
     distanceKm: () => 0, withinBounds: () => true,
     WITS_CAMPUSES: require('../web/src/data/witsCampuses.json').campuses
   };
+  data.useNearbyLocation = () => ({ enabled: false, position: null, status: 'idle', nearby: false, locating: false, requestNearby() {}, browseAnywhere() {} });
+  data.nearbyLocationMessage = () => '';
   const deps = module => {
     if (module === 'react') return hooks;
     if (module === 'react/jsx-runtime') return jsxRuntime;

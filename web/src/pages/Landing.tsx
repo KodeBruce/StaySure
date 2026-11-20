@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import {
   Sparkles, GraduationCap, Bus, Wifi, ShieldCheck, BookOpen,
@@ -16,8 +15,11 @@ import { matchResearchProperty, readSearchCriteria, saveSearchCriteria, type Res
 import { useResearchSelection } from '../data/researchSelection';
 import { MapPropertySheet } from './ResearchMapSearch';
 import { PropertySocialLinks } from '../components/PropertySocialLinks';
+import { NearbySearchControls } from '../components/NearbySearchControls';
+import { useNearbyLocation } from '../data/useNearbyLocation';
+import { compareResidenceDistance, residenceDistanceLabel } from '../data/nearbyLocation';
 import { getPropertyReviews } from '../data/propertyReviews';
-import { UNIVERSITIES, getPropertyUniversities, isNearUniversity, type UniversityInfo } from '../data/mapLocations';
+import { UNIVERSITIES, getPropertyUniversities, isNearUniversity, type Coordinates } from '../data/mapLocations';
 import './airbnb-home.css';
 
 const CATEGORIES = [
@@ -38,13 +40,14 @@ const POPULAR_AREAS = [
 ];
 
 function AirbnbPropertyCard({
-  item, saved, compared, match, onOpen,
+  item, saved, compared, match, onOpen, userPosition,
 }: {
   item: ResearchProperty;
   saved: ReturnType<typeof useResearchSelection>;
   compared: ReturnType<typeof useResearchSelection>;
   match: ResearchMatch;
   onOpen: (id: string) => void;
+  userPosition: Coordinates | null;
 }) {
   const image = researchImages(item.id)[0];
   const price = researchPriceSummary(item.advertisedPrice);
@@ -100,6 +103,7 @@ function AirbnbPropertyCard({
           <MapPin size={12} />
           <span>{offerings.localityShort} · {offerings.campusDistance}</span>
         </div>
+        {userPosition && <div className="residence-distance">{residenceDistanceLabel(item, userPosition)}</div>}
         <div className="airbnb-card-tags">
           {nearUnis.length > 0 && (
             <span
@@ -127,7 +131,6 @@ function AirbnbPropertyCard({
 }
 
 export const Landing: React.FC = () => {
-  const navigate = useNavigate();
   const saved = useResearchSelection('saved');
   const compared = useResearchSelection('compare');
 
@@ -139,6 +142,29 @@ export const Landing: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [detailId, setDetailId] = useState<string | null>(null);
   const [activePopover, setActivePopover] = useState<'where' | 'price' | 'room' | 'pref' | null>(null);
+  const location = useNearbyLocation(selectedUniversity !== 'all' || Boolean(activeArea));
+  const { nearby, position: userPosition, locating } = location;
+
+  const chooseUniversity = (value: React.SetStateAction<string>) => {
+    location.browseAnywhere();
+    setSelectedUniversity(value);
+    setActiveArea('');
+    setSearchQuery('');
+  };
+  const chooseArea = (value: string) => {
+    location.browseAnywhere();
+    setActiveArea(value);
+    setSelectedUniversity('all');
+    setSearchQuery('');
+  };
+  const useMyLocation = () => {
+    setSelectedUniversity('all'); setActiveArea(''); setSearchQuery('');
+    location.requestNearby();
+  };
+  const exploreAllLocations = () => {
+    location.browseAnywhere();
+    setSelectedUniversity('all'); setActiveArea(''); setSearchQuery('');
+  };
 
   const listingsRef = useRef<HTMLElement>(null);
 
@@ -215,8 +241,14 @@ export const Landing: React.FC = () => {
         }
       }
       return true;
-    }).sort((a, b) => (matchResearchProperty(b, criteria).score ?? 0) - (matchResearchProperty(a, criteria).score ?? 0));
-  }, [selectedUniversity, activeArea, searchQuery, maxPrice, selectedPrefs, selectedRoomTypes, criteria]);
+    }).sort((a, b) => {
+      if (nearby && userPosition) {
+        const distanceDifference = compareResidenceDistance(a, b, userPosition);
+        if (distanceDifference) return distanceDifference;
+      }
+      return (matchResearchProperty(b, criteria).score ?? 0) - (matchResearchProperty(a, criteria).score ?? 0);
+    });
+  }, [selectedUniversity, activeArea, searchQuery, maxPrice, selectedPrefs, selectedRoomTypes, criteria, nearby, userPosition]);
 
   const handleSearchClick = () => {
     setActivePopover(null);
@@ -234,6 +266,7 @@ export const Landing: React.FC = () => {
   const hasActiveFilters = selectedUniversity !== 'all' || activeArea !== '' || maxPrice < 12000 || selectedPrefs.length > 0 || selectedRoomTypes.length > 0 || searchQuery !== '';
 
   const clearAllFilters = () => {
+    location.browseAnywhere();
     setSelectedUniversity('all');
     setActiveArea('');
     setMaxPrice(12000);
@@ -271,7 +304,7 @@ export const Landing: React.FC = () => {
               <span className="airbnb-segment-label">Where</span>
               <span className="airbnb-segment-row">
                 <span className={`airbnb-segment-val ${selectedUniversity === 'all' && !activeArea && !searchQuery ? 'is-placeholder' : ''}`}>
-                  {selectedUniversity !== 'all'
+                  {locating ? 'Finding your location…' : nearby ? 'Closest to you' : selectedUniversity !== 'all'
                     ? `Near ${UNIVERSITIES.find(u => u.id === selectedUniversity)?.shortName}`
                     : activeArea || searchQuery || 'Search university or area'}
                 </span>
@@ -358,6 +391,7 @@ export const Landing: React.FC = () => {
           </div>
         </div>
       </header>
+      <NearbySearchControls location={location} onNearby={useMyLocation} onAnywhere={exploreAllLocations} />
 
       {/* ── Bottom Sheet Popovers ── */}
       {activePopover && createPortal(
@@ -384,7 +418,7 @@ export const Landing: React.FC = () => {
                   className="airbnb-sheet-input"
                   placeholder="Search Wits, UJ, UP, TUT, or area..."
                   value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
+                  onChange={e => { location.browseAnywhere(); setSelectedUniversity('all'); setActiveArea(''); setSearchQuery(e.target.value); }}
                   autoFocus
                 />
 
@@ -394,7 +428,7 @@ export const Landing: React.FC = () => {
                     type="button"
                     className={`airbnb-popover-pill ${selectedUniversity === 'all' ? 'is-active' : ''}`}
                     onClick={() => {
-                      setSelectedUniversity('all');
+                      chooseUniversity('all');
                     }}
                   >
                     <GraduationCap size={13} strokeWidth={2.4} />
@@ -414,8 +448,7 @@ export const Landing: React.FC = () => {
                         type="button"
                         className={`airbnb-popover-pill ${selectedUniversity === u.id ? 'is-active' : ''}`}
                         onClick={() => {
-                          setSelectedUniversity(u.id);
-                          setActiveArea('');
+                          chooseUniversity(u.id);
                           setActivePopover('price');
                         }}
                       >
@@ -434,7 +467,7 @@ export const Landing: React.FC = () => {
                       type="button"
                       className={`airbnb-popover-pill ${activeArea === (ar === 'All areas' ? '' : ar) ? 'is-active' : ''}`}
                       onClick={() => {
-                        setActiveArea(ar === 'All areas' ? '' : ar);
+                        chooseArea(ar === 'All areas' ? '' : ar);
                         setActivePopover('price');
                       }}
                     >
@@ -587,8 +620,8 @@ export const Landing: React.FC = () => {
       <div className="airbnb-uni-strip" role="group" aria-label="Filter by university">
         <button
           type="button"
-          className={`airbnb-uni-pill ${selectedUniversity === 'all' ? 'is-active' : ''}`}
-          onClick={() => setSelectedUniversity('all')}
+          className={`airbnb-uni-pill ${selectedUniversity === 'all' && !nearby && !locating ? 'is-active' : ''}`}
+          onClick={() => chooseUniversity('all')}
         >
           <GraduationCap size={14} />
           <span>All Universities</span>
@@ -600,7 +633,7 @@ export const Landing: React.FC = () => {
               key={u.id}
               type="button"
               className={`airbnb-uni-pill ${selectedUniversity === u.id ? 'is-active' : ''}`}
-              onClick={() => setSelectedUniversity(prev => prev === u.id ? 'all' : u.id)}
+              onClick={() => chooseUniversity(prev => prev === u.id ? 'all' : u.id)}
               title={u.fullName}
             >
               <GraduationCap size={14} />
@@ -646,14 +679,14 @@ export const Landing: React.FC = () => {
         {hasActiveFilters && (
           <div className="airbnb-active-chips">
             {selectedUniversity !== 'all' && (
-              <button type="button" className="airbnb-chip airbnb-chip--uni" onClick={() => setSelectedUniversity('all')}>
+              <button type="button" className="airbnb-chip airbnb-chip--uni" onClick={() => chooseUniversity('all')}>
                 <GraduationCap size={12} />
                 <span>Near {UNIVERSITIES.find(u => u.id === selectedUniversity)?.shortName}</span>
                 <X size={12} />
               </button>
             )}
             {activeArea && (
-              <button type="button" className="airbnb-chip" onClick={() => setActiveArea('')}>
+              <button type="button" className="airbnb-chip" onClick={() => chooseArea('')}>
                 <MapPin size={12} /><span>{activeArea}</span><X size={12} />
               </button>
             )}
@@ -689,7 +722,7 @@ export const Landing: React.FC = () => {
 
       {/* ── Listings Grid ── */}
       {criteria.maxRent !== null || criteria.roomTypes.length || criteria.preferences.length || criteria.universityId !== 'all' || criteria.area ?
-        <p className="airbnb-match-intro"><Sparkles size={15} /> Ranked by the preferences you selected. A match percentage counts supported criteria; unpublished details need confirmation.</p> : null}
+        <p className="airbnb-match-intro"><Sparkles size={15} /> {nearby ? 'Closest matching residences first.' : 'Ranked by the preferences you selected.'} A match percentage counts supported criteria; unpublished details need confirmation.</p> : null}
       {filteredProperties.length === 0 ? (
         <div className="research-empty cmp-empty-card" style={{ margin: '40px auto', maxWidth: '560px' }}>
           <h2>No matching accommodations found</h2>
@@ -701,7 +734,7 @@ export const Landing: React.FC = () => {
       ) : (
         <main className="airbnb-grid">
           {filteredProperties.map(item => (
-            <AirbnbPropertyCard key={item.id} item={item} saved={saved} compared={compared} match={matchResearchProperty(item, criteria)} onOpen={setDetailId} />
+            <AirbnbPropertyCard key={item.id} item={item} saved={saved} compared={compared} match={matchResearchProperty(item, criteria)} onOpen={setDetailId} userPosition={nearby ? userPosition : null} />
           ))}
         </main>
       )}

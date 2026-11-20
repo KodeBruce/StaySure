@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { CustomSelect } from '../components/CustomSelect';
 import { PropertySocialLinks } from '../components/PropertySocialLinks';
+import { NearbySearchControls } from '../components/NearbySearchControls';
 import { addWitsCampusLayer } from '../components/witsCampusLayer';
 import { bindMapZoomGestures, MAP_ZOOM_OPTIONS } from '../components/mapZoom';
 import { addMapBasemap, type MapView } from '../components/mapBasemap';
@@ -46,6 +47,8 @@ import { matchesSelectedRoomTypes, parseRoomTypes, ROOM_TYPE_OPTIONS, type RoomT
 import { getPropertyReviews } from '../data/propertyReviews';
 import { readLocalReviewComments, saveLocalReviewComments, type LocalReviewComment } from '../data/localReviewComments';
 import { AREA_CENTRES, distanceKm, withinBounds, UNIVERSITIES, isNearUniversity, getPropertyUniversities, type Coordinates, type MapBounds } from '../data/mapLocations';
+import { useNearbyLocation } from '../data/useNearbyLocation';
+import { compareResidenceDistance, nearbyLocationMessage, residenceDistanceLabel } from '../data/nearbyLocation';
 import './airbnb-home.css';
 import '../components/StudentReviews.css';
 import './research-map-search.css';
@@ -381,7 +384,7 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
     }
 
     if (userPosition) {
-      L.circle(userPosition, { radius: radiusKm * 1000, color: '#1f9d5c', fillColor: '#1f9d5c', fillOpacity: 0.08, weight: 2 }).addTo(group);
+      if (radiusKm > 0) L.circle(userPosition, { radius: radiusKm * 1000, color: '#1f9d5c', fillColor: '#1f9d5c', fillOpacity: 0.08, weight: 2 }).addTo(group);
       L.circleMarker(userPosition, { radius: 8, color: '#fff', weight: 3, fillColor: '#1f9d5c', fillOpacity: 1 }).bindTooltip('Your location').addTo(group);
     }
   }, [items, userPosition, radiusKm]);
@@ -419,11 +422,10 @@ export function ResearchMapSearch() {
   const railHidden = carouselHidden || detailId !== null;
   const [pendingBounds, setPendingBounds] = useState<MapBounds | null>(null);
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
-  const [userPosition, setUserPosition] = useState<Coordinates | null>(null);
-  const [nearby, setNearby] = useState(false);
-  const [radiusKm, setRadiusKm] = useState(5);
-  const [locationMessage, setLocationMessage] = useState('');
-  const [locating, setLocating] = useState(false);
+  const location = useNearbyLocation(selectedUniversity !== 'all' || Boolean(area || region));
+  const { position: userPosition, nearby, locating } = location;
+  const [radiusKm, setRadiusKm] = useState(0);
+  const locationMessage = nearby ? '' : nearbyLocationMessage(location);
   const railRef = useRef<HTMLDivElement>(null);
   const railSelectionLock = useRef<number | null>(null);
   const railScrollTimer = useRef<number | null>(null);
@@ -496,7 +498,7 @@ export function ResearchMapSearch() {
       if (area && !item.locality.toLocaleLowerCase().includes(area.toLocaleLowerCase())) return false;
       if (region && item.region !== region) return false;
       if (mapBounds && (!hasCoordinates(item) || !withinBounds(position(item), mapBounds))) return false;
-      if (nearby && userPosition && (!hasCoordinates(item) || distanceKm(position(item), userPosition) > radiusKm)) return false;
+      if (nearby && userPosition && radiusKm > 0 && (!hasCoordinates(item) || distanceKm(position(item), userPosition) > radiusKm)) return false;
       if (maxRent < 12000) {
         const minP = extractMinPrice(item.advertisedPrice);
         if (minP !== null && minP > maxRent) {
@@ -535,6 +537,10 @@ export function ResearchMapSearch() {
     });
 
     return filtered.sort((a, b) => {
+      if (nearby && userPosition) {
+        const distanceDifference = compareResidenceDistance(a, b, userPosition);
+        if (distanceDifference) return distanceDifference;
+      }
       if (matchResearchProperty(a, criteria).score !== null) {
         const scoreDifference = (matchResearchProperty(b, criteria).score ?? 0) - (matchResearchProperty(a, criteria).score ?? 0);
         if (scoreDifference) return scoreDifference;
@@ -545,7 +551,7 @@ export function ResearchMapSearch() {
 
   const mapped = useMemo(() => results.filter(hasCoordinates), [results]);
   const center = useMemo<Coordinates>(() => {
-    if (userPosition && nearby) return userPosition;
+    if (userPosition && nearby) return mapped.length ? position(mapped[0]) : userPosition;
     if (selectedUniversity && selectedUniversity !== 'all') {
       const uni = UNIVERSITIES.find(u => u.id === selectedUniversity);
       if (uni) return uni.position;
@@ -661,22 +667,14 @@ export function ResearchMapSearch() {
   }
 
   function useMyLocation() {
-    if (!navigator.geolocation) { setLocationMessage('Location is unavailable. Search by name or region instead.'); return; }
-    setLocating(true);
-    setLocationMessage('Finding your location…');
-    navigator.geolocation.getCurrentPosition(({ coords }) => {
-      setUserPosition([coords.latitude, coords.longitude]);
-      setNearby(true);
-      setMapBounds(null); setPendingBounds(null);
-      setRegion(''); setArea('');
-      setLocating(false); setDrawerOpen(false);
-      setLocationMessage('Showing researched places with map points near you. Distances are approximate.');
-    }, () => { setLocating(false); setLocationMessage('Location unavailable. Search by name or region instead.'); },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+    setSelectedUniversity('all'); setRegion(''); setArea('');
+    setMapBounds(null); setPendingBounds(null); setRadiusKm(0);
+    setDrawerOpen(false);
+    location.requestNearby();
   }
 
   const activeUni = selectedUniversity !== 'all' ? UNIVERSITIES.find(u => u.id === selectedUniversity) : null;
-  const activeLocationLabel = activeUni ? `Near ${activeUni.shortName}` : area || region.replace(/\s*\(.*/, '') || 'All locations';
+  const activeLocationLabel = nearby ? 'Closest to you' : locating ? 'Finding your location…' : activeUni ? `Near ${activeUni.shortName}` : area || region.replace(/\s*\(.*/, '') || 'All locations';
   const activePriceLabel = maxRent < 12000 ? `≤ R${maxRent.toLocaleString('en-ZA')}` : 'Any budget';
   const activePrefsLabel = selectedPrefs.length > 0 ? `${selectedPrefs.length} pref${selectedPrefs.length > 1 ? 's' : ''}` : '';
   const activeRoomLabel = selectedRoomTypes.length === 1 ? ROOM_TYPE_OPTIONS.find(option => option.id === selectedRoomTypes[0])?.label : selectedRoomTypes.length > 1 ? `${selectedRoomTypes.length} room types` : '';
@@ -685,7 +683,7 @@ export function ResearchMapSearch() {
     <ResearchPins items={mapped} selectedId={selectedId} center={center} targetZoom={targetZoom} userPosition={nearby ? userPosition : null} radiusKm={radiusKm} onSelect={selectProperty} onViewChange={setPendingBounds} campusFocus={campusFocus} showWitsCampuses={selectedUniversity === 'wits'} mapView={mapView} />
     <div className="fullscreen-map-top">
       <div className="map-view-controls">
-        <button type="button" className="map-float-button" onClick={useMyLocation} disabled={locating} aria-label="Find researched accommodation near me"><LocateFixed size={20} /></button>
+        <button type="button" className="map-float-button map-nearby-toggle" onClick={useMyLocation} disabled={locating} aria-label="Find researched accommodation near me" aria-pressed={nearby}><LocateFixed size={20} /></button>
         <button type="button" className="map-float-button map-basemap-toggle" onClick={() => setMapView(view => view === 'street' ? 'aerial' : 'street')}
           aria-label={mapView === 'street' ? 'Switch to aerial view' : 'Switch to grey street map'}
           title={mapView === 'street' ? 'Aerial view' : 'Grey street map'} aria-pressed={mapView === 'aerial'}>
@@ -717,8 +715,8 @@ export function ResearchMapSearch() {
         <div className="map-top-uni-bar" role="group" aria-label="Filter by university">
           <button
             type="button"
-            className={`map-top-uni-chip ${selectedUniversity === 'all' ? 'is-active' : ''}`}
-            onClick={() => setSelectedUniversity('all')}
+            className={`map-top-uni-chip ${selectedUniversity === 'all' && !nearby && !locating ? 'is-active' : ''}`}
+            onClick={() => { location.browseAnywhere(); setSelectedUniversity('all'); setArea(''); setRegion(''); setMapBounds(null); setPendingBounds(null); }}
           >
             <GraduationCap size={12} strokeWidth={2.4} />
             <span>All</span>
@@ -730,7 +728,8 @@ export function ResearchMapSearch() {
               className={`map-top-uni-chip ${selectedUniversity === u.id ? 'is-active' : ''}`}
               onClick={() => {
                 setSelectedUniversity(prev => prev === u.id ? 'all' : u.id);
-                setNearby(false);
+                location.browseAnywhere();
+                setArea(''); setRegion('');
                 setMapBounds(null);
                 setPendingBounds(null);
               }}
@@ -760,7 +759,7 @@ export function ResearchMapSearch() {
         </button>)}
       </div>
     </div>}
-    {pendingBounds && <button type="button" className="map-area-action" onClick={() => { setMapBounds(pendingBounds); setPendingBounds(null); }}>Search this area</button>}
+    {pendingBounds && <button type="button" className="map-area-action" onClick={() => { location.browseAnywhere(); setMapBounds(pendingBounds); setPendingBounds(null); }}>Search this area</button>}
     {mapBounds && <button type="button" className="map-area-clear" onClick={() => { setMapBounds(null); setPendingBounds(null); }}>Clear map area</button>}
     {locationMessage && <p className="map-location-toast" role="status">{locationMessage}</p>}
 
@@ -836,6 +835,7 @@ export function ResearchMapSearch() {
                 <MapPin size={11} />
                 <span>{offerings.localityShort} · {offerings.campusDistance}</span>
               </div>
+              {nearby && <div className="residence-distance">{residenceDistanceLabel(item, userPosition)}</div>}
 
               <div className="airbnb-card-tags">
                 {nearUnis.length > 0 && (
@@ -883,13 +883,17 @@ export function ResearchMapSearch() {
             <MapPin size={14} />
             <span>Location Preference</span>
           </div>
+          <NearbySearchControls location={location} onNearby={useMyLocation} onAnywhere={() => {
+            location.browseAnywhere(); setSelectedUniversity('all'); setArea(''); setRegion(''); setMapBounds(null); setPendingBounds(null);
+          }} />
 
           <label>Nearby University
             <CustomSelect
               value={selectedUniversity}
               onChange={(val) => {
                 setSelectedUniversity(val);
-                setNearby(false);
+                location.browseAnywhere();
+                setArea(''); setRegion('');
                 setMapBounds(null);
                 setPendingBounds(null);
               }}
@@ -907,7 +911,8 @@ export function ResearchMapSearch() {
               onChange={(val) => {
                 setArea(val.startsWith('area:') ? val.slice(5) : '');
                 setRegion(val.startsWith('region:') ? val.slice(7) : '');
-                setNearby(false);
+                location.browseAnywhere();
+                setSelectedUniversity('all');
                 setMapBounds(null);
                 setPendingBounds(null);
               }}
@@ -921,7 +926,7 @@ export function ResearchMapSearch() {
               <CustomSelect
                 value={String(radiusKm)}
                 onChange={(val) => setRadiusKm(Number(val))}
-                options={[1, 3, 5, 10, 20].map(value => ({ value: String(value), label: `${value} km` }))}
+                options={[{ value: '0', label: 'Any distance · closest first' }, ...[1, 3, 5, 10, 20].map(value => ({ value: String(value), label: `${value} km` }))]}
                 ariaLabel="Within radius"
               />
             </label>
@@ -1023,7 +1028,6 @@ export function ResearchMapSearch() {
             })}
           </div>
 
-          {nearby && <button type="button" className="btn btn--ghost" onClick={() => { setNearby(false); setLocationMessage(''); }}>Turn off Near me</button>}
         </div>
         <div className="map-drawer-actions">
           <button
@@ -1036,7 +1040,7 @@ export function ResearchMapSearch() {
               setMaxRent(12000);
               setSelectedPrefs([]);
               updateRoomTypes([]);
-              setNearby(false);
+              location.browseAnywhere();
               setMapBounds(null);
               setPendingBounds(null);
             }}
