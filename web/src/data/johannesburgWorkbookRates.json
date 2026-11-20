@@ -498,34 +498,118 @@
   ],
   "JHB-WB-0032": [
     {
-      "category": "sharing",
-      "name": "Sharing Room",
-      "monthly": "R4,000–R4,917",
+      "category": "studio",
+      "name": "Private studio with bathroom and kitchenette",
+      "monthly": "R8,250",
       "basis": "basis unconfirmed",
-      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
     },
     {
       "category": "single",
-      "name": "Single Room",
-      "monthly": "R5,500–R6,200",
+      "name": "Private bedroom · 2-bed / 2-bath apartment",
+      "monthly": "R7,167",
       "basis": "basis unconfirmed",
-      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 2-bed / 1-bath apartment",
+      "monthly": "R6,834",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 3-bed / 1-bath apartment",
+      "monthly": "R6,334",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 3-bed / 1-bath Mini apartment",
+      "monthly": "R5,500",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 4-bed / 2-bath apartment",
+      "monthly": "R6,167",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 4-bed / 1-bath apartment",
+      "monthly": "R5,834",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 5-bed / 2-bath apartment",
+      "monthly": "R6,084",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 3-bed / 1-bath Mini apartment",
+      "monthly": "R5,818",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 11-month agreement; detailed room page reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 3-bed / 1-bath Mini apartment",
+      "monthly": "R6,200",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 10-month agreement; detailed room page reviewed 2026-11-20"
     }
   ],
   "JHB-WB-0033": [
     {
-      "category": "sharing",
-      "name": "Sharing Room",
-      "monthly": "R4,500",
+      "category": "studio",
+      "name": "Private studio with ensuite and kitchenette",
+      "monthly": "R8,167",
       "basis": "basis unconfirmed",
-      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
     },
     {
       "category": "single",
-      "name": "Single Room",
-      "monthly": "R5,800–R6,500",
+      "name": "Private bedroom · 2-bed / 2-bath apartment",
+      "monthly": "R7,167",
       "basis": "basis unconfirmed",
-      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 2-bed / 1-bath apartment",
+      "monthly": "R6,500",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 3-bed / 2-bath apartment",
+      "monthly": "R6,167",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 3-bed / 2-bath apartment",
+      "monthly": "R6,545",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 11-month agreement; detailed room page reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 3-bed / 2-bath apartment",
+      "monthly": "R7,000",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 10-month agreement; detailed room page reviewed 2026-11-20"
     }
   ],
   "JHB-WB-0034": [
@@ -597,6 +681,159 @@
       "monthly": "R4,800",
       "basis": "basis unconfirmed",
       "note": "Up to · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "CC-ON-EMPIRE": [
+    {
+      "category": "studio",
+      "name": "Private studio · bathroom, mini kitchenette and communal kitchens",
+      "monthly": "R7,834",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 2-bed / 1-bath apartment",
+      "monthly": "R6,334",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "sharing",
+      "name": "Two-sharing bedroom · communal bathrooms and kitchens",
+      "monthly": "R4,917",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 3-bed / 1-bath apartment",
+      "monthly": "R6,167",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 4-bed / 1-bath apartment",
+      "monthly": "R6,000",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 5-bed / 2-bath apartment",
+      "monthly": "R5,750",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 5-bed / 1-bath apartment",
+      "monthly": "R5,750",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "sharing",
+      "name": "Two-sharing bedroom · communal bathrooms and kitchens",
+      "monthly": "R5,182",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 11-month agreement; detailed room page reviewed 2026-11-20"
+    },
+    {
+      "category": "sharing",
+      "name": "Two-sharing bedroom · communal bathrooms and kitchens",
+      "monthly": "R5,500",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 10-month agreement; detailed room page reviewed 2026-11-20"
+    }
+  ],
+  "CC-ST-DAVIDS": [
+    {
+      "category": "studio",
+      "name": "Private studio with bathroom and kitchenette",
+      "monthly": "R7,500",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 2-bed / 2-bath apartment",
+      "monthly": "R7,500",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 2-bed / 1-bath apartment",
+      "monthly": "R6,417",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 3-bed / 1-bath apartment",
+      "monthly": "R5,667",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 4-bed / 1-bath apartment",
+      "monthly": "R5,667",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Female-only private bedroom · 13-bed / 5-bath floor",
+      "monthly": "R5,667",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 3-bed / 1-bath apartment",
+      "monthly": "R6,000",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 11-month agreement; detailed room page reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Private bedroom · 3-bed / 1-bath apartment",
+      "monthly": "R6,400",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 10-month agreement; detailed room page reviewed 2026-11-20"
+    }
+  ],
+  "CC-ST-ANDREWS": [
+    {
+      "category": "single",
+      "name": "Private room · provider label Studio; communal bathroom/kitchen",
+      "monthly": "R7,417",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "sharing",
+      "name": "Two-sharing bedroom · communal bathrooms and kitchens",
+      "monthly": "R4,917",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 12-month agreement; provider reviewed 2026-11-20"
+    },
+    {
+      "category": "sharing",
+      "name": "Two-sharing bedroom · communal bathrooms and kitchens",
+      "monthly": "R5,182",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 11-month agreement; detailed room page reviewed 2026-11-20"
+    },
+    {
+      "category": "sharing",
+      "name": "Two-sharing bedroom · communal bathrooms and kitchens",
+      "monthly": "R5,500",
+      "basis": "basis unconfirmed",
+      "note": "From · 2027 · 10-month agreement; detailed room page reviewed 2026-11-20"
     }
   ]
 }

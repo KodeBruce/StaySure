@@ -34,8 +34,8 @@ const rooms = loadData('./roomRates');
 const matching = loadData('./researchMatch');
 
 test('workbook expands the catalogue without duplicating matched buildings', () => {
-  assert.equal(records.length, 91);
-  assert.equal(new Set(records.map(record => record.id)).size, 91);
+  assert.equal(records.length, 94);
+  assert.equal(new Set(records.map(record => record.id)).size, 94);
   assert.equal(records.filter(record => record.id.startsWith('JHB-WB-')).length, 25);
   assert.equal(records.find(record => record.id === 'JHB-WB-0002'), undefined);
   assert.equal(records.find(record => record.id === 'GSA-P0002').address, '19AM, 19 Ameshoff Street');
@@ -116,6 +116,48 @@ test('Arteria uses the provider-linked residence pin and separate monthly lease 
   assert.match(arteria.amenities, /limited electricity and limited laundry/);
   assert.match(arteria.amenities, /parking costs extra/);
   assert.match(arteria.gaps, /Funding approval is not established/);
+});
+
+test('Campus Central reconciles five distinct Parktown residences with provider place pins', () => {
+  const source = JSON.parse(readFileSync(join(__dirname, '../Res Data/campus-central-provider-checks.json'), 'utf8'));
+  const residences = records.filter(record => record.provider === 'Campus Central');
+  assert.equal(residences.length, 5);
+  assert.equal(new Set(residences.map(record => `${record.latitude},${record.longitude}`)).size, 5);
+  assert.deepEqual(residences.map(record => record.id).sort(), ['JHB-WB-0032', 'JHB-WB-0033', 'CC-ON-EMPIRE', 'CC-ST-DAVIDS', 'CC-ST-ANDREWS'].sort());
+  for (const review of source.reviews) {
+    const property = records.find(record => record.id === review.property.id);
+    const coordinates = review.mapRedirect.match(/!3d(-?[\d.]+)!4d(-?[\d.]+)/);
+    assert.ok(coordinates, 'Use destination coordinates, not viewport centres');
+    assert.equal(property.latitude, Number(coordinates[1]));
+    assert.equal(property.longitude, Number(coordinates[2]));
+    assert.match(property.coordinateSource, /^https:\/\/(?:goo\.gl\/maps|maps\.app\.goo\.gl)\//);
+    assert.match(property.pricePeriod, /2027/);
+    assert.match(property.fundingEvidence, /not independent official approval/);
+    assert.ok(rooms.getRoomRates(property.id).every(rate => /2027/.test(rate.note)));
+  }
+  const { distanceKm } = loadData('./mapLocations');
+  const albany = residences.find(record => record.id === 'JHB-WB-0033');
+  assert.ok(distanceKm([source.userCoordinateReview.latitude, source.userCoordinateReview.longitude], [albany.latitude, albany.longitude]) < .01);
+  assert.equal(albany.address, '5 Girton Road, Parktown, Johannesburg, 2193');
+  assert.equal(residences.find(record => record.id === 'CC-ST-ANDREWS').address, '6 St Andrews Road, Parktown, Johannesburg, 2193');
+  assert.match(residences.find(record => record.id === 'CC-ST-DAVIDS').coordinateNotes, /23 metres/);
+});
+
+test('Campus Central prices and room filters distinguish private bedrooms from shared facilities', () => {
+  const { matchesRoomType } = loadData('./roomTypeFilter');
+  for (const [id, minimum, maximum] of [['JHB-WB-0032', 5500, 8250], ['JHB-WB-0033', 6167, 8167], ['CC-ON-EMPIRE', 4917, 7834], ['CC-ST-DAVIDS', 5667, 7500], ['CC-ST-ANDREWS', 4917, 7417]]) {
+    const property = records.find(record => record.id === id);
+    assert.equal(pricing.isWorkbookEstimate(property.advertisedPrice), false);
+    assert.equal(pricing.extractMinPrice(property.advertisedPrice), minimum);
+    assert.equal(pricing.extractMaxPrice(property.advertisedPrice), maximum);
+    assert.equal(matchesRoomType(property, 'single'), true);
+    assert.equal(matchesRoomType(property, 'sharing'), ['CC-ON-EMPIRE', 'CC-ST-ANDREWS'].includes(id));
+  }
+  const andrews = records.find(record => record.id === 'CC-ST-ANDREWS');
+  assert.equal(matchesRoomType(andrews, 'studio'), false, 'Communal facilities do not establish a self-contained studio');
+  assert.match(andrews.classification, /January 2027/);
+  assert.equal(rooms.getRoomRates('CC-ON-EMPIRE').find(rate => rate.note.includes('11-month')).monthly, 'R5,182');
+  assert.equal(rooms.getRoomRates('JHB-WB-0032').find(rate => rate.note.includes('10-month')).monthly, 'R6,200');
 });
 
 test('social links use supplied handles and preserve dots inside account names', () => {

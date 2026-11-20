@@ -30,7 +30,8 @@ EXPECTED_NAMES = {
     13: 'Respublica | Yale Village', 14: 'Respublica | The Fields',
     17: 'South Point | 46 De Korte', 18: 'South Point | 56 Jorissen',
     20: 'South Point | Relyant House', 25: 'The Campus Luxury Student Accommodation',
-    26: 'Twickenham Student Apartments', 31: 'Aspire Student Living | Quintal'
+    26: 'Twickenham Student Apartments', 31: 'Aspire Student Living | Quintal',
+    32: 'Campus Central | Girton Road', 33: 'Campus Central | The Albany'
 }
 MONEY = r'R\s*([\d,]+(?:\.\d{2})?)'
 
@@ -119,7 +120,7 @@ def append_note(original, note):
     return original.split(MARKER)[0] + MARKER + note
 
 
-def generate(rows, original, checks):
+def generate(rows, original, checks, provider_reviews=()):
     records = {item['id']: item for item in original}
     rates = {}
     review = []
@@ -216,6 +217,27 @@ def generate(rows, original, checks):
         review.append([number, row[2], identifier,
                        'Added with provider-advertised rates' if checked else 'Added with labelled workbook estimates',
                        item['coordinateNotes'] if number == 6 or (checked and checked.get('record', {}).get('coordinateNotes')) else 'Workbook pins, amenities, campus distances and funding are unverified.'])
+    # Named, sourced provider reviews also cover residences outside the workbook.
+    # Preserve catalogue IDs and do not silently merge different building identities.
+    reviewed_ids = set()
+    for checked in provider_reviews:
+        property_data = checked['property']
+        identifier = property_data['id']
+        if identifier in reviewed_ids or set(property_data) - set(original[0]):
+            raise ValueError(f'Invalid or duplicate provider review: {identifier}')
+        reviewed_ids.add(identifier)
+        existing = records.get(identifier)
+        if existing and (existing['name'], existing['provider']) != (property_data['name'], property_data['provider']):
+            raise ValueError(f'Provider review identity conflict: {identifier}')
+        if not existing and any((record['name'], record['provider']) == (property_data['name'], property_data['provider']) for record in records.values()):
+            raise ValueError(f'Provider review would duplicate a building: {identifier}')
+        records[identifier] = {**dict.fromkeys(original[0].keys(), ''), **property_data}
+        rates[identifier] = checked['rates']
+        prior_review = next((entry for entry in review if entry[2] == identifier), None)
+        if prior_review:
+            prior_review[3:] = ['Updated from dated provider review', property_data['coordinateNotes']]
+        else:
+            review.append(['', property_data['name'], identifier, 'Added from dated provider review', property_data['coordinateNotes']])
     report = io.StringIO(newline='')
     writer = csv.writer(report, lineterminator='\n')
     writer.writerow(['workbook_id', 'workbook_residence', 'property_id', 'action', 'review_note'])
@@ -233,7 +255,8 @@ def main():
     args = parser.parse_args()
     original = json.loads((DATA / 'researchProperties.json').read_text(encoding='utf-8'))
     checks = json.loads((ROOT / 'Res Data/johannesburg-provider-checks.json').read_text(encoding='utf-8'))
-    outputs = generate(read_rows(SOURCE), original, checks)
+    provider_reviews = json.loads((ROOT / 'Res Data/campus-central-provider-checks.json').read_text(encoding='utf-8'))['reviews']
+    outputs = generate(read_rows(SOURCE), original, checks, provider_reviews)
     stale = []
     for path, content in outputs.items():
         if not path.exists() or path.read_text(encoding='utf-8') != content:
@@ -243,6 +266,7 @@ def main():
     if args.check and stale:
         raise SystemExit('Stale generated data: ' + ', '.join(stale))
     print('Johannesburg workbook: 37 rows reviewed; 11 matched, 25 added, 1 held for identity review.')
+    print(f'Campus Central: {len(provider_reviews)} provider-reviewed Parktown residences reconciled.')
 
 
 if __name__ == '__main__':

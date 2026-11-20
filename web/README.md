@@ -71,6 +71,8 @@ python web/scripts/import-johannesburg-workbook.py
 python web/scripts/import-johannesburg-workbook.py --check
 ```
 
+`Res Data/campus-central-provider-checks.json` reconciles five separate Parktown residences: Girton Road and The Albany retain their existing IDs; On Empire, St Davids Place and St Andrews are added under stable `CC-` IDs. The catalogue now contains 94 listings. The importer reapplies these reviews on every refresh. Their distinct map pins come from provider-linked destination coordinates, rather than Google Maps viewport centres or suburb references. The supplied point is about 8 metres from The Albany's pin. St Davids has two provider pins about 23 metres apart, noted as entrance uncertainty. The 2027 starting prices use 12-month leases, with shorter terms recorded only where reviewed. Private bedrooms sharing apartment facilities remain single-room options. St Andrews is scheduled to launch January 2027; its provider-labelled Studio has communal facilities and is classified as a private room. Funding amounts, approval and live availability retain provider-claim caveats.
+
 Review changes to building identity and the dated provider checks before refreshing. The importer generates the catalogue, supplementary room rates and review CSV. These local research updates do not write to Firestore or deploy the site.
 
 Once your `.env` is configured with Firebase:
