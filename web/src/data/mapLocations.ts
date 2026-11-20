@@ -117,7 +117,7 @@ export function getPropertyUniversities(property: {
 
   // 2. UJ (University of Johannesburg)
   const ujStatusMatch = ujS && !ujS.includes('not assessed') && !ujS.includes('no match');
-  const ujTextMatch = text.includes('uj') || text.includes('university of johannesburg') || text.includes('auckland park') || text.includes('doornfontein') || text.includes('bunting') || text.includes('kingsway') || text.includes('westdene') || text.includes('melville') || text.includes('soweto');
+  const ujTextMatch = /\buj\b/.test(text) || text.includes('university of johannesburg') || text.includes('auckland park') || text.includes('doornfontein') || text.includes('bunting') || text.includes('kingsway') || text.includes('westdene') || text.includes('melville') || text.includes('soweto');
   const ujNearCoord = hasCoords && distanceKm(pCoords, UNIVERSITIES[1].position) <= UNIVERSITIES[1].radiusKm;
   if (ujStatusMatch || ujTextMatch || ujNearCoord) {
     matched.push(UNIVERSITIES[1]);
@@ -125,7 +125,7 @@ export function getPropertyUniversities(property: {
 
   // 3. UP (University of Pretoria)
   const upStatusMatch = upS && !upS.includes('not assessed') && !upS.includes('no match');
-  const upTextMatch = text.includes('university of pretoria') || text.includes('hatfield') || text.includes('hillcrest') || text.includes('brooklyn') || text.includes('groenkloof') || text.includes('prinshof') || (text.includes('pretoria') && !text.includes('pretoria west'));
+  const upTextMatch = /\bup\b/.test(text) || text.includes('university of pretoria') || text.includes('hatfield') || text.includes('hillcrest') || text.includes('brooklyn') || text.includes('groenkloof') || text.includes('prinshof') || (text.includes('pretoria') && !text.includes('pretoria west'));
   const upNearCoord = hasCoords && distanceKm(pCoords, UNIVERSITIES[2].position) <= UNIVERSITIES[2].radiusKm;
   if (upStatusMatch || upTextMatch || upNearCoord) {
     matched.push(UNIVERSITIES[2]);
@@ -133,7 +133,7 @@ export function getPropertyUniversities(property: {
 
   // 4. TUT (Tshwane University of Technology)
   const tutStatusMatch = tutS && !tutS.includes('not assessed') && !tutS.includes('no match');
-  const tutTextMatch = text.includes('tshwane') || text.includes('tut') || text.includes('arcadia') || text.includes('pretoria west') || text.includes('soshanguve') || text.includes('ga-rankuwa') || text.includes('danville');
+  const tutTextMatch = text.includes('tshwane') || /\btut\b/.test(text) || text.includes('arcadia') || text.includes('pretoria west') || text.includes('soshanguve') || text.includes('ga-rankuwa') || text.includes('danville');
   const tutNearCoord = hasCoords && distanceKm(pCoords, UNIVERSITIES[3].position) <= UNIVERSITIES[3].radiusKm;
   if (tutStatusMatch || tutTextMatch || tutNearCoord) {
     matched.push(UNIVERSITIES[3]);

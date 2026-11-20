@@ -32,6 +32,42 @@ const records = loadData('./researchProperties.json');
 const pricing = loadData('./researchPricing');
 const rooms = loadData('./roomRates');
 const matching = loadData('./researchMatch');
+const offerings = loadData('./researchOfferings');
+const locations = loadData('./mapLocations');
+
+test('institution wording cannot turn Parktown residences into TUT listings', () => {
+  const parktown = records.filter(record => /\bparktown\b/i.test(record.locality));
+  for (const item of parktown) {
+    assert.doesNotMatch(offerings.parseOfferings(item).campusDistance, /TUT|\d.*min.*walk/);
+    assert.equal(locations.isNearUniversity(item, 'tut'), false, item.name);
+  }
+  const neutral = { ...parktown[0], campus: 'Nearby educational institutions. Route information supplied.', locality: 'Unknown', latitude: null, longitude: null };
+  assert.equal(offerings.parseOfferings(neutral).campusDistance, 'Campus proximity unconfirmed');
+  assert.equal(locations.isNearUniversity(neutral, 'tut'), false);
+  for (const [campus, id, label] of [
+    ['Near TUT campus', 'tut', 'TUT campus area'],
+    ['Tshwane University of Technology', 'tut', 'TUT campus area'],
+    ['Near UP campus', 'up', 'UP campus area'],
+    ['Near UJ campus', 'uj', 'UJ campus area']
+  ]) {
+    const item = { ...neutral, campus };
+    assert.equal(offerings.parseOfferings(item).campusDistance, label);
+    assert.equal(locations.isNearUniversity(item, id), true);
+  }
+});
+
+test('Parktown labels identify the mapped Wits campus without inventing walking times', () => {
+  const label = id => offerings.parseOfferings(records.find(item => item.id === id)).campusDistance;
+  assert.equal(label('JHB-WB-0032'), 'Near Wits Business School');
+  assert.equal(label('JHB-WB-0033'), 'Near Wits Business School');
+  assert.equal(label('CC-ST-DAVIDS'), 'Near Wits Business School');
+  assert.equal(label('JHB-WB-0012'), 'Near Wits Health Sciences Campus');
+  assert.equal(label('GSA-P0004'), 'Wits Health Sciences Campus area');
+  const education = { ...records[0], locality: 'Parktown', latitude: -26.1794, longitude: 28.0418 };
+  assert.equal(offerings.parseOfferings(education).campusDistance, 'Near Wits Education Campus');
+  const noPin = { ...education, campus: 'Nearby educational institutions', latitude: null, longitude: null };
+  assert.equal(offerings.parseOfferings(noPin).campusDistance, 'Wits Parktown campuses');
+});
 
 test('workbook expands the catalogue without duplicating matched buildings', () => {
   assert.equal(records.length, 94);

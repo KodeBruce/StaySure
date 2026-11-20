@@ -1,5 +1,7 @@
 import records from './researchProperties.json';
 import { researchPriceSummary } from './researchPricing';
+import { distanceKm } from './mapLocations';
+import { WITS_CAMPUSES } from './witsCampuses';
 
 export type ResearchProperty = (typeof records)[number];
 
@@ -50,21 +52,44 @@ export function parseOfferings(item: ResearchProperty): ParsedOfferings {
   }
 
   // 2. Campus & Proximity
-  let campusDistance = 'Near Campus';
-  if (/wits/i.test(campusText)) {
-    if (/close|walk|opposite/i.test(campusText) || /braamfontein/i.test(item.locality)) {
-      campusDistance = 'Near Wits (~5–12 min walk)';
+  let campusDistance = 'Campus proximity unconfirmed';
+  // Use the mapped campus for Parktown pins, rather than a generic university
+  // or a walking time that has not been measured. Campus positions are not gates.
+  const nearestWits = /\bparktown\b/i.test(item.locality) &&
+    Number.isFinite(item.latitude) && Number.isFinite(item.longitude)
+    ? WITS_CAMPUSES.map(campus => ({
+      campus,
+      distance: distanceKm([item.latitude!, item.longitude!], campus.position)
+    })).sort((a, b) => a.distance - b.distance)[0]
+    : undefined;
+  if (nearestWits && nearestWits.distance <= 2) {
+    campusDistance = nearestWits.campus.id === 'management'
+      ? 'Near Wits Business School'
+      : `Near Wits ${nearestWits.campus.name}`;
+  } else if (/\bwits\b|witwatersrand/i.test(campusText)) {
+    if (/medical|health sciences/i.test(campusText)) {
+      campusDistance = /education/i.test(campusText)
+        ? 'Wits Health Sciences / Education campuses'
+        : 'Wits Health Sciences Campus area';
+    } else if (/business school|management campus/i.test(campusText)) {
+      campusDistance = 'Wits Business School area';
+    } else if (/education/i.test(campusText)) {
+      campusDistance = 'Wits Education Campus area';
+    } else if (/main campus|braamfontein/i.test(campusText)) {
+      campusDistance = 'Wits Braamfontein campuses';
     } else {
-      campusDistance = 'Wits Campus Area';
+      campusDistance = 'Wits campus area';
     }
-  } else if (/uj/i.test(campusText)) {
-    campusDistance = 'Near UJ Campus';
-  } else if (/tut/i.test(campusText)) {
-    campusDistance = 'Near TUT Campus';
-  } else if (/up/i.test(campusText)) {
-    campusDistance = 'Near UP Campus';
-  } else if (/braamfontein/i.test(item.locality)) {
-    campusDistance = 'Braamfontein (walk to Wits)';
+  } else if (/\buj\b|university of johannesburg/i.test(campusText)) {
+    campusDistance = 'UJ campus area';
+  } else if (/\btut\b|tshwane university of technology/i.test(campusText)) {
+    campusDistance = 'TUT campus area';
+  } else if (/\bup\b|university of pretoria/i.test(campusText)) {
+    campusDistance = 'UP campus area';
+  } else if (/\bparktown\b/i.test(item.locality)) {
+    campusDistance = 'Wits Parktown campuses';
+  } else if (/\bbraamfontein\b/i.test(item.locality)) {
+    campusDistance = 'Wits Braamfontein campuses';
   }
 
   const shortLocality = item.locality.split(',')[0].trim();
