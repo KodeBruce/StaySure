@@ -126,31 +126,150 @@
   "JHB-WB-0012": [
     {
       "category": "sharing",
-      "name": "Shared in 3-Bed",
-      "monthly": "R4,820",
+      "name": "Shared room in cluster unit",
+      "monthly": "R4,860–R5,180",
       "basis": "basis unconfirmed",
-      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+      "note": "12-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
     },
     {
       "category": "sharing",
-      "name": "Shared in 2-Bed/Cluster",
-      "monthly": "R4,860–R6,590",
+      "name": "Shared room in cluster unit",
+      "monthly": "R5,110–R5,450",
       "basis": "basis unconfirmed",
-      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+      "note": "11-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
     },
     {
       "category": "sharing",
-      "name": "Shared Cluster Unit",
-      "monthly": "R7,000",
+      "name": "Shared room in cluster unit",
+      "monthly": "R5,350",
       "basis": "basis unconfirmed",
-      "note": "Up to · workbook 2026 estimate; confirm current rent and lease length"
+      "note": "10-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed; displayed price is the same for both cluster variants—confirm with provider"
+    },
+    {
+      "category": "sharing",
+      "name": "Shared room in 3-bed apartment",
+      "monthly": "R5,590",
+      "basis": "basis unconfirmed",
+      "note": "12-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "sharing",
+      "name": "Shared room in 3-bed apartment",
+      "monthly": "R5,880",
+      "basis": "basis unconfirmed",
+      "note": "11-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "sharing",
+      "name": "Shared room in 3-bed apartment",
+      "monthly": "R6,150",
+      "basis": "basis unconfirmed",
+      "note": "10-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
     },
     {
       "category": "single",
-      "name": "Single Quintet/Apt",
-      "monthly": "R6,730–R8,170",
+      "name": "Single room in 3-bed apartment",
+      "monthly": "R6,050–R7,680",
       "basis": "basis unconfirmed",
-      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+      "note": "12-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 3-bed apartment",
+      "monthly": "R6,350–R8,070",
+      "basis": "basis unconfirmed",
+      "note": "11-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 3-bed apartment",
+      "monthly": "R6,650–R8,450",
+      "basis": "basis unconfirmed",
+      "note": "10-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 4-bed apartment",
+      "monthly": "R6,730–R7,040",
+      "basis": "basis unconfirmed",
+      "note": "12-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 4-bed apartment",
+      "monthly": "R7,070–R7,400",
+      "basis": "basis unconfirmed",
+      "note": "11-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 4-bed apartment",
+      "monthly": "R7,400–R7,750",
+      "basis": "basis unconfirmed",
+      "note": "10-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 2-bed apartment",
+      "monthly": "R7,450–R8,450",
+      "basis": "basis unconfirmed",
+      "note": "12-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 2-bed apartment",
+      "monthly": "R7,830–R8,880",
+      "basis": "basis unconfirmed",
+      "note": "11-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 2-bed apartment",
+      "monthly": "R8,200–R9,300",
+      "basis": "basis unconfirmed",
+      "note": "10-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "studio",
+      "name": "Studio apartment",
+      "monthly": "R8,820–R10,270",
+      "basis": "basis unconfirmed",
+      "note": "12-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "studio",
+      "name": "Studio apartment",
+      "monthly": "R9,260–R10,790",
+      "basis": "basis unconfirmed",
+      "note": "11-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "studio",
+      "name": "Studio apartment",
+      "monthly": "R9,700–R11,300",
+      "basis": "basis unconfirmed",
+      "note": "10-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "studio",
+      "name": "Wheelchair-accessible studio apartment",
+      "monthly": "R9,090",
+      "basis": "basis unconfirmed",
+      "note": "12-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "studio",
+      "name": "Wheelchair-accessible studio apartment",
+      "monthly": "R9,550",
+      "basis": "basis unconfirmed",
+      "note": "11-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+    },
+    {
+      "category": "studio",
+      "name": "Wheelchair-accessible studio apartment",
+      "monthly": "R10,000",
+      "basis": "basis unconfirmed",
+      "note": "10-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
     }
   ],
   "JHB-WB-0014": [

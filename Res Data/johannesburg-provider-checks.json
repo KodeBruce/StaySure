@@ -32,6 +32,181 @@
       { "category": "single", "name": "Single room in shared apartment", "monthly": "R5,600", "basis": "basis unconfirmed", "note": "From · provider page checked 2026-11-20; year unconfirmed" }
     ]
   },
+  "12": {
+    "url": "https://thrivestudentliving.co.za/residences/johannesburg/arteria-parktown/",
+    "checkedOn": "2026-11-20",
+    "advertisedPrice": "Provider room cards advertise R4,860–R11,300 per month across 10-, 11- and 12-month lease options. Prices vary by room, floor and lease term; some categories are fully let. Confirm academic year, availability and per-person/per-room billing basis.",
+    "pricePeriod": "Official room-card text reviewed 2026-11-20; academic year not stated. Monthly rates depend on a 10-, 11- or 12-month agreement. Short-stay nightly tariffs are separate. Archived 2026 PDF schedules differ and are not substituted for these room cards.",
+    "rooms": "Shared cluster rooms, shared rooms in apartments, private single rooms in apartments, private studio apartments and wheelchair-accessible studios. Shared bathroom/kitchenette or private ensuite/kitchenette depends on the room. Some studios and lower-priced single options were marked fully let in the retrieved page; confirm availability. Separate short-stay room cards list shared apartment room R210/night, shared cluster room R390/night, single apartment room R280–R310/night and studio R380/night. A mobility-friendly card lists R330/night but its shared-room title conflicts with its private-studio description; confirm the room and rate before booking.",
+    "rates": [
+      {
+        "category": "sharing",
+        "name": "Shared room in cluster unit",
+        "monthly": "R4,860–R5,180",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "sharing",
+        "name": "Shared room in cluster unit",
+        "monthly": "R5,110–R5,450",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "sharing",
+        "name": "Shared room in cluster unit",
+        "monthly": "R5,350",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed; displayed price is the same for both cluster variants—confirm with provider"
+      },
+      {
+        "category": "sharing",
+        "name": "Shared room in 3-bed apartment",
+        "monthly": "R5,590",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "sharing",
+        "name": "Shared room in 3-bed apartment",
+        "monthly": "R5,880",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "sharing",
+        "name": "Shared room in 3-bed apartment",
+        "monthly": "R6,150",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 3-bed apartment",
+        "monthly": "R6,050–R7,680",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 3-bed apartment",
+        "monthly": "R6,350–R8,070",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 3-bed apartment",
+        "monthly": "R6,650–R8,450",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 4-bed apartment",
+        "monthly": "R6,730–R7,040",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 4-bed apartment",
+        "monthly": "R7,070–R7,400",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 4-bed apartment",
+        "monthly": "R7,400–R7,750",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 2-bed apartment",
+        "monthly": "R7,450–R8,450",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 2-bed apartment",
+        "monthly": "R7,830–R8,880",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 2-bed apartment",
+        "monthly": "R8,200–R9,300",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "studio",
+        "name": "Studio apartment",
+        "monthly": "R8,820–R10,270",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "studio",
+        "name": "Studio apartment",
+        "monthly": "R9,260–R10,790",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "studio",
+        "name": "Studio apartment",
+        "monthly": "R9,700–R11,300",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "studio",
+        "name": "Wheelchair-accessible studio apartment",
+        "monthly": "R9,090",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "studio",
+        "name": "Wheelchair-accessible studio apartment",
+        "monthly": "R9,550",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      },
+      {
+        "category": "studio",
+        "name": "Wheelchair-accessible studio apartment",
+        "monthly": "R10,000",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · official room cards reviewed 2026-11-20; year and availability unconfirmed"
+      }
+    ],
+    "record": {
+      "address": "33 Princess of Wales Terrace, Parktown, Johannesburg, 2193",
+      "latitude": -26.1775337,
+      "longitude": 28.047479,
+      "coordinateStatus": "Provider-linked Google Maps property pin",
+      "coordinatePrecision": "Residence place pin; exact entrance not independently surveyed",
+      "coordinateNotes": "Coordinates taken from the Google Maps place pin linked by the official residence page, reviewed 2026-11-20. This replaces the unverified workbook pin. The supplied -26.1752, 28.0237 is a Parktown neighbourhood reference, not this residence's map pin. Confirm the entrance with Thrive before travel.",
+      "coordinateSource": "https://maps.app.goo.gl/5dxbv6EidoCeMEyC7",
+      "amenities": "Provider lists furnished rooms with beds, study desks/chairs, wardrobes, lamps and heaters. Room rates include uncapped Wi-Fi, limited electricity and limited laundry cycles; parking costs extra. Shared facilities: study hubs, computer labs, meeting room, games room, TV room, gym, braai and rooftop recreation. Security/support: 24/7 security, CCTV, facial access control, backup power, backup water, on-site management and wellbeing support. Room-specific appliances, kitchenette and bathroom configuration vary.",
+      "campus": "Provider advertises an 8-minute walk to Wits Medical and Education Campus. Walking route and journey time have not been independently measured; older workbook campus distances are superseded.",
+      "confidence": "Official residence-page prices, address and amenity claims reviewed 2026-11-20; map pin follows the provider's Google Maps link. Academic year, live availability, billing basis and funding approval remain unconfirmed.",
+      "gaps": "Confirm academic year, live room availability, per-person/per-room billing basis, deposits/admin fees, utility allowances, laundry limits and parking charges. The cluster room cards display an 11-month maximum above the displayed 10-month price; ask the provider to confirm. Nightly short-stay tariffs differ from the supplied summary and from site-wide navigation prices. The mobility-friendly short-stay card has conflicting room labels. Funding approval is not established by this review.",
+      "sources": [
+        "https://thrivestudentliving.co.za/residences/johannesburg/arteria-parktown/",
+        "https://thrivestudentliving.co.za/short-stays/johannesburg/arteria-parktown/",
+        "https://maps.app.goo.gl/5dxbv6EidoCeMEyC7"
+      ]
+    },
+    "sourceNotes": "Reviewed the property-specific room cards, excluding site-wide search/navigation prices. The web retrieval reports a crawl about two weeks before review; direct origin requests were blocked by Cloudflare. Availability is a retrieved-page snapshot, not a live booking confirmation. The user-supplied neighbourhood reference is not used as a building coordinate. The room cards do not identify an academic year."
+  },
   "14": {
     "url": "https://respublica.co.za/residence/the-fields/",
     "checkedOn": "2026-11-20",

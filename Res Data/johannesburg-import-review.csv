@@ -10,7 +10,7 @@ workbook_id,workbook_residence,property_id,action,review_note
 9,Thrive | Kingsway Place,JHB-WB-0009,Added with labelled workbook estimates,"Workbook pins, amenities, campus distances and funding are unverified."
 10,Thrive | Horizon Heights,GSA-P0010,Added contacts/campus context; retained provider-read prices,"Existing addresses, amenities, coordinates and funding evidence retained."
 11,Thrive | The Richmond & Richmond Central,GSA-P0011,Added contacts/campus context; retained provider-read prices,Combined Richmond/Richmond Central row: no combined rates assigned to The Richmond.
-12,Thrive | Arteria Parktown,JHB-WB-0012,Added with labelled workbook estimates,"Workbook pins, amenities, campus distances and funding are unverified."
+12,Thrive | Arteria Parktown,JHB-WB-0012,Added with provider-advertised rates,"Coordinates taken from the Google Maps place pin linked by the official residence page, reviewed 2026-11-20. This replaces the unverified workbook pin. The supplied -26.1752, 28.0237 is a Parktown neighbourhood reference, not this residence's map pin. Confirm the entrance with Thrive before travel."
 13,Respublica | Yale Village,GSA-P0008,Added contacts/campus context; retained provider-read prices,"Existing addresses, amenities, coordinates and funding evidence retained."
 14,Respublica | The Fields,JHB-WB-0014,Added with provider-advertised rates,"Workbook pins, amenities, campus distances and funding are unverified."
 15,Respublica | Saratoga Village,JHB-WB-0015,Added with labelled workbook estimates,"Workbook pins, amenities, campus distances and funding are unverified."

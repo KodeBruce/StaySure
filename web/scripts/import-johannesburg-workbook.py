@@ -196,6 +196,15 @@ def generate(rows, original, checks):
             item['verification'] += f" Provider room rates checked {checked['checkedOn']}: {checked['url']}. Workbook prices superseded by provider-advertised prices; availability and approval remain unverified."
             item['rooms'] = checked['rooms']
             rates[identifier] = checked['rates']
+            # Dated property reviews can replace workbook location and amenity claims.
+            # Only existing catalogue fields may be supplied; IDs remain stable.
+            overrides = checked.get('record', {})
+            allowed = {'address', 'latitude', 'longitude', 'coordinateStatus',
+                       'coordinatePrecision', 'coordinateNotes', 'coordinateSource',
+                       'contact', 'amenities', 'campus', 'confidence', 'gaps', 'sources'}
+            if set(overrides) - allowed:
+                raise ValueError(f'Unsupported provider review fields for workbook ID {number}')
+            item.update(overrides)
         if number == 6:
             # A known street-address conflict must not produce a misleading map pin.
             item['latitude'] = item['longitude'] = None
@@ -206,7 +215,7 @@ def generate(rows, original, checks):
         records[identifier] = item
         review.append([number, row[2], identifier,
                        'Added with provider-advertised rates' if checked else 'Added with labelled workbook estimates',
-                       item['coordinateNotes'] if number == 6 else 'Workbook pins, amenities, campus distances and funding are unverified.'])
+                       item['coordinateNotes'] if number == 6 or (checked and checked.get('record', {}).get('coordinateNotes')) else 'Workbook pins, amenities, campus distances and funding are unverified.'])
     report = io.StringIO(newline='')
     writer = csv.writer(report, lineterminator='\n')
     writer.writerow(['workbook_id', 'workbook_residence', 'property_id', 'action', 'review_note'])

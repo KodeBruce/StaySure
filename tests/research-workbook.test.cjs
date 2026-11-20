@@ -89,6 +89,35 @@ test('private workbook funding is not treated as an NSFAS claim', () => {
   assert.equal(parseOfferings(records.find(record => record.id === 'JHB-WB-0007')).isNsfasClaimed, true);
 });
 
+test('Arteria uses the provider-linked residence pin and separate monthly lease schedules', () => {
+  const arteria = records.find(record => record.id === 'JHB-WB-0012');
+  assert.equal(records.filter(record => record.name === 'Arteria Parktown').length, 1);
+  assert.equal(arteria.latitude, -26.1775337);
+  assert.equal(arteria.longitude, 28.047479);
+  assert.equal(arteria.coordinateSource, 'https://maps.app.goo.gl/5dxbv6EidoCeMEyC7');
+  assert.match(arteria.coordinateNotes, /neighbourhood reference/);
+  assert.match(arteria.campus, /8-minute walk/);
+  assert.equal(pricing.isWorkbookEstimate(arteria.advertisedPrice), false);
+  assert.equal(pricing.researchPriceSummary(arteria.advertisedPrice).label, 'R4,860–R11,300');
+  assert.match(arteria.pricePeriod, /academic year not stated/);
+  const rates = rooms.getRoomRates(arteria.id);
+  assert.equal(rates.length, 21);
+  for (const months of [10, 11, 12]) {
+    assert.equal(rates.filter(rate => rate.note.startsWith(`${months}-month agreement`)).length, 7);
+  }
+  assert.equal(rates.find(rate => rate.name === 'Shared room in cluster unit' && rate.note.startsWith('12-month')).monthly, 'R4,860–R5,180');
+  assert.equal(rates.find(rate => rate.name === 'Studio apartment' && rate.note.startsWith('10-month')).monthly, 'R9,700–R11,300');
+  assert.ok(rates.every(rate => rate.basis === 'basis unconfirmed'));
+  assert.ok(rates.every(rate => !/night/i.test(rate.monthly + rate.note)), 'Nightly rates cannot enter monthly budget matching');
+  assert.match(arteria.rooms, /R210\/night/);
+  assert.match(arteria.rooms, /R390\/night/);
+  assert.match(arteria.rooms, /R380\/night/);
+  assert.match(arteria.rooms, /mobility-friendly.*R330\/night/);
+  assert.match(arteria.amenities, /limited electricity and limited laundry/);
+  assert.match(arteria.amenities, /parking costs extra/);
+  assert.match(arteria.gaps, /Funding approval is not established/);
+});
+
 test('social links use supplied handles and preserve dots inside account names', () => {
   const { getPropertySocialLinks } = loadData('./propertySocials');
   const links = getPropertySocialLinks(records.find(record => record.id === 'GSA-P0001'));
