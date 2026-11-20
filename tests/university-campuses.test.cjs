@@ -4,14 +4,18 @@ const { readFileSync } = require('node:fs');
 const { stripTypeScriptTypes } = require('node:module');
 const { runInNewContext } = require('node:vm');
 const data = require('../web/src/data/universityCampuses.json');
-const source = require('../Res Data/uj-up-campus-source.json');
+const source = { elements: [
+  ...require('../Res Data/uj-up-campus-source.json').elements,
+  ...require('../Res Data/tut-campus-source.json').elements
+] };
 
-test('UJ and Tuks grounds use sourced closed boundaries and the requested colours', () => {
+test('UJ, Tuks and TUT grounds use sourced closed boundaries and the requested colours', () => {
   assert.equal(data.campuses.filter(c => c.universityId === 'uj').length, 4);
   assert.equal(data.campuses.filter(c => c.universityId === 'up').length, 3);
+  assert.equal(data.campuses.filter(c => c.universityId === 'tut').length, 5);
   const nodes = new Set(source.elements.filter(e => e.type === 'node').map(e => `${e.lat},${e.lon}`));
   for (const campus of data.campuses) {
-    assert.equal(campus.color, campus.universityId === 'uj' ? '#f97316' : '#dc2626');
+    assert.equal(campus.color, { uj: '#f97316', up: '#dc2626', tut: '#000000' }[campus.universityId]);
     assert.ok(source.elements.some(e => e.type === campus.sourceType && e.id === campus.sourceId));
     for (const ring of campus.outlines) {
       assert.ok(ring.length >= 4);
@@ -32,7 +36,7 @@ test('campus grounds remain beneath accommodation pins and clean up on unmount',
     .replace(/^import .*;\s*$/mg, '').replace('export function', 'function');
   const add = runInNewContext(`${code}\n;addUniversityCampusLayer`, { L, data });
   const layer = add({ createPane(name) { return panes[name] = { style: {} }; } });
-  assert.equal(polygons.length, 7);
+  assert.equal(polygons.length, 12);
   assert.ok(polygons.every(p => !p.options.interactive && p.options.fillOpacity < .2));
   assert.equal(panes.universityCampusGrounds.style.zIndex, '390');
   layer.remove();

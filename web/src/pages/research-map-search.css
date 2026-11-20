@@ -607,6 +607,8 @@
 }
 
 .research-map-search .map-card-rail {
+  --rail-card-width: min(320px, 88vw);
+  --rail-edge: 20px;
   position: absolute;
   z-index: 500;
   left: 0;
@@ -616,11 +618,14 @@
   /* Let each card end after its content instead of stretching to the tallest result. */
   align-items: flex-end;
   gap: 14px;
-  padding: 10px 20px;
+  /* Both end cards must be able to reach the centre, even with only three cards. */
+  padding: 10px max(var(--rail-edge), calc((100% - var(--rail-card-width)) / 2));
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   visibility: visible;
@@ -643,7 +648,7 @@
 
 .research-map-search .map-rail-card,
 .research-map-search .map-rail-empty {
-  flex: 0 0 min(320px, 88vw);
+  flex: 0 0 var(--rail-card-width);
   scroll-snap-align: center;
   border: 1px solid rgba(19, 35, 79, 0.1);
   border-radius: 18px;
@@ -1756,7 +1761,7 @@
 
   .research-map-search .map-card-rail {
     bottom: calc(90px + env(safe-area-inset-bottom, 0px));
-    padding-inline: 16px;
+    --rail-edge: 16px;
   }
 
   .research-map-search .map-approx-note {
@@ -1787,12 +1792,13 @@
 @media (max-width: 520px) {
   .research-map-search .map-card-rail {
     bottom: calc(80px + env(safe-area-inset-bottom, 0px));
-    padding-inline: 14px;
+    --rail-edge: 14px;
+    --rail-card-width: min(300px, 86vw);
     gap: 10px;
   }
 
   .research-map-search .map-rail-card {
-    flex: 0 0 min(300px, 86vw);
+    flex: 0 0 var(--rail-card-width);
     height: auto;
     border-radius: 16px;
   }
@@ -1812,6 +1818,12 @@
 
   .research-map-search .map-approx-note {
     bottom: calc(290px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 390px) {
+  .research-map-search .map-card-rail {
+    --rail-card-width: 92vw;
   }
 }
 

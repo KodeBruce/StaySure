@@ -1,0 +1,12 @@
+{
+  "propertyId": "GSA-P0016",
+  "retrievedOn": "2026-11-20",
+  "source": "https://deanonthedam.co.za/westdene-student-accommodation-map/",
+  "marker": {
+    "title": "Dean on the Dam",
+    "latitude": -26.182324,
+    "longitude": 27.990023,
+    "address": "19 Aberdeen St, Westdene, Johannesburg, 2092, South Africa"
+  },
+  "note": "Named Dean on the Dam marker in the provider interactive map at 19 Aberdeen Street, Westdene; checked 2026-11-20. Provider-stated pin, not an independently surveyed entrance. Supersedes the rejected street-only geocoder candidate."
+}

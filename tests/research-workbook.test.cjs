@@ -35,6 +35,16 @@ const matching = loadData('./researchMatch');
 const offerings = loadData('./researchOfferings');
 const locations = loadData('./mapLocations');
 
+test('Dean on the Dam is mappable using its named provider marker and published monthly price', () => {
+  const dean = records.find(record => record.id === 'GSA-P0016');
+  const evidence = require('../Res Data/dean-map-provider-check.json');
+  assert.equal(dean.latitude, evidence.marker.latitude);
+  assert.equal(dean.longitude, evidence.marker.longitude);
+  assert.equal(dean.coordinateSource, evidence.source);
+  assert.ok(Number.isFinite(dean.latitude) && Number.isFinite(dean.longitude));
+  assert.equal(pricing.researchPriceSummary(dean.advertisedPrice).pinLabel, 'R6,000+');
+});
+
 test('institution wording cannot turn Parktown residences into TUT listings', () => {
   const parktown = records.filter(record => /\bparktown\b/i.test(record.locality));
   for (const item of parktown) {

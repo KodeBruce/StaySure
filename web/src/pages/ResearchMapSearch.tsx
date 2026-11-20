@@ -34,6 +34,7 @@ import { PropertySocialLinks } from '../components/PropertySocialLinks';
 import { NearbySearchControls } from '../components/NearbySearchControls';
 import { addWitsCampusLayer } from '../components/witsCampusLayer';
 import { addUniversityCampusLayer } from '../components/universityCampusLayer';
+import universityCampusData from '../data/universityCampuses.json';
 import { bindMapZoomGestures, MAP_ZOOM_OPTIONS } from '../components/mapZoom';
 import { addMapBasemap, type MapView } from '../components/mapBasemap';
 import { WITS_CAMPUSES, campusFocusPoints, type CampusFocus } from '../data/witsCampuses';
@@ -262,9 +263,10 @@ export function MapPropertySheet({ item, match, onExited, saved, compared, image
   </div>, document.body);
 }
 
-function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition, radiusKm, onSelect, onViewChange, campusFocus, showWitsCampuses, mapView }: {
+function ResearchPins({ items, selectedId, focusSelected = true, center, targetZoom = 12, userPosition, radiusKm, onSelect, onViewChange, campusFocus, showWitsCampuses, mapView }: {
   items: ResearchProperty[];
   selectedId: string | null;
+  focusSelected?: boolean;
   center: Coordinates;
   targetZoom?: number;
   userPosition: Coordinates | null;
@@ -314,11 +316,14 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
 
   useEffect(() => {
     if (!map.current) return;
-    if (items.length > 1 && items.length <= 6) {
+    if (items.length >= 1 && items.length <= 6) {
       const bounds = L.latLngBounds(items.map(position));
-      map.current.fitBounds(bounds.pad(0.25), { maxZoom: 15 });
-    } else if (items.length === 1) {
-      map.current.setView(position(items[0]), 15);
+      const rail = document.getElementById('research-map-carousel');
+      const railHeight = rail?.getAttribute('aria-hidden') === 'false' ? rail.getBoundingClientRect().height : 0;
+      map.current.fitBounds(bounds.pad(0.25), {
+        maxZoom: 15, paddingTopLeft: [40, 120],
+        paddingBottomRight: [40, Math.min(railHeight + 24, map.current.getSize().y * .6)]
+      });
     } else {
       map.current.setView(center, targetZoom);
     }
@@ -326,7 +331,7 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
 
   useEffect(() => {
     const selected = items.find(item => item.id === selectedId);
-    if (selected && hasCoordinates(selected)) {
+    if (focusSelected && selected && hasCoordinates(selected)) {
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const targetZoom = Math.max(map.current?.getZoom() || 12, 15);
       map.current?.flyTo(position(selected), targetZoom, {
@@ -334,12 +339,14 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
         duration: 0.45
       });
     }
-  }, [selectedId, items]);
+  }, [selectedId, items, focusSelected]);
 
   useEffect(() => {
     const instance = map.current;
-    if (!instance || !campusFocus || !showWitsCampuses) return;
-    const points = campusFocusPoints(campusFocus.id);
+    if (!instance || !campusFocus) return;
+    const points = campusFocus.id === 'tut-pretoria'
+      ? universityCampusData.campuses.filter(campus => campus.id === 'tut-63131200').flatMap(campus => campus.outlines.flat()) as Coordinates[]
+      : showWitsCampuses ? campusFocusPoints(campusFocus.id) : [];
     if (!points.length) return;
     const rail = document.getElementById('research-map-carousel');
     const railHeight = rail?.getAttribute('aria-hidden') === 'false' ? rail.getBoundingClientRect().height : 0;
@@ -397,7 +404,7 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
       marker.getElement()?.querySelector('.accom-map-pin')?.classList.toggle('is-selected', isSelected);
       marker.setZIndexOffset(isSelected ? 1000 : 0);
     }
-  }, [selectedId]);
+  }, [selectedId, items]);
 
   return <div ref={element} className="accom-map" role="region" aria-label="Map of researched accommodation with approximate locations" />;
 }
@@ -551,7 +558,10 @@ export function ResearchMapSearch() {
     });
   }, [selectedUniversity, area, region, maxRent, selectedPrefs, selectedRoomTypes, mapBounds, nearby, userPosition, radiusKm, criteria]);
 
-  const mapped = useMemo(() => results.filter(hasCoordinates), [results]);
+  const carouselResults = useMemo(() => compared.ids.length >= 3
+    ? results.filter(item => compared.ids.includes(item.id)) : results, [results, compared.ids]);
+  const mapped = useMemo(() => carouselResults.filter(item => hasCoordinates(item) &&
+    (!compared.ids.length || compared.ids.includes(item.id) || item.id === selectedId)), [carouselResults, compared.ids, selectedId]);
   const center = useMemo<Coordinates>(() => {
     if (userPosition && nearby) return mapped.length ? position(mapped[0]) : userPosition;
     if (selectedUniversity && selectedUniversity !== 'all') {
@@ -575,8 +585,8 @@ export function ResearchMapSearch() {
   }, [selectedUniversity, nearby, area, region]);
 
   useEffect(() => {
-    if (selectedId !== null && !results.some(item => item.id === selectedId)) setSelectedId(null);
-  }, [results, selectedId]);
+    if (selectedId !== null && !carouselResults.some(item => item.id === selectedId)) setSelectedId(null);
+  }, [carouselResults, selectedId]);
 
   function showCampus(id: string) {
     if (railScrollTimer.current !== null) window.clearTimeout(railScrollTimer.current);
@@ -590,6 +600,7 @@ export function ResearchMapSearch() {
   useEffect(() => {
     setCampusMenuOpen(false);
     if (selectedUniversity === 'wits') showCampus('all');
+    else if (selectedUniversity === 'tut') showCampus('tut-pretoria');
     else setCampusFocus(null);
   }, [selectedUniversity]);
 
@@ -647,6 +658,15 @@ export function ResearchMapSearch() {
     setDetailId(id);
   }
 
+  function onRailInteract() {
+    // A swipe or wheel gesture takes over from a pending price-pin reveal.
+    if (railSelectionLock.current !== null) window.clearTimeout(railSelectionLock.current);
+    railSelectionLock.current = null;
+    if (railRevealFrame.current !== null) window.cancelAnimationFrame(railRevealFrame.current);
+    railRevealFrame.current = null;
+    setCampusFocus(null);
+  }
+
   function onRailScroll() {
     if (railHidden || campusFocus) return;
     if (railSelectionLock.current !== null) {
@@ -682,7 +702,7 @@ export function ResearchMapSearch() {
   const activeRoomLabel = selectedRoomTypes.length === 1 ? ROOM_TYPE_OPTIONS.find(option => option.id === selectedRoomTypes[0])?.label : selectedRoomTypes.length > 1 ? `${selectedRoomTypes.length} room types` : '';
 
   return <div className="fullscreen-search research-map-search" aria-label="Research accommodation map search">
-    <ResearchPins items={mapped} selectedId={selectedId} center={center} targetZoom={targetZoom} userPosition={nearby ? userPosition : null} radiusKm={radiusKm} onSelect={selectProperty} onViewChange={setPendingBounds} campusFocus={campusFocus} showWitsCampuses={selectedUniversity === 'wits'} mapView={mapView} />
+    <ResearchPins items={mapped} selectedId={selectedId} focusSelected={!compared.ids.length} center={center} targetZoom={targetZoom} userPosition={nearby ? userPosition : null} radiusKm={radiusKm} onSelect={selectProperty} onViewChange={setPendingBounds} campusFocus={campusFocus} showWitsCampuses={selectedUniversity === 'wits'} mapView={mapView} />
     <div className="fullscreen-map-top">
       <div className="map-view-controls">
         <button type="button" className="map-float-button map-nearby-toggle" onClick={useMyLocation} disabled={locating} aria-label="Find researched accommodation near me" aria-pressed={nearby}><LocateFixed size={20} /></button>
@@ -766,8 +786,9 @@ export function ResearchMapSearch() {
     {locationMessage && <p className="map-location-toast" role="status">{locationMessage}</p>}
 
     <div id="research-map-carousel" className={`map-card-rail${railHidden ? ' is-hidden' : ''}`} ref={railRef} onScroll={onRailScroll}
+      onPointerDown={onRailInteract} onWheel={onRailInteract} onKeyDown={onRailInteract}
       aria-label="Researched accommodation listings" aria-hidden={railHidden} inert={railHidden} tabIndex={railHidden ? -1 : 0}>
-      {results.length === 0 ? <div className="map-rail-empty"><b>No researched places match.</b><span>Clear the map area or change the search filters.</span></div> : results.map(item => {
+      {carouselResults.length === 0 ? <div className="map-rail-empty"><b>No researched places match.</b><span>Clear the map area or change the search filters.</span></div> : carouselResults.map(item => {
         const image = researchImages(item.id)[0];
         const price = researchPriceSummary(item.advertisedPrice);
         const offerings = parseOfferings(item);

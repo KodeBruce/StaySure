@@ -574,12 +574,12 @@
     "locality": "Westdene, City of Johannesburg",
     "region": "Western and Southern Johannesburg (Auckland Park, Melville, Soweto and Roodepoort)",
     "classification": "Student residence comprising furnished 2- and 3-bedroom units.",
-    "latitude": null,
-    "longitude": null,
-    "coordinateStatus": "Candidate result requires manual review",
-    "coordinatePrecision": "Unconfirmed",
-    "coordinateNotes": "Result returned but house number/street/specific suburb/property name did not all match; coordinates intentionally withheld. Candidate: Aberdeen Street, Hursthill, Johannesburg Ward 69, Johannesburg, City of Johannesburg Metropolitan Municipality, Gauteng, 2001, South Africa",
-    "coordinateSource": "",
+    "latitude": -26.182324,
+    "longitude": 27.990023,
+    "coordinateStatus": "Provider map pin",
+    "coordinatePrecision": "Provider-stated property location",
+    "coordinateNotes": "Named Dean on the Dam marker in the provider interactive map at 19 Aberdeen Street, Westdene; checked 2026-11-20. Provider-stated pin, not an independently surveyed entrance. Supersedes the rejected street-only geocoder candidate.",
+    "coordinateSource": "https://deanonthedam.co.za/westdene-student-accommodation-map/",
     "website": "https://deanonthedam.co.za/application/",
     "contact": "010 035 4181; 083 408 2731; live@deanonthedam.co.za.",
     "advertisedPrice": "Provider's 2026 packages: Package 1 shared double bedroom is printed as 'R 5 4500.00 per month per student' (malformed amount, not normalized); Package 2 R6,000/month per student; Package 3 R7,000/month per student. NSFAS package is described as the full NSFAS 2026 accommodation allowance per year, but no amount is shown. Electricity/gas prepaid; parking R400/month.",
@@ -600,7 +600,8 @@
     "sources": [
       "https://deanonthedam.co.za/",
       "https://deanonthedam.co.za/application/",
-      "https://www.uj.ac.za/wp-content/uploads/2026/06/publishing_list_of_privately_owned_student-_accommodation_29jun26.pdf"
+      "https://www.uj.ac.za/wp-content/uploads/2026/06/publishing_list_of_privately_owned_student-_accommodation_29jun26.pdf",
+      "https://deanonthedam.co.za/westdene-student-accommodation-map/"
     ],
     "completeness": "53.8"
   },

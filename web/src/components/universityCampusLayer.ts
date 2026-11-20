@@ -2,7 +2,7 @@ import L from 'leaflet';
 import data from '../data/universityCampuses.json';
 import type { Coordinates } from '../data/mapLocations';
 
-/** Sourced UJ and UP grounds stay below residence pins and never intercept taps. */
+/** Sourced university grounds stay below residence pins and never intercept taps. */
 export function addUniversityCampusLayer(map: L.Map) {
   map.createPane('universityCampusGrounds').style.zIndex = '390';
   const group = L.layerGroup().addTo(map);
