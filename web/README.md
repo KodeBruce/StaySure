@@ -64,6 +64,8 @@ Workbook prices are 2026 estimates with no source research date, not confirmed 2
 
 Arteria Parktown's review replaces its workbook pin with the official page's linked Google Maps place coordinates (`-26.1775337, 28.047479`), rather than the supplied Parktown neighbourhood reference. The record includes seven room categories with separate 10-, 11- and 12-month schedules, provider-reported facilities and the provider's 8-minute walk estimate. Nightly rates remain separate from monthly budget matching. The official pages retrieved through web search were crawled about two weeks before the review; direct requests were blocked by Cloudflare. Academic year, billing basis and live availability remain unconfirmed. Property-specific card values take precedence over site-wide navigation prices; discrepancies in cluster lease pricing and the mobility-friendly short-stay card are recorded in the review.
 
+Apex Studios retains `JHB-WB-0007` with provider-reviewed address, map pin and 24 monthly entries (eight layout variants across three lease lengths). The main residence link supplies `-26.193843, 28.0283192`; the short-stay page incorrectly links to Arteria and is excluded as coordinate evidence. Room cards supersede the supplied summary: monthly rates span R5,000–R8,800, including some fully let categories; the lowest sharing option marked available was R5,360 on a 12-month lease in the retrieved page. The academic year is not stated. Nightly prices stay outside monthly budget matching. Included allowances, paid parking and room/layout conflicts are retained in the dated provider review.
+
 To refresh after reviewing workbook changes, run from the repository root (Python standard library only):
 
 ```bash

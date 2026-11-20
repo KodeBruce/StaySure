@@ -56,17 +56,17 @@ test('monthly rent excludes fees, deposits, older rates and unknown periods', ()
 });
 
 test('workbook estimates stay visible and never become confirmed budget matches', () => {
-  const apex = records.find(record => record.id === 'JHB-WB-0007');
-  const summary = pricing.researchPriceSummary(apex.advertisedPrice);
-  assert.equal(summary.label, '~R5,360–R8,800');
+  const workbookProperty = records.find(record => record.id === 'JHB-WB-0034');
+  const summary = pricing.researchPriceSummary(workbookProperty.advertisedPrice);
+  assert.equal(summary.label, '~R2,650–R4,800');
   assert.match(summary.note, /estimate/);
   const criteria = { ...matching.EMPTY_CRITERIA, maxRent: 6000 };
-  const result = matching.matchResearchProperty(apex, criteria);
+  const result = matching.matchResearchProperty(workbookProperty, criteria);
   assert.equal(result.unknown, 1);
   assert.equal(result.matched, 0);
-  assert.equal(matching.relevantRent(apex, criteria).basisKnown, false);
-  assert.ok(rooms.getRoomRates(apex.id).length > 0);
-  assert.ok(rooms.getRoomRates(apex.id).every(rate => rate.basis === 'basis unconfirmed'));
+  assert.equal(matching.relevantRent(workbookProperty, criteria).basisKnown, false);
+  assert.ok(rooms.getRoomRates(workbookProperty.id).length > 0);
+  assert.ok(rooms.getRoomRates(workbookProperty.id).every(rate => rate.basis === 'basis unconfirmed'));
   for (const id of ['GSA-P0009', 'GSA-P0015']) {
     assert.match(records.find(record => record.id === id).advertisedPrice, /^Workbook estimate:/);
     assert.ok(rooms.getRoomRates(id).length > 0);
@@ -87,6 +87,37 @@ test('private workbook funding is not treated as an NSFAS claim', () => {
   const { parseOfferings } = loadData('./researchOfferings');
   assert.equal(parseOfferings(records.find(record => record.id === 'JHB-WB-0034')).isNsfasClaimed, false);
   assert.equal(parseOfferings(records.find(record => record.id === 'JHB-WB-0007')).isNsfasClaimed, true);
+});
+
+test('Apex keeps its identity while replacing estimates and the workbook pin with provider evidence', () => {
+  const apex = records.find(record => record.id === 'JHB-WB-0007');
+  assert.equal(records.filter(record => record.name === 'Apex Studios').length, 1);
+  assert.equal(apex.address, '12 Jorissen Street, Braamfontein, Johannesburg, 2001');
+  assert.equal(apex.latitude, -26.193843);
+  assert.equal(apex.longitude, 28.0283192);
+  assert.match(apex.coordinateSource, /!3d-26\.193843!4d28\.0283192/);
+  assert.match(apex.coordinateNotes, /short-stay.*Arteria.*excluded/);
+  assert.match(apex.pricePeriod, /does not identify.*academic year/);
+  assert.equal(pricing.isWorkbookEstimate(apex.advertisedPrice), false);
+  assert.equal(pricing.researchPriceSummary(apex.advertisedPrice).label, 'R5,000–R8,800');
+  const rates = rooms.getRoomRates(apex.id);
+  assert.equal(rates.length, 24);
+  for (const months of [12, 11, 10]) assert.equal(rates.filter(rate => rate.note.startsWith(`${months}-month`)).length, 8);
+  const rate = (name, months) => rates.find(rate => rate.name.includes(name) && rate.note.startsWith(`${months}-month`));
+  assert.equal(rate('Wheelchair-accessible', 12).monthly, 'R5,000');
+  assert.equal(rate('shared room', 12).category, 'sharing');
+  assert.equal(rate('Shared room in 3-bed', 10).monthly, 'R6,250');
+  assert.equal(rate('Single room in 3-bed apartment · 42', 12).monthly, 'R5,770');
+  assert.equal(rate('Single room in 2-bed apartment · 22', 12).monthly, 'R7,320');
+  assert.equal(rate('Private studio', 11).monthly, 'R8,400');
+  assert.match(rate('Wheelchair-accessible', 12).note, /fully let/);
+  assert.ok(rates.every(rate => rate.basis === 'basis unconfirmed' && !/night/i.test(rate.monthly + rate.note)));
+  assert.match(apex.rooms, /R180\/night/);
+  assert.match(apex.rooms, /R210\/night/);
+  assert.match(apex.rooms, /R240–R290\/night/);
+  assert.match(apex.amenities, /limited electricity and limited laundry/);
+  assert.match(apex.amenities, /parking is charged separately/);
+  assert.match(apex.campus, /5-minute walk/);
 });
 
 test('Arteria uses the provider-linked residence pin and separate monthly lease schedules', () => {

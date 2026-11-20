@@ -50,38 +50,171 @@
   "JHB-WB-0007": [
     {
       "category": "sharing",
-      "name": "Shared Room (3-Bed)",
-      "monthly": "R5,360–R6,249",
+      "name": "Shared room in apartment · 12–19 m² layout",
+      "monthly": "R5,000",
       "basis": "basis unconfirmed",
-      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+      "note": "12-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
     },
     {
       "category": "sharing",
-      "name": "Wheelchair Shared",
-      "monthly": "R5,770–R6,750",
+      "name": "Shared room in apartment · 12–19 m² layout",
+      "monthly": "R5,110",
       "basis": "basis unconfirmed",
-      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+      "note": "11-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "sharing",
+      "name": "Shared room in apartment · 12–19 m² layout",
+      "monthly": "R5,350",
+      "basis": "basis unconfirmed",
+      "note": "10-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "sharing",
+      "name": "Shared room in 3-bed apartment · 42–45 m² layout",
+      "monthly": "R5,360",
+      "basis": "basis unconfirmed",
+      "note": "12-month agreement · Marked space available on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "sharing",
+      "name": "Shared room in 3-bed apartment · 42–45 m² layout",
+      "monthly": "R5,970",
+      "basis": "basis unconfirmed",
+      "note": "11-month agreement · Marked space available on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "sharing",
+      "name": "Shared room in 3-bed apartment · 42–45 m² layout",
+      "monthly": "R6,250",
+      "basis": "basis unconfirmed",
+      "note": "10-month agreement · Marked space available on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "sharing",
+      "name": "Wheelchair-accessible shared room · 21–25 m² layout",
+      "monthly": "R5,000",
+      "basis": "basis unconfirmed",
+      "note": "12-month agreement · Marked fully let; confirm bathroom layout and accessibility requirements on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "sharing",
+      "name": "Wheelchair-accessible shared room · 21–25 m² layout",
+      "monthly": "R5,110",
+      "basis": "basis unconfirmed",
+      "note": "11-month agreement · Marked fully let; confirm bathroom layout and accessibility requirements on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "sharing",
+      "name": "Wheelchair-accessible shared room · 21–25 m² layout",
+      "monthly": "R5,350",
+      "basis": "basis unconfirmed",
+      "note": "10-month agreement · Marked fully let; confirm bathroom layout and accessibility requirements on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
     },
     {
       "category": "single",
-      "name": "Single in 2-Bed",
-      "monthly": "R6,860–R8,050",
+      "name": "Single room in 2-bed apartment · 26 m² layout",
+      "monthly": "R6,860",
       "basis": "basis unconfirmed",
-      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+      "note": "12-month agreement · Marked space available on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
     },
     {
       "category": "single",
-      "name": "Single in 3-Bed",
-      "monthly": "R7,320–R8,550",
+      "name": "Single room in 2-bed apartment · 26 m² layout",
+      "monthly": "R7,690",
       "basis": "basis unconfirmed",
-      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+      "note": "11-month agreement · Marked space available on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 2-bed apartment · 26 m² layout",
+      "monthly": "R8,050",
+      "basis": "basis unconfirmed",
+      "note": "10-month agreement · Marked space available on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 2-bed apartment · 22–27 m² layout",
+      "monthly": "R7,320",
+      "basis": "basis unconfirmed",
+      "note": "12-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 2-bed apartment · 22–27 m² layout",
+      "monthly": "R8,170",
+      "basis": "basis unconfirmed",
+      "note": "11-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 2-bed apartment · 22–27 m² layout",
+      "monthly": "R8,550",
+      "basis": "basis unconfirmed",
+      "note": "10-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 3-bed apartment · 39–41 m² layout",
+      "monthly": "R6,140",
+      "basis": "basis unconfirmed",
+      "note": "12-month agreement · Marked almost fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 3-bed apartment · 39–41 m² layout",
+      "monthly": "R6,880",
+      "basis": "basis unconfirmed",
+      "note": "11-month agreement · Marked almost fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 3-bed apartment · 39–41 m² layout",
+      "monthly": "R7,200",
+      "basis": "basis unconfirmed",
+      "note": "10-month agreement · Marked almost fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 3-bed apartment · 42–45 m² layout",
+      "monthly": "R5,770",
+      "basis": "basis unconfirmed",
+      "note": "12-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 3-bed apartment · 42–45 m² layout",
+      "monthly": "R6,450",
+      "basis": "basis unconfirmed",
+      "note": "11-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "single",
+      "name": "Single room in 3-bed apartment · 42–45 m² layout",
+      "monthly": "R6,750",
+      "basis": "basis unconfirmed",
+      "note": "10-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
     },
     {
       "category": "studio",
-      "name": "Private Studio",
-      "monthly": "R7,500–R8,800",
+      "name": "Private studio apartment · 16 m²",
+      "monthly": "R7,500",
       "basis": "basis unconfirmed",
-      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+      "note": "12-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "studio",
+      "name": "Private studio apartment · 16 m²",
+      "monthly": "R8,400",
+      "basis": "basis unconfirmed",
+      "note": "11-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+    },
+    {
+      "category": "studio",
+      "name": "Private studio apartment · 16 m²",
+      "monthly": "R8,800",
+      "basis": "basis unconfirmed",
+      "note": "10-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
     }
   ],
   "JHB-WB-0008": [

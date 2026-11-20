@@ -5,7 +5,7 @@ workbook_id,workbook_residence,property_id,action,review_note
 4,Campus Africa | Amani House (49 Jorissen),GSA-P0003,Added contacts/campus context; retained provider-read prices,"Existing addresses, amenities, coordinates and funding evidence retained."
 5,Campus Africa | Wynton Joy,JHB-WB-0005,Added with provider-advertised rates,"Workbook pins, amenities, campus distances and funding are unverified."
 6,Campus Africa | Dunvista Mansions,JHB-WB-0006,Added with provider-advertised rates,Workbook says 70 Banket Street; provider header says 3 Nugget Street. Confirm the building entrance before mapping.
-7,Thrive | Apex Studios,JHB-WB-0007,Added with labelled workbook estimates,"Workbook pins, amenities, campus distances and funding are unverified."
+7,Thrive | Apex Studios,JHB-WB-0007,Added with provider-advertised rates,"Main residence page links an Apex Studios Google Maps place pin at -26.193843, 28.0283192, reviewed 2026-11-20. This replaces the unverified workbook pin. The user-supplied -26.1938500, 28.0284600 is approximately 14 metres away. The short-stay page's map link resolves to Arteria Parktown and is excluded as a conflicting destination."
 8,Thrive | Crescent Studios,JHB-WB-0008,Added with labelled workbook estimates,"Workbook pins, amenities, campus distances and funding are unverified."
 9,Thrive | Kingsway Place,JHB-WB-0009,Added with labelled workbook estimates,"Workbook pins, amenities, campus distances and funding are unverified."
 10,Thrive | Horizon Heights,GSA-P0010,Added contacts/campus context; retained provider-read prices,"Existing addresses, amenities, coordinates and funding evidence retained."

@@ -32,6 +32,210 @@
       { "category": "single", "name": "Single room in shared apartment", "monthly": "R5,600", "basis": "basis unconfirmed", "note": "From · provider page checked 2026-11-20; year unconfirmed" }
     ]
   },
+  "7": {
+    "url": "https://thrivestudentliving.co.za/residences/johannesburg/apex-studios/",
+    "checkedOn": "2026-11-20",
+    "advertisedPrice": "Provider room cards advertise R5,000–R8,800 per month across 10-, 11- and 12-month leases. The lowest-priced sharing options and studios were marked fully let in the retrieved page; shared rooms marked available start at R5,360 on a 12-month agreement. Confirm live availability, academic year and occupant billing basis.",
+    "pricePeriod": "Official property-specific room cards reviewed 2026-11-20 through the provider's legacy URL redirect. The page does not identify the applicable academic year. Prices vary with 10-, 11- and 12-month agreements; room availability is a retrieved-page snapshot, not a booking confirmation.",
+    "rooms": "Shared rooms in apartments, wheelchair-accessible shared rooms, private single rooms in apartments and self-contained private studio apartments. Apartment layout sizes are provider-advertised areas, not independently measured bedroom areas. Studios have a private kitchenette and ensuite; bathroom/kitchen arrangements for other categories vary. The accessible room description mentions ensuite facilities while its icons say shared kitchen/bathroom; confirm the actual accessible layout. Separate short-stay room cards list shared apartment rooms R180/night, shared rooms in larger apartments R210/night, accessible shared rooms R180/night, single rooms R240–R290/night and studios R290/night. Short-stay stock must be confirmed independently.",
+    "rates": [
+      {
+        "category": "sharing",
+        "name": "Shared room in apartment · 12–19 m² layout",
+        "monthly": "R5,000",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "sharing",
+        "name": "Shared room in apartment · 12–19 m² layout",
+        "monthly": "R5,110",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "sharing",
+        "name": "Shared room in apartment · 12–19 m² layout",
+        "monthly": "R5,350",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "sharing",
+        "name": "Shared room in 3-bed apartment · 42–45 m² layout",
+        "monthly": "R5,360",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · Marked space available on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "sharing",
+        "name": "Shared room in 3-bed apartment · 42–45 m² layout",
+        "monthly": "R5,970",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · Marked space available on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "sharing",
+        "name": "Shared room in 3-bed apartment · 42–45 m² layout",
+        "monthly": "R6,250",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · Marked space available on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "sharing",
+        "name": "Wheelchair-accessible shared room · 21–25 m² layout",
+        "monthly": "R5,000",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · Marked fully let; confirm bathroom layout and accessibility requirements on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "sharing",
+        "name": "Wheelchair-accessible shared room · 21–25 m² layout",
+        "monthly": "R5,110",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · Marked fully let; confirm bathroom layout and accessibility requirements on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "sharing",
+        "name": "Wheelchair-accessible shared room · 21–25 m² layout",
+        "monthly": "R5,350",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · Marked fully let; confirm bathroom layout and accessibility requirements on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 2-bed apartment · 26 m² layout",
+        "monthly": "R6,860",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · Marked space available on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 2-bed apartment · 26 m² layout",
+        "monthly": "R7,690",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · Marked space available on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 2-bed apartment · 26 m² layout",
+        "monthly": "R8,050",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · Marked space available on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 2-bed apartment · 22–27 m² layout",
+        "monthly": "R7,320",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 2-bed apartment · 22–27 m² layout",
+        "monthly": "R8,170",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 2-bed apartment · 22–27 m² layout",
+        "monthly": "R8,550",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 3-bed apartment · 39–41 m² layout",
+        "monthly": "R6,140",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · Marked almost fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 3-bed apartment · 39–41 m² layout",
+        "monthly": "R6,880",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · Marked almost fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 3-bed apartment · 39–41 m² layout",
+        "monthly": "R7,200",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · Marked almost fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 3-bed apartment · 42–45 m² layout",
+        "monthly": "R5,770",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 3-bed apartment · 42–45 m² layout",
+        "monthly": "R6,450",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "single",
+        "name": "Single room in 3-bed apartment · 42–45 m² layout",
+        "monthly": "R6,750",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "studio",
+        "name": "Private studio apartment · 16 m²",
+        "monthly": "R7,500",
+        "basis": "basis unconfirmed",
+        "note": "12-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "studio",
+        "name": "Private studio apartment · 16 m²",
+        "monthly": "R8,400",
+        "basis": "basis unconfirmed",
+        "note": "11-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      },
+      {
+        "category": "studio",
+        "name": "Private studio apartment · 16 m²",
+        "monthly": "R8,800",
+        "basis": "basis unconfirmed",
+        "note": "10-month agreement · Marked fully let on retrieved page; year and current availability unconfirmed · reviewed 2026-11-20"
+      }
+    ],
+    "record": {
+      "address": "12 Jorissen Street, Braamfontein, Johannesburg, 2001",
+      "latitude": -26.193843,
+      "longitude": 28.0283192,
+      "coordinateStatus": "Provider-linked Google Maps residence pin",
+      "coordinatePrecision": "Approximate property pin; entrance not independently surveyed",
+      "coordinateNotes": "Main residence page links an Apex Studios Google Maps place pin at -26.193843, 28.0283192, reviewed 2026-11-20. This replaces the unverified workbook pin. The user-supplied -26.1938500, 28.0284600 is approximately 14 metres away. The short-stay page's map link resolves to Arteria Parktown and is excluded as a conflicting destination.",
+      "coordinateSource": "https://www.google.com/maps/place/Apex+Studios+-+Student+Accommodation/@-26.1937139,28.0258693,744m/data=!3m1!1e3!4m7!3m6!1s0x60bed0578d8d4af3:0x539fe38715f865ba!8m2!3d-26.193843!4d28.0283192!15sCgxBcGV4IFN0dWRpb3NaDiIMYXBleCBzdHVkaW9zkgEWc3R1ZGVudF9ob3VzaW5nX2NlbnRlcpoBJENoZERTVWhOTUc5blMwVkpRMEZuU1VSeU5ITlhWR3BuUlJBQuABAPoBBAgAECs!16s/g/11scshmh34?entry=tts&g_ep=EgoyMDI2MDkwOC4wIPu8ASoASAFQAw%3D%3D&skid=7804309f-ffc3-4aef-8067-87bd951ca554",
+      "amenities": "Provider lists furnished rooms with bed, study desk/chair, lamp, wardrobe and panel heater; fridge arrangements vary by room. Room rates include uncapped Wi-Fi, limited electricity and limited laundry cycles. Secure parking is charged separately. Shared facilities include study pods, computer labs, gym, rooftop recreation, games/TV rooms, braai and laundry. Security/support includes 24/7 security, CCTV, facial access control, backup power/water, bicycle parking and on-site management. Allowance limits and any extra charges require confirmation.",
+      "campus": "Provider advertises a 5-minute walk to Wits Main Campus. This is a provider estimate, not an independently measured walking route; it supersedes the workbook campus-distance estimates.",
+      "confidence": "High for the provider-stated street address, advertised room/lease amounts and main-page map destination. Academic year, live availability, exact entrance, occupant billing basis and property-level funding approval remain unconfirmed.",
+      "gaps": "Confirm academic year, live stock, per-person/per-room billing basis, deposits/fees, electricity allowance, laundry cycle allowance, top-up charges and parking cost. The accessible-room ensuite text conflicts with shared-facility icons. Headline/related-residence cards advertise a different minimum from the detailed room cards; the detailed schedules are retained. The short-stay map button points to Arteria Parktown, so it is not used for Apex's pin. The official provider lists postal code 2001, while the supplied summary and some map listings say 2000.",
+      "sources": [
+        "https://thrivestudentliving.co.za/residences/johannesburg/apex-studios/",
+        "https://thrivestudentliving.co.za/apex-studios/",
+        "https://thrivestudentliving.co.za/short-stays/johannesburg/apex-studios/",
+        "https://www.google.com/maps/place/Apex+Studios+-+Student+Accommodation/@-26.1937139,28.0258693,744m/data=!3m1!1e3!4m7!3m6!1s0x60bed0578d8d4af3:0x539fe38715f865ba!8m2!3d-26.193843!4d28.0283192!15sCgxBcGV4IFN0dWRpb3NaDiIMYXBleCBzdHVkaW9zkgEWc3R1ZGVudF9ob3VzaW5nX2NlbnRlcpoBJENoZERTVWhOTUc5blMwVkpRMEZuU1VSeU5ITlhWR3BuUlJBQuABAPoBBAgAECs!16s/g/11scshmh34?entry=tts&g_ep=EgoyMDI2MDkwOC4wIPu8ASoASAFQAw%3D%3D&skid=7804309f-ffc3-4aef-8067-87bd951ca554"
+      ]
+    },
+    "sourceNotes": "The direct canonical URL initially returned 403; the provider's legacy /apex-studios/ URL redirected to the canonical page and returned its room-card text (crawled on review date). Monthly cards, not provider-wide navigation prices, are used. The shared-apartment and accessible options list R5,000/5,110/5,350 for 12/11/10 months. The accessible rate in the supplied summary actually matches a private single category. Shared 3-bed maximum is R6,250, not R6,249. Main-page map URL was decoded for readability without changing the destination coordinate or place identifier. Short-stay rates were retrieved from a page crawled five days before review; no live booking confirmation.",
+    "mapDestination": {
+      "latitude": -26.193843,
+      "longitude": 28.0283192,
+      "placeIdentifier": "/g/11scshmh34",
+      "rejectedShortStayMapUrl": "https://maps.app.goo.gl/5dxbv6EidoCeMEyC7",
+      "rejectedReason": "Resolves to Arteria Parktown rather than Apex Studios"
+    }
+  },
   "12": {
     "url": "https://thrivestudentliving.co.za/residences/johannesburg/arteria-parktown/",
     "checkedOn": "2026-11-20",

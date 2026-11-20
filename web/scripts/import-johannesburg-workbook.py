@@ -26,6 +26,7 @@ EXPECTED_NAMES = {
     1: 'Campus Africa | Braamlofts', 2: 'Campus Africa | Rennie House',
     3: 'Campus Africa | 80 Jorissen', 4: 'Campus Africa | Amani House (49 Jorissen)',
     5: 'Campus Africa | Wynton Joy', 6: 'Campus Africa | Dunvista Mansions',
+    7: 'Thrive | Apex Studios',
     10: 'Thrive | Horizon Heights', 11: 'Thrive | The Richmond & Richmond Central',
     13: 'Respublica | Yale Village', 14: 'Respublica | The Fields',
     17: 'South Point | 46 De Korte', 18: 'South Point | 56 Jorissen',
