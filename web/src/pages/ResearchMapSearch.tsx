@@ -26,6 +26,7 @@ import {
   X
 } from 'lucide-react';
 import { CustomSelect } from '../components/CustomSelect';
+import { PropertySocialLinks } from '../components/PropertySocialLinks';
 import records from '../data/researchProperties.json';
 import { parseOfferings } from '../data/researchOfferings';
 import { researchFallbackImage, researchImages } from '../data/researchMedia';
@@ -651,20 +652,10 @@ export function ResearchMapSearch() {
         return (
           <article
             key={item.id}
-            id={`research-map-${item.id}`}
             data-property-id={item.id}
             className={`map-rail-card airbnb-card${isSelected ? ' is-selected' : ''}`}
-            role="button"
-            tabIndex={0}
-            aria-label={`Explore ${item.name}`}
-            onClick={() => openDetail(item.id)}
-            onKeyDown={event => {
-              if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
-                event.preventDefault();
-                openDetail(item.id);
-              }
-            }}
           >
+            <button id={`research-map-${item.id}`} type="button" className="property-card-open" aria-label={`Preview ${item.name}`} onClick={() => openDetail(item.id)} />
             <div className="airbnb-card-media">
               <img
                 src={image}
@@ -739,6 +730,7 @@ export function ResearchMapSearch() {
                 <span className="airbnb-card-price">{price?.label ?? 'Ask for rates'}</span>
                 <span className="airbnb-card-period">/ month</span>
               </div>
+              <PropertySocialLinks item={item} />
             </div>
           </article>
         );

@@ -731,6 +731,7 @@
 
 /* ── Airbnb-Style Property Card ── */
 .airbnb-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   background: #ffffff;
@@ -744,6 +745,25 @@
     border-color 0.2s ease;
   text-decoration: none;
   color: inherit;
+}
+
+/* The preview hit area is a sibling of save, compare and external social links. */
+.property-card-open {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.property-card-open:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--green-ink);
 }
 
 .airbnb-card:hover {

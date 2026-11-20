@@ -3,6 +3,7 @@ const { test } = require('node:test');
 const { readFileSync } = require('node:fs');
 const { join, dirname, resolve } = require('node:path');
 const { stripTypeScriptTypes } = require('node:module');
+const { pathToFileURL } = require('node:url');
 const { runInNewContext } = require('node:vm');
 
 // Load the pure data helpers without a browser or an additional test dependency.
@@ -21,7 +22,7 @@ function loadData(name, parent = join(__dirname, '../web/src/data')) {
   const exports = [...source.matchAll(/export\s+(?:function|const)\s+(\w+)/g)].map(match => match[1]);
   source = source.replace(/export\s+(?=function|const)/g, '');
   const result = runInNewContext(`${source}\n;({ ${exports.join(', ')} })`, {
-    load: name => loadData(name, dirname(file)), console
+    load: name => loadData(name, dirname(file)), console, URL
   }, { filename: file });
   cache.set(file, result);
   return result;
@@ -86,4 +87,83 @@ test('private workbook funding is not treated as an NSFAS claim', () => {
   const { parseOfferings } = loadData('./researchOfferings');
   assert.equal(parseOfferings(records.find(record => record.id === 'JHB-WB-0034')).isNsfasClaimed, false);
   assert.equal(parseOfferings(records.find(record => record.id === 'JHB-WB-0007')).isNsfasClaimed, true);
+});
+
+test('social links use supplied handles and preserve dots inside account names', () => {
+  const { getPropertySocialLinks } = loadData('./propertySocials');
+  const links = getPropertySocialLinks(records.find(record => record.id === 'GSA-P0001'));
+  assert.equal(links.find(link => link.platform === 'instagram').url, 'https://www.instagram.com/campus.africa/');
+  assert.equal(links.find(link => link.platform === 'facebook').url, 'https://www.facebook.com/CampusAfricaLife/');
+  const tiktok = getPropertySocialLinks(records.find(record => record.id === 'JHB-WB-0027'));
+  assert.equal(tiktok[0].url, 'https://www.tiktok.com/@musha.lofts/');
+});
+
+test('social links fall back to documented accounts for the same named provider', () => {
+  const { getPropertySocialLinks } = loadData('./propertySocials');
+  const links = getPropertySocialLinks(records.find(record => record.id === 'GSA-P0002'));
+  assert.ok(links.length > 0);
+  assert.ok(links.every(link => link.providerAccount));
+  assert.equal(getPropertySocialLinks({ provider: 'Independent / Private' }).length, 0);
+  assert.equal(getPropertySocialLinks({ provider: 'A provider without supplied accounts' }).length, 0);
+});
+
+test('social source URLs accept profile pages and reject lookalike domains and video links', () => {
+  const { getPropertySocialLinks } = loadData('./propertySocials');
+  const links = getPropertySocialLinks({ sources: [
+    'https://www.instagram.com/kagisohouse/?hl=en',
+    'https://www.facebook.com/p/Example-Residence-12345/',
+    'https://www.facebook.com/12345/videos/example/9876/',
+    'https://www.instagram.com.attacker.example/fake/',
+    'javascript:alert(1)'
+  ] });
+  assert.equal(links.length, 2);
+  assert.equal(links[0].url, 'https://www.instagram.com/kagisohouse/');
+  assert.equal(links[1].url, 'https://www.facebook.com/p/Example-Residence-12345/');
+});
+
+test('property-specific social accounts take precedence over provider accounts', () => {
+  const { getPropertySocialLinks } = loadData('./propertySocials');
+  const links = getPropertySocialLinks(records.find(record => record.id === 'JHB-WB-0014'));
+  assert.equal(links.find(link => link.platform === 'instagram').url, 'https://www.instagram.com/respublica_thefields/');
+  assert.ok(links.every(link => !link.providerAccount));
+});
+
+test('social controls open new tabs and stop card activation without cancelling navigation', async () => {
+  const { transformSync } = await import(pathToFileURL(join(__dirname, '../web/node_modules/rolldown/dist/utils-index.mjs')));
+  const file = join(__dirname, '../web/src/components/PropertySocialLinks.tsx');
+  const { jsx } = require('../web/node_modules/react/jsx-runtime');
+  const source = transformSync(file, readFileSync(file, 'utf8')).code
+    .replace(/import\s+\{ getPropertySocialLinks, getPropertyWebsiteLink \}\s+from\s+[^;]+;/, '')
+    .replace(/import\s+["'][^"']+\.css["'];/, '')
+    .replace(/import\s+\{ jsx as _jsx \}\s+from\s+[^;]+;/, '')
+    .replace('export function PropertySocialLinks', 'function PropertySocialLinks');
+  const component = runInNewContext(`${source}\n;PropertySocialLinks`, {
+    _jsx: jsx, ...loadData('./propertySocials')
+  });
+  const tree = component({ item: records.find(record => record.id === 'GSA-P0001') });
+  assert.ok(tree.props.children.some(link => link.props.href === 'https://campusafrica.co.za/residences/braamlofts/' && /website/.test(link.props['aria-label'])));
+  for (const link of tree.props.children) {
+    assert.equal(link.type, 'a');
+    assert.equal(link.props.target, '_blank');
+    assert.equal(link.props.rel, 'noopener noreferrer');
+    assert.match(link.props['aria-label'], /opens in a new tab/);
+    let stopped = 0;
+    const event = { stopPropagation() { stopped++; }, preventDefault() { assert.fail('Social navigation must stay enabled'); } };
+    link.props.onClick(event);
+    link.props.onKeyDown(event);
+    assert.equal(stopped, 2);
+  }
+  assert.equal(component({ item: { name: 'Unknown residence' } }), null);
+  const websiteOnly = component({ item: { name: 'Website only', website: 'https://example.com/residence' } });
+  assert.equal(websiteOnly.props.children.length, 1);
+  assert.match(websiteOnly.props.children[0].props['aria-label'], /Visit Website only website/);
+});
+
+test('website icons use actual website URLs without substituting social or research links', () => {
+  const { getPropertyWebsiteLink } = loadData('./propertySocials');
+  assert.equal(getPropertyWebsiteLink({ website: 'https://example.com/residence' }).url, 'https://example.com/residence');
+  for (const website of ['javascript:alert(1)', 'Not verified. Research: https://example.com/', 'https://www.facebook.com/residence/', 'https://www.tiktok.com/@residence', 'https://user:password@example.com/']) {
+    assert.equal(getPropertyWebsiteLink({ website }), null);
+  }
+  assert.equal(getPropertyWebsiteLink({ sources: ['https://example.com/'] }), null);
 });

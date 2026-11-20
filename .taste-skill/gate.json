@@ -1,0 +1,51 @@
+{
+ "start": "2026-11-20T00:41:56.669Z",
+ "round": 0,
+ "idle": 0,
+ "errors": 1,
+ "status": "error",
+ "history": [
+  {
+   "at": "2026-11-20T00:44:25.534Z",
+   "mode": "manual",
+   "status": "error",
+   "fails": 0,
+   "round": 0,
+   "reused": false,
+   "stopHookActive": false
+  }
+ ],
+ "max": 3,
+ "marker": {
+  "page": "web/dist/index.html",
+  "url": null,
+  "root": "web/dist",
+  "kind": "software",
+  "category": "student accommodation",
+  "primary": "Search accommodation",
+  "rounds": 3,
+  "start": "2026-11-20T00:41:56.669Z",
+  "by": "gate.mjs --start"
+ },
+ "manual": true,
+ "fp": "5939edfc26c6d6d3",
+ "page": "web/dist/index.html",
+ "found": {
+  "fails": [],
+  "warns": [],
+  "crashed": [
+   "the copy (the page showed no <main>, <section> or <h1> to lint)",
+   "consistency.mjs gave no report (exit 1: Error: Chrome exited early (4294930433))",
+   "check.mjs could not run (exit 2: check: Chrome did not start)"
+  ],
+  "seconds": {
+   "consistency": 1,
+   "layout": 16
+  }
+ },
+ "open": [],
+ "waived": [],
+ "warnCount": 0,
+ "note": "the copy (the page showed no <main>, <section> or <h1> to lint); consistency.mjs gave no report (exit 1: Error: Chrome exited early (4294930433)); check.mjs could not run (exit 2: check: Chrome did not start)",
+ "at": "2026-11-20T00:44:25.536Z"
+}

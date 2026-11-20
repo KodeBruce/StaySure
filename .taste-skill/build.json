@@ -1,0 +1,11 @@
+{
+ "page": "web/dist/index.html",
+ "url": null,
+ "root": "web/dist",
+ "kind": "software",
+ "category": "student accommodation",
+ "primary": "Search accommodation",
+ "rounds": 3,
+ "start": "2026-11-20T00:41:56.669Z",
+ "by": "gate.mjs --start"
+}

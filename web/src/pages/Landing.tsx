@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import {
   Sparkles, GraduationCap, Bus, Wifi, ShieldCheck, BookOpen,
@@ -15,6 +15,7 @@ import { matchesSelectedRoomTypes, ROOM_TYPE_OPTIONS, type RoomTypeFilter } from
 import { matchResearchProperty, readSearchCriteria, saveSearchCriteria, type ResearchMatch, type SearchCriteria } from '../data/researchMatch';
 import { useResearchSelection } from '../data/researchSelection';
 import { MapPropertySheet } from './ResearchMapSearch';
+import { PropertySocialLinks } from '../components/PropertySocialLinks';
 import { getPropertyReviews } from '../data/propertyReviews';
 import { UNIVERSITIES, getPropertyUniversities, isNearUniversity, type UniversityInfo } from '../data/mapLocations';
 import './airbnb-home.css';
@@ -55,7 +56,8 @@ function AirbnbPropertyCard({
   const [imgError, setImgError] = useState(false);
 
   return (
-    <Link id={`home-card-${item.id}`} to={`/research/${item.id}`} className="airbnb-card" aria-label={`View ${item.name} details`} onClick={event => { event.preventDefault(); onOpen(item.id); }}>
+    <article className="airbnb-card">
+      <button id={`home-card-${item.id}`} type="button" className="property-card-open" aria-label={`Preview ${item.name}`} onClick={() => onOpen(item.id)} />
       <div className="airbnb-card-media">
         <img
           src={imgError ? researchFallbackImage : image}
@@ -118,8 +120,9 @@ function AirbnbPropertyCard({
           <span className="airbnb-card-price">{price?.label ?? 'Ask for rates'}</span>
           <span className="airbnb-card-period">/ month</span>
         </div>
+        <PropertySocialLinks item={item} />
       </div>
-    </Link>
+    </article>
   );
 }
 

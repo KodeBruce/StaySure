@@ -24,6 +24,7 @@ import {
 import './research.css';
 import { INITIAL_PROPERTIES } from '../data/mockData';
 import { MapPropertySheet } from './ResearchMapSearch';
+import { PropertySocialLinks } from '../components/PropertySocialLinks';
 
 type ResearchProperty = (typeof records)[number];
 type CompareFocus = 'price' | 'distance' | 'transport' | 'room' | 'wifi' | 'furniture' | 'study' | 'security' | 'rating';
@@ -227,6 +228,7 @@ function ResearchCard({ item, saved, compared }: {
         <Link to={`/research/${item.id}`} className="rail-card-details-link" aria-label={`View details for ${item.name}`}>
           View details <span className="arrow-glyph">→</span>
         </Link>
+        <PropertySocialLinks item={item} />
       </div>
     </div>
   </article>;
@@ -1094,6 +1096,7 @@ export function ResearchCompare() {
                       {compareBy === 'rating' && getPropertyReviews(item.id, item.name, item.locality).reviews[0] && <p className="cmp-priority-review">“{getPropertyReviews(item.id, item.name, item.locality).reviews[0].text}”</p>}
                       {compareBy !== 'rating' && <div className="cmp-priority-footer"><span><Star size={12} fill="currentColor" /> {getPropertyReviews(item.id, item.name, item.locality).ratingFormatted}</span>{match > 0 && <span>{match}% preference fit</span>}</div>}
                       <div className="cmp-priority-actions"><button type="button" onClick={() => setDetailId(item.id)}>Details</button><Link to={'/apply/' + item.id}>Apply now <ArrowRight size={14} /></Link></div>
+                      <PropertySocialLinks item={item} />
                     </div>
                   </article>
                   ))}
