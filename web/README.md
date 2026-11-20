@@ -50,6 +50,21 @@ The search page has a Leaflet map with province, university, area, and Near me f
 
 ## Seeding Initial Wits Accommodation Listings
 
+### Johannesburg workbook research
+
+The public research catalogue includes the supplied `Res Data/johannesburg-student-accommodations-complete-breakdown.xlsx`: 37 source rows, 11 matches to existing buildings, 25 additional residences, and one Rennie House entry held because its address differs from the existing Rennie House Apartments record. Existing IDs and provider-read rates are preserved. Twickenham and Quintal now have clearly labelled workbook estimates where numeric rent was previously missing.
+
+Workbook prices are 2026 estimates with no source research date, not confirmed 2027 quotes. Room rates retain billing caveats. Campus distances, coordinates, contacts and amenities from the workbook remain unverified; funding statements do not establish official accreditation. New workbook records do not receive a StaySure verification badge. The provider checks dated 20 November 2026 supersede workbook prices for 80 Jorissen, Wynton Joy, Dunvista Mansions and The Fields. `Res Data/johannesburg-import-review.csv` records every import decision; `Res Data/johannesburg-provider-checks.json` records the checked prices and source URLs.
+
+To refresh after reviewing workbook changes, run from the repository root (Python standard library only):
+
+```bash
+python web/scripts/import-johannesburg-workbook.py
+python web/scripts/import-johannesburg-workbook.py --check
+```
+
+Review changes to building identity and the dated provider checks before refreshing. The importer generates the catalogue, supplementary room rates and review CSV. These local research updates do not write to Firestore or deploy the site.
+
 Once your `.env` is configured with Firebase:
 1. Open the app home page in your browser.
 2. Click the **"Seed to Firestore"** button banner.

@@ -1,0 +1,46 @@
+{
+  "3": {
+    "url": "https://campusafrica.co.za/residences/80-jorissen/",
+    "checkedOn": "2026-11-20",
+    "advertisedPrice": "Provider advertises sharing from R5,600 per person per month and single apartments from R6,100 per month. Non-refundable booking fee R500. Advertised prices; availability, rate year and single-unit billing basis require confirmation.",
+    "pricePeriod": "Provider page checked 2026-11-20; applicable academic year not stated. Workbook estimates superseded by provider-advertised prices.",
+    "rooms": "Single student apartments and two-sharing student apartments. The sharing price is explicitly per person per month.",
+    "rates": [
+      { "category": "sharing", "name": "Two-sharing student apartment", "monthly": "R5,600", "basis": "per person", "note": "From · provider page checked 2026-11-20; year unconfirmed" },
+      { "category": "single", "name": "Single student apartment", "monthly": "R6,100", "basis": "basis unconfirmed", "note": "From · provider page checked 2026-11-20; year unconfirmed" }
+    ]
+  },
+  "5": {
+    "url": "https://campusafrica.co.za/residences/wynton-joy/",
+    "checkedOn": "2026-11-20",
+    "advertisedPrice": "Provider advertises single rooms from R5,600 per month and two-sharing rooms from R5,600 per person per month. Non-refundable booking fees: single R350; sharing R150. Advertised prices; confirm availability, rate year and single-room billing basis.",
+    "pricePeriod": "Provider page checked 2026-11-20; applicable academic year not stated. Workbook estimates superseded by provider-advertised prices.",
+    "rooms": "Single and two-sharing rooms in shared student apartments with shared kitchenette. Sharing price is explicitly per person per month.",
+    "rates": [
+      { "category": "sharing", "name": "Two-sharing room in shared apartment", "monthly": "R5,600", "basis": "per person", "note": "From · provider page checked 2026-11-20; year unconfirmed" },
+      { "category": "single", "name": "Single room in shared apartment", "monthly": "R5,600", "basis": "basis unconfirmed", "note": "From · provider page checked 2026-11-20; year unconfirmed" }
+    ]
+  },
+  "6": {
+    "url": "https://campusafrica.co.za/residences/dunvista-mansions/",
+    "checkedOn": "2026-11-20",
+    "advertisedPrice": "Provider advertises single rooms from R5,600 per month and two-sharing rooms from R5,600 per person per month. Non-refundable booking fees: single R350; sharing R150. Advertised prices; confirm availability, rate year and single-room billing basis.",
+    "pricePeriod": "Provider page checked 2026-11-20; applicable academic year not stated. Workbook estimates superseded by provider-advertised prices.",
+    "rooms": "Single and two-sharing rooms in shared apartments with kitchenette. Sharing price is explicitly per person per month. Address conflict: workbook says 70 Banket Street; provider page header says 3 Nugget Street. Confirm the entrance before travelling.",
+    "rates": [
+      { "category": "sharing", "name": "Two-sharing room in shared apartment", "monthly": "R5,600", "basis": "per person", "note": "From · provider page checked 2026-11-20; year unconfirmed" },
+      { "category": "single", "name": "Single room in shared apartment", "monthly": "R5,600", "basis": "basis unconfirmed", "note": "From · provider page checked 2026-11-20; year unconfirmed" }
+    ]
+  },
+  "14": {
+    "url": "https://respublica.co.za/residence/the-fields/",
+    "checkedOn": "2026-11-20",
+    "advertisedPrice": "Provider advertises sharing in apartment from R5,800 per month and single in apartment from R6,050 per month. Monthly pricing is pro-rated in January. Confirm stay dates, academic year and per-person versus per-room billing basis.",
+    "pricePeriod": "Provider page checked 2026-11-20; stay dates determine the quote. Workbook estimates superseded by provider-advertised prices.",
+    "rooms": "Sharing and single bedrooms in apartments with shared bathroom and kitchen. Provider does not explicitly state occupant billing basis beside the displayed rates.",
+    "rates": [
+      { "category": "sharing", "name": "Sharing in apartment", "monthly": "R5,800", "basis": "basis unconfirmed", "note": "From · provider page checked 2026-11-20; confirm stay dates" },
+      { "category": "single", "name": "Single in apartment", "monthly": "R6,050", "basis": "basis unconfirmed", "note": "From · provider page checked 2026-11-20; confirm stay dates" }
+    ]
+  }
+}

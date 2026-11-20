@@ -1,0 +1,483 @@
+{
+  "JHB-WB-0003": [
+    {
+      "category": "sharing",
+      "name": "Two-sharing student apartment",
+      "monthly": "R5,600",
+      "basis": "per person",
+      "note": "From · provider page checked 2026-11-20; year unconfirmed"
+    },
+    {
+      "category": "single",
+      "name": "Single student apartment",
+      "monthly": "R6,100",
+      "basis": "basis unconfirmed",
+      "note": "From · provider page checked 2026-11-20; year unconfirmed"
+    }
+  ],
+  "JHB-WB-0005": [
+    {
+      "category": "sharing",
+      "name": "Two-sharing room in shared apartment",
+      "monthly": "R5,600",
+      "basis": "per person",
+      "note": "From · provider page checked 2026-11-20; year unconfirmed"
+    },
+    {
+      "category": "single",
+      "name": "Single room in shared apartment",
+      "monthly": "R5,600",
+      "basis": "basis unconfirmed",
+      "note": "From · provider page checked 2026-11-20; year unconfirmed"
+    }
+  ],
+  "JHB-WB-0006": [
+    {
+      "category": "sharing",
+      "name": "Two-sharing room in shared apartment",
+      "monthly": "R5,600",
+      "basis": "per person",
+      "note": "From · provider page checked 2026-11-20; year unconfirmed"
+    },
+    {
+      "category": "single",
+      "name": "Single room in shared apartment",
+      "monthly": "R5,600",
+      "basis": "basis unconfirmed",
+      "note": "From · provider page checked 2026-11-20; year unconfirmed"
+    }
+  ],
+  "JHB-WB-0007": [
+    {
+      "category": "sharing",
+      "name": "Shared Room (3-Bed)",
+      "monthly": "R5,360–R6,249",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "sharing",
+      "name": "Wheelchair Shared",
+      "monthly": "R5,770–R6,750",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single in 2-Bed",
+      "monthly": "R6,860–R8,050",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single in 3-Bed",
+      "monthly": "R7,320–R8,550",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "studio",
+      "name": "Private Studio",
+      "monthly": "R7,500–R8,800",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0008": [
+    {
+      "category": "sharing",
+      "name": "Shared Room",
+      "monthly": "R4,820–R6,950",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R6,000–R8,170",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "studio",
+      "name": "Private Studio",
+      "monthly": "R7,500–R8,230",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0009": [
+    {
+      "category": "sharing",
+      "name": "Shared Room",
+      "monthly": "R4,820",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "sharing",
+      "name": "Single Room (Shared Bathroom)",
+      "monthly": "R6,140",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0012": [
+    {
+      "category": "sharing",
+      "name": "Shared in 3-Bed",
+      "monthly": "R4,820",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "sharing",
+      "name": "Shared in 2-Bed/Cluster",
+      "monthly": "R4,860–R6,590",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "sharing",
+      "name": "Shared Cluster Unit",
+      "monthly": "R7,000",
+      "basis": "basis unconfirmed",
+      "note": "Up to · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Quintet/Apt",
+      "monthly": "R6,730–R8,170",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0014": [
+    {
+      "category": "sharing",
+      "name": "Sharing in apartment",
+      "monthly": "R5,800",
+      "basis": "basis unconfirmed",
+      "note": "From · provider page checked 2026-11-20; confirm stay dates"
+    },
+    {
+      "category": "single",
+      "name": "Single in apartment",
+      "monthly": "R6,050",
+      "basis": "basis unconfirmed",
+      "note": "From · provider page checked 2026-11-20; confirm stay dates"
+    }
+  ],
+  "JHB-WB-0015": [
+    {
+      "category": "sharing",
+      "name": "Sharing Bedroom Apartment",
+      "monthly": "R5,500",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Standard Bedroom",
+      "monthly": "R5,800",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Premium Bedroom",
+      "monthly": "R5,900–R6,200",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0016": [
+    {
+      "category": "sharing",
+      "name": "Sharing Room",
+      "monthly": "R3,500–R4,500",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R4,800–R5,200",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0019": [
+    {
+      "category": "sharing",
+      "name": "Sharing Room",
+      "monthly": "R3,000–R3,800",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R3,800–R4,500",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0021": [
+    {
+      "category": "sharing",
+      "name": "Sharing Unit",
+      "monthly": "R5,200–R5,500",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0022": [
+    {
+      "category": "sharing",
+      "name": "1-Bedroom / Sharing Option",
+      "monthly": "R3,500",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "apartment",
+      "name": "2-Bedroom Apartment",
+      "monthly": "R5,000",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0023": [
+    {
+      "category": "sharing",
+      "name": "Sharing Unit",
+      "monthly": "R4,800",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Private Apartment",
+      "monthly": "R6,000",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0024": [
+    {
+      "category": "sharing",
+      "name": "Sharing Room (NSFAS / Bursary)",
+      "monthly": "R5,200",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R6,200–R6,500",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "GSA-P0015": [
+    {
+      "category": "sharing",
+      "name": "Sharing Room",
+      "monthly": "R4,600",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R5,800",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0027": [
+    {
+      "category": "sharing",
+      "name": "Sharing Loft",
+      "monthly": "R4,500–R5,000",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R5,500–R5,800",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0028": [
+    {
+      "category": "sharing",
+      "name": "Sharing Room",
+      "monthly": "R4,500",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R5,500–R6,000",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0029": [
+    {
+      "category": "sharing",
+      "name": "Sharing Room (NSFAS No Top-Up)",
+      "monthly": "R3,800–R4,800",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R4,800–R5,500",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0030": [
+    {
+      "category": "sharing",
+      "name": "Sharing Room",
+      "monthly": "R4,500–R5,000",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R5,400–R5,800",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "GSA-P0009": [
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R4,770",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "En-suite / Premium Single",
+      "monthly": "R5,600",
+      "basis": "basis unconfirmed",
+      "note": "Up to · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0032": [
+    {
+      "category": "sharing",
+      "name": "Sharing Room",
+      "monthly": "R4,000–R4,917",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R5,500–R6,200",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0033": [
+    {
+      "category": "sharing",
+      "name": "Sharing Room",
+      "monthly": "R4,500",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R5,800–R6,500",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0034": [
+    {
+      "category": "sharing",
+      "name": "6-Sleeper / Sharing",
+      "monthly": "R2,650",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "sharing",
+      "name": "2-Sleeper Sharing",
+      "monthly": "R3,500",
+      "basis": "basis unconfirmed",
+      "note": "Listed · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R4,800",
+      "basis": "basis unconfirmed",
+      "note": "Up to · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0035": [
+    {
+      "category": "sharing",
+      "name": "Sharing Room",
+      "monthly": "R4,500",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R5,200–R5,500",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0036": [
+    {
+      "category": "sharing",
+      "name": "Sharing Room",
+      "monthly": "R4,500",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R5,200–R5,600",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ],
+  "JHB-WB-0037": [
+    {
+      "category": "sharing",
+      "name": "Sharing Room",
+      "monthly": "R3,500",
+      "basis": "basis unconfirmed",
+      "note": "From · workbook 2026 estimate; confirm current rent and lease length"
+    },
+    {
+      "category": "single",
+      "name": "Single Room",
+      "monthly": "R4,800",
+      "basis": "basis unconfirmed",
+      "note": "Up to · workbook 2026 estimate; confirm current rent and lease length"
+    }
+  ]
+}

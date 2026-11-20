@@ -34,7 +34,6 @@ export interface ParsedOfferings {
 export function parseOfferings(item: ResearchProperty): ParsedOfferings {
   const text = `${item.amenities || ''} ${item.rooms || ''} ${item.classification || ''}`.toLowerCase();
   const campusText = (item.campus || '').toLowerCase();
-  const fundingText = `${item.funding || ''} ${item.fundingEvidence || ''} ${item.advertisedPrice || ''}`.toLowerCase();
   const price = researchPriceSummary(item.advertisedPrice);
 
   // 1. Room Types
@@ -81,7 +80,7 @@ export function parseOfferings(item: ResearchProperty): ParsedOfferings {
   const hasKitchen = /kitchen|fridge|microwave|stove|equipped/i.test(text);
   const isEnsuite = /en-suite|ensuite/i.test(text);
   const hasEntertainment = /dstv|netflix|tv|lounge|entertainment|games|gym/i.test(text);
-  const isNsfasClaimed = /nsfas|accredit/i.test(fundingText);
+  const isNsfasClaimed = /nsfas/i.test(item.funding) && !/\b(?:no|not)\s+nsfas|nsfas\s+(?:not|unavailable)/i.test(item.funding);
 
   const keyOfferings: OfferingItem[] = [
     {

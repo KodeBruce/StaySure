@@ -328,7 +328,7 @@ export const Apply: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                   <span className="tiny muted">Application for Student Accommodation</span>
                   <span className="pill pill--green" style={{ fontSize: '11px', padding: '2px 8px' }}>
-                    <ShieldCheck size={12} strokeWidth={2.4} /> Verified Direct Flow
+                    <ShieldCheck size={12} strokeWidth={2.4} /> {property.verified ? 'Verified Direct Flow' : 'Provider confirmation required'}
                   </span>
                 </div>
                 <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--navy)', margin: '4px 0 8px' }}>
@@ -345,6 +345,7 @@ export const Apply: React.FC = () => {
                     {property.area}
                   </span>
                 </div>
+                {property.priceNote && <p className="tiny muted mt-12">{property.priceNote}</p>}
             </div>
 
             {error && (

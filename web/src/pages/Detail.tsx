@@ -137,6 +137,7 @@ export const Detail: React.FC = () => {
                       <span>Monthly Rent</span>
                       <b>{formatRand(property.price)}</b>
                     </div>
+                    {property.priceNote && <p className="tiny muted">{property.priceNote}</p>}
                     <div className="row" style={{ justifyContent: 'space-between', padding: '12px 0' }}>
                       <span>Your Budget Profile</span>
                       <b>{formatRand(profile.budget)}</b>

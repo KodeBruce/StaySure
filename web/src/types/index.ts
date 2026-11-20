@@ -50,6 +50,7 @@ export interface Property {
   walkMin: number;
   taxiMin: number;
   price: number;
+  priceNote?: string;
   type: string;
   beds: number;
   available: number;

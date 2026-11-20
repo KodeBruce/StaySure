@@ -1,3 +1,5 @@
+import workbookRates from './johannesburgWorkbookRates.json';
+
 export type RoomCategory = 'sharing' | 'single' | 'studio' | 'apartment';
 
 export interface RoomRate {
@@ -141,7 +143,8 @@ const rates: Record<string, RoomRate[]> = {
 };
 
 export function getRoomRates(id: string): RoomRate[] {
-  return rates[id] ?? [];
+  // Provider-transcribed rates take precedence over workbook estimates.
+  return rates[id] ?? (workbookRates as Record<string, RoomRate[]>)[id] ?? [];
 }
 
 export function roomCategoryRates(id: string, category: RoomCategory): RoomRate[] {

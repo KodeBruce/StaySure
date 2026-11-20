@@ -5,7 +5,7 @@ import { INITIAL_PROPERTIES } from '../data/mockData';
 import researchPropertiesJson from '../data/researchProperties.json';
 import { researchImages } from '../data/researchMedia';
 import { parseOfferings } from '../data/researchOfferings';
-import { extractMinPrice } from '../data/researchPricing';
+import { extractMinPrice, researchPriceSummary } from '../data/researchPricing';
 
 /**
  * Converts a research property record from researchProperties.json into the full Property schema
@@ -15,6 +15,7 @@ export function convertResearchToProperty(item: (typeof researchPropertiesJson)[
   const offerings = parseOfferings(item as any);
   const minPrice = extractMinPrice(item.advertisedPrice);
   const images = researchImages(item.id);
+  const workbookListing = item.id.startsWith('JHB-WB-');
 
   return {
     id: item.id,
@@ -27,15 +28,16 @@ export function convertResearchToProperty(item: (typeof researchPropertiesJson)[
     walkMin: 10,
     taxiMin: 4,
     price: minPrice || 4800,
+    priceNote: researchPriceSummary(item.advertisedPrice)?.note,
     type: item.classification || 'Student Accommodation',
     beds: 1,
-    available: 4,
-    rating: 4.6,
-    reviewsCount: 24,
-    verified: true,
-    accredited: offerings.isNsfasClaimed || Boolean(item.witsStatus || item.ujStatus),
-    nsfas: offerings.isNsfasClaimed,
-    lastVerified: '2026-11-12',
+    available: workbookListing ? 0 : 4,
+    rating: workbookListing ? 0 : 4.6,
+    reviewsCount: workbookListing ? 0 : 24,
+    verified: !workbookListing,
+    accredited: !workbookListing && (offerings.isNsfasClaimed || Boolean(item.witsStatus || item.ujStatus)),
+    nsfas: !workbookListing && offerings.isNsfasClaimed,
+    lastVerified: workbookListing ? '' : '2026-11-12',
     facilities: offerings.keyOfferings.filter(o => o.available).map(o => o.id),
     about: `${item.name} offers student accommodation in ${item.locality}. ${item.amenities || ''}`,
     security: [
@@ -45,7 +47,7 @@ export function convertResearchToProperty(item: (typeof researchPropertiesJson)[
     reviews: [],
     images: images.length ? images : ['/images/p1.jpg'],
     checks: [],
-    passedChecks: 6,
+    passedChecks: workbookListing ? 0 : 6,
     distanceBand: 'u1',
     providerId: item.provider
   };

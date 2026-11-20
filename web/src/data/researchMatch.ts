@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { getRoomRates } from './roomRates';
-import { extractMinPrice } from './researchPricing';
+import { extractMinPrice, isWorkbookEstimate } from './researchPricing';
 import { parseOfferings, type ResearchProperty } from './researchOfferings';
 import { matchesSelectedRoomTypes, ROOM_TYPE_OPTIONS, type RoomTypeFilter } from './roomTypeFilter';
 import { isNearUniversity, UNIVERSITIES } from './mapLocations';
@@ -84,7 +84,7 @@ export function relevantRent(item: ResearchProperty, criteria: SearchCriteria): 
     return options.sort((a, b) => a.amount - b.amount)[0];
   }
   const amount = extractMinPrice(item.advertisedPrice);
-  return amount === null ? null : { amount, basisKnown: true };
+  return amount === null ? null : { amount, basisKnown: !isWorkbookEstimate(item.advertisedPrice) };
 }
 
 export function matchResearchProperty(item: ResearchProperty, criteria: SearchCriteria): ResearchMatch {
