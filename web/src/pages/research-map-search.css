@@ -49,6 +49,24 @@
   opacity: .6;
 }
 
+.research-map-search .map-view-controls {
+  position: relative;
+  align-self: flex-start;
+  flex: 0 0 44px;
+  height: 44px;
+}
+
+.research-map-search .map-carousel-toggle {
+  position: absolute;
+  top: 54px;
+  left: 0;
+}
+
+.research-map-search .map-carousel-toggle:focus-visible {
+  outline: 3px solid var(--green-ink);
+  outline-offset: 3px;
+}
+
 .research-map-search .map-search-trigger {
   background: var(--navy);
   color: #fff;
@@ -425,7 +443,7 @@
 .research-map-search .map-location-toast {
   position: absolute;
   z-index: 600;
-  top: 70px;
+  top: 126px;
   left: 16px;
   max-width: min(320px, calc(100% - 32px));
   padding: 9px 13px;
@@ -452,14 +470,17 @@
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  visibility: visible;
+  transition: opacity .26s ease, transform .26s cubic-bezier(.2, .8, .2, 1), visibility 0s;
 }
 
-/* Hide rail when property detail sheet is open */
+/* Keep cards mounted so a selected price can reveal the same carousel smoothly. */
 .research-map-search .map-card-rail.is-hidden {
   pointer-events: none;
   opacity: 0;
-  transform: translateY(20px);
+  visibility: hidden;
+  transform: translateY(32px);
+  transition: opacity .26s ease, transform .26s cubic-bezier(.2, .8, .2, 1), visibility 0s .26s;
 }
 
 .research-map-search .map-card-rail::-webkit-scrollbar {
@@ -649,6 +670,11 @@
 @media (prefers-reduced-motion: reduce) {
   .research-map-search .map-card-rail {
     scroll-behavior: auto;
+  }
+
+  .research-map-search .map-card-rail,
+  .research-map-search .map-card-rail.is-hidden {
+    transition: none;
   }
 
   .research-map-search .map-rail-card,

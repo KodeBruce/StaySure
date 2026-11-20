@@ -10,6 +10,8 @@ import {
   Check,
   GraduationCap,
   LocateFixed,
+  PanelBottomClose,
+  PanelBottomOpen,
   MapPin,
   Plus,
   Search as SearchIcon,
@@ -376,6 +378,8 @@ export function ResearchMapSearch() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(records.find(hasCoordinates)?.id ?? null);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [carouselHidden, setCarouselHidden] = useState(false);
+  const railHidden = carouselHidden || detailId !== null;
   const [pendingBounds, setPendingBounds] = useState<MapBounds | null>(null);
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
   const [userPosition, setUserPosition] = useState<Coordinates | null>(null);
@@ -386,9 +390,11 @@ export function ResearchMapSearch() {
   const railRef = useRef<HTMLDivElement>(null);
   const railSelectionLock = useRef<number | null>(null);
   const railScrollTimer = useRef<number | null>(null);
+  const railRevealFrame = useRef<number | null>(null);
   useEffect(() => () => {
     if (railSelectionLock.current !== null) window.clearTimeout(railSelectionLock.current);
     if (railScrollTimer.current !== null) window.clearTimeout(railScrollTimer.current);
+    if (railRevealFrame.current !== null) window.cancelAnimationFrame(railRevealFrame.current);
   }, []);
   const closeRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLElement>(null);
@@ -530,13 +536,30 @@ export function ResearchMapSearch() {
   function selectProperty(id: string) {
     if (railScrollTimer.current !== null) window.clearTimeout(railScrollTimer.current);
     railScrollTimer.current = null;
+    setCarouselHidden(false);
     setSelectedId(id);
     if (railSelectionLock.current !== null) window.clearTimeout(railSelectionLock.current);
     railSelectionLock.current = window.setTimeout(() => { railSelectionLock.current = null; }, 700);
-    document.getElementById(`research-map-${id}`)?.scrollIntoView({
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-      block: 'nearest', inline: 'center'
+    if (railRevealFrame.current !== null) window.cancelAnimationFrame(railRevealFrame.current);
+    // Wait for the reveal to commit, then move only the carousel, not the page.
+    railRevealFrame.current = window.requestAnimationFrame(() => {
+      railRevealFrame.current = null;
+      const rail = railRef.current;
+      const card = document.getElementById(`research-map-${id}`)?.closest<HTMLElement>('[data-property-id]');
+      if (!rail || !card) return;
+      rail.scrollTo({
+        left: card.offsetLeft - (rail.clientWidth - card.offsetWidth) / 2,
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+      });
     });
+  }
+
+  function toggleCarousel() {
+    if (railScrollTimer.current !== null) window.clearTimeout(railScrollTimer.current);
+    railScrollTimer.current = null;
+    if (railRevealFrame.current !== null) window.cancelAnimationFrame(railRevealFrame.current);
+    railRevealFrame.current = null;
+    setCarouselHidden(hidden => !hidden);
   }
 
   function openDetail(id: string) {
@@ -545,7 +568,13 @@ export function ResearchMapSearch() {
   }
 
   function onRailScroll() {
-    if (railSelectionLock.current !== null) return;
+    if (railHidden) return;
+    if (railSelectionLock.current !== null) {
+      // Keep the tapped price selected throughout a long programmatic scroll.
+      window.clearTimeout(railSelectionLock.current);
+      railSelectionLock.current = window.setTimeout(() => { railSelectionLock.current = null; }, 150);
+      return;
+    }
     if (railScrollTimer.current !== null) window.clearTimeout(railScrollTimer.current);
     railScrollTimer.current = window.setTimeout(() => {
       railScrollTimer.current = null;
@@ -583,7 +612,15 @@ export function ResearchMapSearch() {
   return <div className="fullscreen-search research-map-search" aria-label="Research accommodation map search">
     <ResearchPins items={mapped} selectedId={selectedId} center={center} targetZoom={targetZoom} userPosition={nearby ? userPosition : null} radiusKm={radiusKm} onSelect={selectProperty} onViewChange={setPendingBounds} />
     <div className="fullscreen-map-top">
-      <button type="button" className="map-float-button" onClick={useMyLocation} disabled={locating} aria-label="Find researched accommodation near me"><LocateFixed size={20} /></button>
+      <div className="map-view-controls">
+        <button type="button" className="map-float-button" onClick={useMyLocation} disabled={locating} aria-label="Find researched accommodation near me"><LocateFixed size={20} /></button>
+        <button type="button" className="map-float-button map-carousel-toggle" onClick={toggleCarousel}
+          aria-label={carouselHidden ? 'Show accommodation cards' : 'Hide accommodation cards'}
+          title={carouselHidden ? 'Show accommodation cards' : 'Hide accommodation cards'}
+          aria-controls="research-map-carousel" aria-expanded={!railHidden}>
+          {carouselHidden ? <PanelBottomOpen size={20} /> : <PanelBottomClose size={20} />}
+        </button>
+      </div>
 
       <div className="map-top-filter-bar">
         <button
@@ -637,7 +674,8 @@ export function ResearchMapSearch() {
     {mapBounds && <button type="button" className="map-area-clear" onClick={() => { setMapBounds(null); setPendingBounds(null); }}>Clear map area</button>}
     {locationMessage && <p className="map-location-toast" role="status">{locationMessage}</p>}
 
-    <div className={`map-card-rail${detailId ? ' is-hidden' : ''}`} ref={railRef} onScroll={onRailScroll} aria-label="Researched accommodation listings" tabIndex={0}>
+    <div id="research-map-carousel" className={`map-card-rail${railHidden ? ' is-hidden' : ''}`} ref={railRef} onScroll={onRailScroll}
+      aria-label="Researched accommodation listings" aria-hidden={railHidden} inert={railHidden} tabIndex={railHidden ? -1 : 0}>
       {results.length === 0 ? <div className="map-rail-empty"><b>No researched places match.</b><span>Clear the map area or change the search filters.</span></div> : results.map(item => {
         const image = researchImages(item.id)[0];
         const price = researchPriceSummary(item.advertisedPrice);
