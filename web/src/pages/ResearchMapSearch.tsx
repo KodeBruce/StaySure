@@ -33,6 +33,7 @@ import { CustomSelect } from '../components/CustomSelect';
 import { PropertySocialLinks } from '../components/PropertySocialLinks';
 import { NearbySearchControls } from '../components/NearbySearchControls';
 import { addWitsCampusLayer } from '../components/witsCampusLayer';
+import { addUniversityCampusLayer } from '../components/universityCampusLayer';
 import { bindMapZoomGestures, MAP_ZOOM_OPTIONS } from '../components/mapZoom';
 import { addMapBasemap, type MapView } from '../components/mapBasemap';
 import { WITS_CAMPUSES, campusFocusPoints, type CampusFocus } from '../data/witsCampuses';
@@ -292,6 +293,7 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
     basemap.current = addMapBasemap(instance);
     L.control.zoom({ position: 'topright' }).addTo(instance);
     campuses.current = addWitsCampusLayer(instance);
+    const universityGrounds = addUniversityCampusLayer(instance);
     markers.current = L.layerGroup().addTo(instance);
     const reportBounds = () => {
       const bounds = instance.getBounds();
@@ -300,7 +302,7 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
     instance.on('dragend zoomend', reportBounds);
     map.current = instance;
     window.setTimeout(() => instance.invalidateSize(), 0);
-    return () => { removeZoomGestures(); basemap.current?.remove(); basemap.current = null; campuses.current?.remove(); campuses.current = null; instance.remove(); map.current = null; markers.current = null; };
+    return () => { universityGrounds.remove(); removeZoomGestures(); basemap.current?.remove(); basemap.current = null; campuses.current?.remove(); campuses.current = null; instance.remove(); map.current = null; markers.current = null; };
   }, []);
 
   useEffect(() => {
