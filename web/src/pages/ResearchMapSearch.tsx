@@ -10,6 +10,8 @@ import {
   Check,
   GraduationCap,
   LocateFixed,
+  Map as MapIcon,
+  Satellite,
   PanelBottomClose,
   PanelBottomOpen,
   MapPin,
@@ -29,6 +31,10 @@ import {
 } from 'lucide-react';
 import { CustomSelect } from '../components/CustomSelect';
 import { PropertySocialLinks } from '../components/PropertySocialLinks';
+import { addWitsCampusLayer } from '../components/witsCampusLayer';
+import { bindMapZoomGestures, MAP_ZOOM_OPTIONS } from '../components/mapZoom';
+import { addMapBasemap, type MapView } from '../components/mapBasemap';
+import { WITS_CAMPUSES, campusFocusPoints, type CampusFocus } from '../data/witsCampuses';
 import records from '../data/researchProperties.json';
 import { parseOfferings } from '../data/researchOfferings';
 import { researchFallbackImage, researchImages } from '../data/researchMedia';
@@ -252,7 +258,7 @@ export function MapPropertySheet({ item, match, onExited, saved, compared, image
   </div>, document.body);
 }
 
-function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition, radiusKm, onSelect, onViewChange }: {
+function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition, radiusKm, onSelect, onViewChange, campusFocus, showWitsCampuses, mapView }: {
   items: ResearchProperty[];
   selectedId: string | null;
   center: Coordinates;
@@ -261,12 +267,16 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
   radiusKm: number;
   onSelect: (id: string) => void;
   onViewChange: (bounds: MapBounds) => void;
+  campusFocus: CampusFocus | null;
+  showWitsCampuses: boolean;
+  mapView: MapView;
 }) {
   const element = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const markers = useRef<L.LayerGroup | null>(null);
   const pinMarkers = useRef<{ marker: L.Marker; ids: string[] }[]>([]);
-  const [zoom, setZoom] = useState(12);
+  const campuses = useRef<ReturnType<typeof addWitsCampusLayer> | null>(null);
+  const basemap = useRef<ReturnType<typeof addMapBasemap> | null>(null);
   const selectRef = useRef(onSelect);
   const viewRef = useRef(onViewChange);
   selectRef.current = onSelect;
@@ -274,22 +284,28 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
 
   useEffect(() => {
     if (!element.current) return;
-    const instance = L.map(element.current, { scrollWheelZoom: false, zoomControl: false }).setView(johannesburg, 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19
-    }).addTo(instance);
-    L.control.zoom({ position: 'bottomright' }).addTo(instance);
+    const instance = L.map(element.current, MAP_ZOOM_OPTIONS).setView(johannesburg, 12);
+    const removeZoomGestures = bindMapZoomGestures(instance);
+    basemap.current = addMapBasemap(instance);
+    L.control.zoom({ position: 'topright' }).addTo(instance);
+    campuses.current = addWitsCampusLayer(instance);
     markers.current = L.layerGroup().addTo(instance);
     const reportBounds = () => {
       const bounds = instance.getBounds();
       viewRef.current({ south: bounds.getSouth(), west: bounds.getWest(), north: bounds.getNorth(), east: bounds.getEast() });
     };
     instance.on('dragend zoomend', reportBounds);
-    instance.on('zoomend', () => setZoom(instance.getZoom()));
     map.current = instance;
     window.setTimeout(() => instance.invalidateSize(), 0);
-    return () => { instance.remove(); map.current = null; markers.current = null; };
+    return () => { removeZoomGestures(); basemap.current?.remove(); basemap.current = null; campuses.current?.remove(); campuses.current = null; instance.remove(); map.current = null; markers.current = null; };
   }, []);
+
+  useEffect(() => {
+    // Leaflet owns additional classes on this element; retain them when switching.
+    element.current?.classList.toggle('is-aerial', mapView === 'aerial');
+    basemap.current?.setView(mapView);
+  }, [mapView]);
+  useEffect(() => { campuses.current?.setLabelsVisible(showWitsCampuses); }, [showWitsCampuses]);
 
   useEffect(() => {
     if (!map.current) return;
@@ -314,6 +330,22 @@ function ResearchPins({ items, selectedId, center, targetZoom = 12, userPosition
       });
     }
   }, [selectedId, items]);
+
+  useEffect(() => {
+    const instance = map.current;
+    if (!instance || !campusFocus || !showWitsCampuses) return;
+    const points = campusFocusPoints(campusFocus.id);
+    if (!points.length) return;
+    const rail = document.getElementById('research-map-carousel');
+    const railHeight = rail?.getAttribute('aria-hidden') === 'false' ? rail.getBoundingClientRect().height : 0;
+    instance.fitBounds(L.latLngBounds(points), {
+      paddingTopLeft: [80, 120],
+      paddingBottomRight: [30, Math.min(railHeight + 24, instance.getSize().y * .45)],
+      maxZoom: 16,
+      animate: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+      duration: .45
+    });
+  }, [campusFocus, showWitsCampuses]);
 
   useEffect(() => {
     const group = markers.current;
@@ -376,7 +408,12 @@ export function ResearchMapSearch() {
   const [selectedPrefs, setSelectedPrefs] = useState<string[]>(() => readSearchCriteria().preferences);
   const [selectedRoomTypes, setSelectedRoomTypes] = useState<RoomTypeFilter[]>(() => searchParams.has('rooms') ? parseRoomTypes(searchParams.get('rooms')) : readSearchCriteria().roomTypes);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(records.find(hasCoordinates)?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [campusFocus, setCampusFocus] = useState<CampusFocus | null>(null);
+  const [campusMenuOpen, setCampusMenuOpen] = useState(false);
+  const [mapView, setMapView] = useState<MapView>('street');
+  const campusControlRef = useRef<HTMLDivElement>(null);
+  const campusToggleRef = useRef<HTMLButtonElement>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [carouselHidden, setCarouselHidden] = useState(false);
   const railHidden = carouselHidden || detailId !== null;
@@ -530,13 +567,47 @@ export function ResearchMapSearch() {
   }, [selectedUniversity, nearby, area, region]);
 
   useEffect(() => {
-    if (!results.some(item => item.id === selectedId)) setSelectedId(results[0]?.id ?? null);
+    if (selectedId !== null && !results.some(item => item.id === selectedId)) setSelectedId(null);
   }, [results, selectedId]);
+
+  function showCampus(id: string) {
+    if (railScrollTimer.current !== null) window.clearTimeout(railScrollTimer.current);
+    railScrollTimer.current = null;
+    if (railRevealFrame.current !== null) window.cancelAnimationFrame(railRevealFrame.current);
+    railRevealFrame.current = null;
+    setSelectedId(null);
+    setCampusFocus(previous => ({ id, request: (previous?.request ?? 0) + 1 }));
+  }
+
+  useEffect(() => {
+    setCampusMenuOpen(false);
+    if (selectedUniversity === 'wits') showCampus('all');
+    else setCampusFocus(null);
+  }, [selectedUniversity]);
+
+  useEffect(() => {
+    if (!campusMenuOpen) return;
+    const closeOutside = (event: PointerEvent) => {
+      if (!campusControlRef.current?.contains(event.target as Node)) setCampusMenuOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setCampusMenuOpen(false);
+      campusToggleRef.current?.focus();
+    };
+    document.addEventListener('pointerdown', closeOutside);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOutside);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [campusMenuOpen]);
 
   function selectProperty(id: string) {
     if (railScrollTimer.current !== null) window.clearTimeout(railScrollTimer.current);
     railScrollTimer.current = null;
     setCarouselHidden(false);
+    setCampusFocus(null);
     setSelectedId(id);
     if (railSelectionLock.current !== null) window.clearTimeout(railSelectionLock.current);
     railSelectionLock.current = window.setTimeout(() => { railSelectionLock.current = null; }, 700);
@@ -563,12 +634,13 @@ export function ResearchMapSearch() {
   }
 
   function openDetail(id: string) {
+    setCampusFocus(null);
     setSelectedId(id);
     setDetailId(id);
   }
 
   function onRailScroll() {
-    if (railHidden) return;
+    if (railHidden || campusFocus) return;
     if (railSelectionLock.current !== null) {
       // Keep the tapped price selected throughout a long programmatic scroll.
       window.clearTimeout(railSelectionLock.current);
@@ -610,10 +682,15 @@ export function ResearchMapSearch() {
   const activeRoomLabel = selectedRoomTypes.length === 1 ? ROOM_TYPE_OPTIONS.find(option => option.id === selectedRoomTypes[0])?.label : selectedRoomTypes.length > 1 ? `${selectedRoomTypes.length} room types` : '';
 
   return <div className="fullscreen-search research-map-search" aria-label="Research accommodation map search">
-    <ResearchPins items={mapped} selectedId={selectedId} center={center} targetZoom={targetZoom} userPosition={nearby ? userPosition : null} radiusKm={radiusKm} onSelect={selectProperty} onViewChange={setPendingBounds} />
+    <ResearchPins items={mapped} selectedId={selectedId} center={center} targetZoom={targetZoom} userPosition={nearby ? userPosition : null} radiusKm={radiusKm} onSelect={selectProperty} onViewChange={setPendingBounds} campusFocus={campusFocus} showWitsCampuses={selectedUniversity === 'wits'} mapView={mapView} />
     <div className="fullscreen-map-top">
       <div className="map-view-controls">
         <button type="button" className="map-float-button" onClick={useMyLocation} disabled={locating} aria-label="Find researched accommodation near me"><LocateFixed size={20} /></button>
+        <button type="button" className="map-float-button map-basemap-toggle" onClick={() => setMapView(view => view === 'street' ? 'aerial' : 'street')}
+          aria-label={mapView === 'street' ? 'Switch to aerial view' : 'Switch to grey street map'}
+          title={mapView === 'street' ? 'Aerial view' : 'Grey street map'} aria-pressed={mapView === 'aerial'}>
+          {mapView === 'street' ? <Satellite size={20} /> : <MapIcon size={20} />}
+        </button>
         <button type="button" className="map-float-button map-carousel-toggle" onClick={toggleCarousel}
           aria-label={carouselHidden ? 'Show accommodation cards' : 'Hide accommodation cards'}
           title={carouselHidden ? 'Show accommodation cards' : 'Hide accommodation cards'}
@@ -670,6 +747,19 @@ export function ResearchMapSearch() {
         <SlidersHorizontal size={19} />
       </button>
     </div>
+    {selectedUniversity === 'wits' && <div ref={campusControlRef} className={`wits-campus-control${campusMenuOpen ? ' is-open' : ''}`}>
+      <button ref={campusToggleRef} className="map-float-button wits-campus-toggle" type="button" onClick={() => setCampusMenuOpen(open => !open)}
+        title="Wits campuses" aria-label="Explore Wits campuses" aria-expanded={campusMenuOpen} aria-controls="wits-campus-menu"><GraduationCap size={20} /></button>
+      <div id="wits-campus-menu" className="wits-campus-menu" role="group" aria-label="Wits campuses" aria-hidden={!campusMenuOpen} inert={!campusMenuOpen}>
+        <span className="wits-campus-caption">Wits campuses</span>
+        {[{ id: 'all', name: 'All campuses' }, ...WITS_CAMPUSES].map(campus => <button key={campus.id} type="button"
+          aria-label={campus.id === 'all' ? 'Show all Wits campuses' : `Show ${campus.name}`}
+          aria-pressed={campusFocus?.id === campus.id}
+          onClick={() => { showCampus(campus.id); setCampusMenuOpen(false); campusToggleRef.current?.focus(); }}>
+          <span>{campus.name}</span>{campusFocus?.id === campus.id && <Check size={14} />}
+        </button>)}
+      </div>
+    </div>}
     {pendingBounds && <button type="button" className="map-area-action" onClick={() => { setMapBounds(pendingBounds); setPendingBounds(null); }}>Search this area</button>}
     {mapBounds && <button type="button" className="map-area-clear" onClick={() => { setMapBounds(null); setPendingBounds(null); }}>Clear map area</button>}
     {locationMessage && <p className="map-location-toast" role="status">{locationMessage}</p>}

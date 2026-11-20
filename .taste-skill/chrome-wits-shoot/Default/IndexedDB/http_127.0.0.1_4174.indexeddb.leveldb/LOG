@@ -1,0 +1,6 @@
+2026/11/20-03:15:32.053 ed0 Creating DB C:\Users\Bruce Mphekgwane\Desktop\StaySure\.taste-skill\chrome-wits-shoot\Default\IndexedDB\http_127.0.0.1_4174.indexeddb.leveldb since it was missing.
+2026/11/20-03:15:32.059 ed0 Reusing MANIFEST C:\Users\Bruce Mphekgwane\Desktop\StaySure\.taste-skill\chrome-wits-shoot\Default\IndexedDB\http_127.0.0.1_4174.indexeddb.leveldb/MANIFEST-000001
+2026/11/20-03:15:32.226 b908 Level-0 table #5: started
+2026/11/20-03:15:32.228 b908 Level-0 table #5: 1266 bytes OK
+2026/11/20-03:15:32.230 b908 Delete type=0 #3
+2026/11/20-03:15:32.230 ed0 Manual compaction at level-0 from '\x00\x01\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x02\x00\x00\x00' @ 0 : 0; will stop at (end)

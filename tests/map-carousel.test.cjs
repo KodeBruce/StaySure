@@ -7,13 +7,13 @@ const { runInNewContext } = require('node:vm');
 
 // Exercise the actual screen's event handlers with deterministic React hooks and
 // animation frames. Map tiles and geolocation are not needed for rail behaviour.
-async function screenHarness(reducedMotion = false) {
+async function screenHarness(reducedMotion = false, university = 'all') {
   const { transformSync } = await import(pathToFileURL(join(__dirname, '../web/node_modules/rolldown/dist/utils-index.mjs')));
   const jsxRuntime = require('../web/node_modules/react/jsx-runtime');
   const records = require('../web/src/data/researchProperties.json').filter(item => Number.isFinite(item.latitude)).slice(0, 3);
   const state = [], refs = [], frames = new Map(), timers = new Map(), scrolls = [];
   let stateIndex = 0, refIndex = 0, nextId = 0;
-  const criteria = { universityId: 'all', area: '', region: '', maxRent: null, roomTypes: [], preferences: [] };
+  const criteria = { universityId: university, area: '', region: '', maxRent: null, roomTypes: [], preferences: [] };
   const hooks = {
     useState(initial) {
       const index = stateIndex++;
@@ -34,7 +34,8 @@ async function screenHarness(reducedMotion = false) {
     getPropertyReviews: () => ({ ratingFormatted: '4.5' }),
     matchResearchProperty: () => ({ score: null, matched: 0, total: 0 }),
     UNIVERSITIES: [], AREA_CENTRES: {}, getPropertyUniversities: () => [], isNearUniversity: () => true,
-    distanceKm: () => 0, withinBounds: () => true
+    distanceKm: () => 0, withinBounds: () => true,
+    WITS_CAMPUSES: require('../web/src/data/witsCampuses.json').campuses
   };
   const deps = module => {
     if (module === 'react') return hooks;
@@ -79,6 +80,12 @@ async function screenHarness(reducedMotion = false) {
     return {
       rail,
       toggle: elements.find(element => element.props['aria-controls'] === 'research-map-carousel'),
+      campusToggle: elements.find(element => element.props['aria-label'] === 'Explore Wits campuses'),
+      campusMenu: elements.find(element => element.props.id === 'wits-campus-menu'),
+      educationCampus: elements.find(element => element.props['aria-label'] === 'Show Education Campus'),
+      basemapToggle: elements.find(element => element.props.className?.includes('map-basemap-toggle')),
+      universitySelect: elements.find(element => element.props.ariaLabel === 'Nearby University'),
+      allCampuses: elements.find(element => element.props['aria-label'] === 'Show all Wits campuses'),
       pins: elements.find(element => element.type?.name === 'ResearchPins')
     };
   }
@@ -133,4 +140,62 @@ test('hiding before the reveal frame cancels pending carousel movement', async (
   app.flushFrames();
   assert.equal(app.scrolls.length, 0);
   assert.equal(app.render().rail.props.inert, true);
+});
+
+test('campus navigation focuses all five campuses or an individual campus independently of prices', async () => {
+  const app = await screenHarness(false, 'wits');
+  app.render().pins.props.onSelect(app.records[0].id);
+  assert.equal(app.frames.size, 1);
+  app.render().allCampuses.props.onClick();
+  assert.equal(app.frames.size, 0, 'Campus navigation cancels a pending accommodation reveal');
+  let view = app.render();
+  assert.equal(view.pins.props.campusFocus.id, 'all');
+  assert.equal(view.pins.props.selectedId, null);
+  assert.equal(view.campusToggle.props['aria-expanded'], false);
+  assert.equal(view.campusMenu.props.inert, true);
+  view.campusToggle.props.onClick();
+  view = app.render();
+  assert.equal(view.campusToggle.props['aria-expanded'], true);
+  assert.equal(view.campusMenu.props.inert, false);
+  view.educationCampus.props.onClick();
+  view = app.render();
+  assert.equal(view.pins.props.campusFocus.id, 'education');
+  assert.equal(view.campusToggle.props['aria-expanded'], false, 'Selection collapses campus choices');
+  const request = view.pins.props.campusFocus.request;
+  view.allCampuses.props.onClick();
+  assert.ok(app.render().pins.props.campusFocus.request > request);
+  app.render().pins.props.onSelect(app.records[1].id);
+  view = app.render();
+  assert.equal(view.pins.props.campusFocus, null);
+  assert.equal(view.pins.props.selectedId, app.records[1].id);
+});
+
+test('campus controls and campus markers appear only for a Wits location search', async () => {
+  const app = await screenHarness();
+  assert.equal(app.render().campusToggle, undefined);
+  assert.equal(app.render().allCampuses, undefined);
+  assert.equal(app.render().pins.props.showWitsCampuses, false);
+  app.render().universitySelect.props.onChange('wits');
+  assert.ok(app.render().campusToggle);
+  assert.equal(app.render().pins.props.showWitsCampuses, true);
+  app.render().universitySelect.props.onChange('uj');
+  assert.equal(app.render().campusToggle, undefined);
+  assert.equal(app.render().pins.props.showWitsCampuses, false);
+});
+
+test('aerial control switches both ways while preserving the selected price and hidden carousel', async () => {
+  const app = await screenHarness();
+  app.render().pins.props.onSelect(app.records[1].id);
+  app.render().toggle.props.onClick();
+  let view = app.render();
+  assert.equal(view.pins.props.mapView, 'street');
+  view.basemapToggle.props.onClick();
+  view = app.render();
+  assert.equal(view.pins.props.mapView, 'aerial');
+  assert.equal(view.basemapToggle.props['aria-pressed'], true);
+  assert.match(view.basemapToggle.props['aria-label'], /grey street/);
+  assert.equal(view.pins.props.selectedId, app.records[1].id);
+  assert.equal(view.rail.props.inert, true);
+  view.basemapToggle.props.onClick();
+  assert.equal(app.render().pins.props.mapView, 'street');
 });
