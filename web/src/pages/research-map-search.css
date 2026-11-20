@@ -613,6 +613,8 @@
   right: 0;
   bottom: 24px;
   display: flex;
+  /* Let each card end after its content instead of stretching to the tallest result. */
+  align-items: flex-end;
   gap: 14px;
   padding: 10px 20px;
   overflow-x: auto;

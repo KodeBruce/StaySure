@@ -1,6 +1,6 @@
 {
- "page": "web/dist/index.html",
- "url": null,
+ "page": null,
+ "url": "http://localhost:5173/search",
  "root": "web/dist",
  "kind": "software",
  "category": "student accommodation",
