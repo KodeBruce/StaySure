@@ -18,8 +18,8 @@ import {
   ChevronLeft, ChevronRight, Heart, MapPin,
   Banknote, BedDouble, Wifi, BookOpen, Armchair, Bus,
   ShieldCheck, Fingerprint, WashingMachine, UtensilsCrossed,
-  Tv, Bath, CheckCircle2, GraduationCap, ChevronDown, ChevronUp,
-  Info, ArrowRight, FileText, Star, X, Check, Plus, Search as SearchIcon
+  Tv, Bath, CheckCircle2, GraduationCap, ChevronDown,
+  Info, ArrowRight, ArrowUp, ArrowDown, FileText, Star, X, Check, Plus, Search as SearchIcon
 } from 'lucide-react';
 import './research.css';
 import { INITIAL_PROPERTIES } from '../data/mockData';
@@ -1159,11 +1159,11 @@ export function ResearchCompare() {
 
       {items.length >= 2 && !addSheetOpen && !summaryFocus && !detailId && (
         <div className="page-scroll-controls compare-scroll-controls" role="group" aria-label="Jump between comparison rankings">
-          <button type="button" className="page-scroll-button" onClick={() => jumpToRanking(firstRankingId)} aria-controls={firstRankingId}>
-            <ChevronUp size={20} aria-hidden="true" /> First ranking
+          <button type="button" className="page-scroll-button" onClick={() => jumpToRanking(firstRankingId)} aria-label="First ranking" aria-controls={firstRankingId}>
+            <ArrowUp size={20} aria-hidden="true" />
           </button>
-          <button type="button" className="page-scroll-button" onClick={() => jumpToRanking(lastRankingId)} aria-controls={lastRankingId}>
-            <ChevronDown size={20} aria-hidden="true" /> Last ranking
+          <button type="button" className="page-scroll-button" onClick={() => jumpToRanking(lastRankingId)} aria-label="Last ranking" aria-controls={lastRankingId}>
+            <ArrowDown size={20} aria-hidden="true" />
           </button>
         </div>
       )}
