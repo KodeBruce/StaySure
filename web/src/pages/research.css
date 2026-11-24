@@ -1210,6 +1210,8 @@
     padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   }
 
+  .compare-scroll-controls { bottom: calc(164px + env(safe-area-inset-bottom, 0px)); }
+
   .research-compare-page .cmp-capsule-dock {
     position: fixed;
     left: 50%;
@@ -1834,7 +1836,7 @@
 
 /* Property Header Cards */
 .cmp-priority { min-width: 0; }
-.cmp-priority-section { margin-top: 8px; }
+.cmp-priority-section { margin-top: 8px; scroll-margin-top: calc(var(--nav-h) + 16px); }
 .cmp-priority-section + .cmp-priority-section { border-top: 1px solid var(--line); padding-top: 10px; }
 .cmp-priority-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
 .cmp-priority-section-heading h3 { margin: 3px 0 0; color: var(--navy); font-size: 19px; letter-spacing: -.02em; }

@@ -4,7 +4,7 @@ import {
   Sparkles, GraduationCap, Bus, Wifi, ShieldCheck, BookOpen,
   BedDouble, Users, Armchair, WashingMachine,
   Search as SearchIcon, MapPin, Banknote, Heart, Plus, Check,
-  Star, X, ChevronDown
+  Star, X, ChevronDown, ChevronUp
 } from 'lucide-react';
 import researchProperties from '../data/researchProperties.json';
 import { researchFallbackImage, researchImages } from '../data/researchMedia';
@@ -167,6 +167,21 @@ export const Landing: React.FC = () => {
   };
 
   const listingsRef = useRef<HTMLElement>(null);
+  const homeHeadingRef = useRef<HTMLHeadingElement>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const updateBackToTop = () => setShowBackToTop(window.scrollY > 160);
+    updateBackToTop();
+    window.addEventListener('scroll', updateBackToTop, { passive: true });
+    return () => window.removeEventListener('scroll', updateBackToTop);
+  }, []);
+
+  function returnToHomeTop() {
+    homeHeadingRef.current?.focus({ preventScroll: true });
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth';
+    window.scrollTo({ top: 0, behavior });
+  }
 
   // Lock body scroll and listen for Escape key when bottom sheet is open
   useEffect(() => {
@@ -284,7 +299,7 @@ export const Landing: React.FC = () => {
           <GraduationCap size={14} />
           <span>Verified Student Accommodation · Gauteng</span>
         </span>
-        <h1 className="airbnb-hero-title">
+        <h1 className="airbnb-hero-title" ref={homeHeadingRef} tabIndex={-1}>
           Find student accommodation you can <span>trust.</span>
         </h1>
         <p className="airbnb-hero-sub">
@@ -737,6 +752,14 @@ export const Landing: React.FC = () => {
             <AirbnbPropertyCard key={item.id} item={item} saved={saved} compared={compared} match={matchResearchProperty(item, criteria)} onOpen={setDetailId} userPosition={nearby ? userPosition : null} />
           ))}
         </main>
+      )}
+
+      {showBackToTop && !activePopover && !detailId && (
+        <div className="page-scroll-controls home-scroll-controls">
+          <button type="button" className="page-scroll-button" onClick={returnToHomeTop} aria-label="Back to top" title="Back to top">
+            <ChevronUp size={20} aria-hidden="true" />
+          </button>
+        </div>
       )}
 
       {detailId && (() => {

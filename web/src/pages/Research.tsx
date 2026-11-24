@@ -18,7 +18,7 @@ import {
   ChevronLeft, ChevronRight, Heart, MapPin,
   Banknote, BedDouble, Wifi, BookOpen, Armchair, Bus,
   ShieldCheck, Fingerprint, WashingMachine, UtensilsCrossed,
-  Tv, Bath, CheckCircle2, GraduationCap, ChevronDown,
+  Tv, Bath, CheckCircle2, GraduationCap, ChevronDown, ChevronUp,
   Info, ArrowRight, FileText, Star, X, Check, Plus, Search as SearchIcon
 } from 'lucide-react';
 import './research.css';
@@ -837,6 +837,33 @@ export function ResearchCompare() {
   const [selectedPriorities, setSelectedPriorities] = useState<CompareFocus[]>(['price']);
   const [roomChoice, setRoomChoice] = useState<RoomCategory>('single');
   const carouselRefs = useRef<Partial<Record<CompareFocus, HTMLDivElement | null>>>({});
+  const topicsHeadingRef = useRef<HTMLHeadingElement>(null);
+  const previousTopicCount = useRef(selectedPriorities.length);
+  const latestTopicId = `compare-topic-${selectedPriorities[selectedPriorities.length - 1]}`;
+
+  useEffect(() => {
+    const topicCount = selectedPriorities.length;
+    const addedTopic = topicCount > previousTopicCount.current;
+    previousTopicCount.current = topicCount;
+    if (addedTopic && topicCount > 1) {
+      window.scrollBy({ top: 72, behavior: comparisonScrollBehavior() });
+    }
+  }, [selectedPriorities.length]);
+
+  function comparisonScrollBehavior(): ScrollBehavior {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth';
+  }
+
+  function showLatestComparison() {
+    const section = document.getElementById(latestTopicId);
+    section?.focus({ preventScroll: true });
+    section?.scrollIntoView({ behavior: comparisonScrollBehavior(), block: 'start', inline: 'nearest' });
+  }
+
+  function returnToComparisonTopics() {
+    topicsHeadingRef.current?.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: comparisonScrollBehavior() });
+  }
 
   // Resolve ALL compared IDs — both research JSON props AND mock/CompareContext props
   const items = useMemo(() =>
@@ -1058,7 +1085,7 @@ export function ResearchCompare() {
               <div className="cmp-priority-heading">
                 <div>
                   <span className="cmp-priority-eyebrow">YOUR COMPARISON</span>
-                  <h2>What matters most?</h2>
+                  <h2 ref={topicsHeadingRef} tabIndex={-1} id="compare-topics-heading">What matters most?</h2>
                   <p>Select one or more topics. Each comparison appears below in its own row.</p>
                 </div>
               </div>
@@ -1073,7 +1100,7 @@ export function ResearchCompare() {
             </section>
             {(Object.keys(focusLabels) as CompareFocus[]).filter(focus => selectedPriorities.includes(focus)).map(compareBy => {
               const rankedItems = rankItems(compareBy);
-              return <section key={compareBy} className="cmp-priority cmp-priority-section" aria-label={'Comparison by ' + focusLabels[compareBy]}>
+              return <section key={compareBy} id={`compare-topic-${compareBy}`} tabIndex={-1} className="cmp-priority cmp-priority-section" aria-label={'Comparison by ' + focusLabels[compareBy]}>
                 <div className="cmp-priority-section-heading">
                   <div><span className="cmp-priority-eyebrow">RANKED COMPARISON</span><div className="cmp-priority-title-row"><h3>{focusLabels[compareBy]}</h3><button type="button" className="cmp-summary-open" onClick={() => setSummaryFocus(compareBy)} aria-label={'Open ' + focusLabels[compareBy] + ' comparison summary'} title={'View ' + focusLabels[compareBy] + ' summary'}><FileText size={16} strokeWidth={1.9} /></button></div></div>
                 </div>
@@ -1136,6 +1163,17 @@ export function ResearchCompare() {
           </div>
         )}
       </div>
+
+      {items.length >= 2 && selectedPriorities.length > 1 && !addSheetOpen && !summaryFocus && !detailId && (
+        <div className="page-scroll-controls compare-scroll-controls" role="group" aria-label="Jump between comparison topics and results">
+          <button type="button" className="page-scroll-button" onClick={showLatestComparison} aria-controls={latestTopicId}>
+            More comparisons <ChevronDown size={20} aria-hidden="true" />
+          </button>
+          <button type="button" className="page-scroll-button" onClick={returnToComparisonTopics} aria-label="Back to comparison topics" aria-controls="compare-topics-heading" title="Back to comparison topics">
+            <ChevronUp size={20} aria-hidden="true" />
+          </button>
+        </div>
+      )}
 
       {/* Quick Picker Sheet (Portal) */}
       <CompareAddSheet

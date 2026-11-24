@@ -768,6 +768,41 @@ textarea.input { height: auto; min-height: 84px; padding: 12px 14px; resize: ver
   cursor: pointer;
 }
 
+.page-scroll-controls {
+  position: fixed;
+  inset-inline-end: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  z-index: 65;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-scroll-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 11px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.page-scroll-button:hover { background: var(--navy-tint); }
+.page-scroll-button:focus-visible { outline: 2px solid var(--green-ink); outline-offset: 2px; }
+
+@media (max-width: 1024px) {
+  .page-scroll-controls { bottom: calc(var(--bottom-h) + 12px + env(safe-area-inset-bottom, 0px)); }
+}
+
 .avatar {
   width: 38px;
   height: 38px;

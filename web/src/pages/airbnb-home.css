@@ -6,6 +6,12 @@
   padding: 24px 24px 96px;
 }
 
+.has-compare-tray .home-scroll-controls { bottom: calc(104px + env(safe-area-inset-bottom, 0px)); }
+
+@media (max-width: 1024px) {
+  .has-compare-tray .home-scroll-controls { bottom: calc(164px + env(safe-area-inset-bottom, 0px)); }
+}
+
 @media (max-width: 768px) {
   .airbnb-home {
     padding: 16px 16px 88px;
