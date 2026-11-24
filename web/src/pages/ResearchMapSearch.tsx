@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { wrapCarouselPosition } from '../data/carouselLoop';
 import { createPortal } from 'react-dom';
 import { Link, useSearchParams } from 'react-router-dom';
 import L from 'leaflet';
@@ -331,10 +332,45 @@ function ResearchPins({ items, selectedId, focusSelected = true, center, targetZ
 
   useEffect(() => {
     const selected = items.find(item => item.id === selectedId);
-    if (focusSelected && selected && hasCoordinates(selected)) {
+    const instance = map.current;
+    if (focusSelected && selected && hasCoordinates(selected) && instance) {
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const targetZoom = Math.max(map.current?.getZoom() || 12, 15);
-      map.current?.flyTo(position(selected), targetZoom, {
+      const targetZoom = Math.max(instance.getZoom() || 12, 15);
+      const targetPos = position(selected);
+
+      let flyCenter: Coordinates = targetPos;
+
+      const rail = document.getElementById('research-map-carousel');
+      const isRailVisible = rail && rail.getAttribute('aria-hidden') !== 'true' && rail.offsetHeight > 0;
+
+      if (isRailVisible) {
+        const mapContainer = instance.getContainer();
+        const mapRect = mapContainer.getBoundingClientRect();
+        const railRect = rail.getBoundingClientRect();
+        const selectedCard = rail.querySelector<HTMLElement>('.map-rail-card.is-selected') || rail.querySelector<HTMLElement>('.map-rail-card');
+        const railTop = selectedCard ? (selectedCard.getBoundingClientRect().top - mapRect.top) : (railRect.top - mapRect.top);
+        const containerSize = instance.getSize();
+        const containerCenter = containerSize.divideBy(2);
+
+        // Top filter bar / controls bottom boundary relative to map container
+        const topControls = document.querySelector('.fullscreen-map-top') || document.querySelector('.map-top-filter-bar');
+        const topOffset = topControls ? Math.max(topControls.getBoundingClientRect().bottom - mapRect.top, 0) : 80;
+
+        // When the carousel covers the bottom portion of the map (mobile or desktop)
+        if (railTop > topOffset + 60 && railTop < containerSize.y) {
+          // Center the price pin in the upper visible map zone between the top bar and carousel
+          const visibleCenterY = (topOffset + railTop) / 2;
+          const targetPoint = L.point(containerCenter.x, visibleCenterY);
+
+          const projectedTarget = instance.project(targetPos, targetZoom);
+          const offset = containerCenter.subtract(targetPoint);
+          const projectedCenter = projectedTarget.add(offset);
+          const offsetLatLng = instance.unproject(projectedCenter, targetZoom);
+          flyCenter = [offsetLatLng.lat, offsetLatLng.lng];
+        }
+      }
+
+      instance.flyTo(flyCenter, targetZoom, {
         animate: !reduceMotion,
         duration: 0.45
       });
@@ -560,6 +596,24 @@ export function ResearchMapSearch() {
 
   const carouselResults = useMemo(() => compared.ids.length >= 3
     ? results.filter(item => compared.ids.includes(item.id)) : results, [results, compared.ids]);
+  const loopCopies = carouselResults.length <= 1 ? 1 : carouselResults.length <= 3 ? 5 : 3;
+  const middleCopy = Math.floor(loopCopies / 2);
+  const carouselEntries = useMemo(() => Array.from({ length: loopCopies }, (_, copy) =>
+    carouselResults.map(item => ({ item, copy }))).flat(), [carouselResults, loopCopies]);
+  const carouselKey = carouselResults.map(item => item.id).join('|');
+  useLayoutEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const centreRail = () => {
+      const cards = [...rail.querySelectorAll<HTMLElement>('[data-loop-primary="true"]')];
+      const card = cards.find(item => item.dataset.propertyId === selectedId) || cards[0];
+      if (card) rail.scrollTo({ left: card.offsetLeft - (rail.clientWidth - card.offsetWidth) / 2, behavior: 'instant' });
+    };
+    centreRail();
+    const observer = new ResizeObserver(centreRail);
+    observer.observe(rail);
+    return () => observer.disconnect();
+  }, [carouselKey, middleCopy]);
   const mapped = useMemo(() => carouselResults.filter(item => hasCoordinates(item) &&
     (!compared.ids.length || compared.ids.includes(item.id) || item.id === selectedId)), [carouselResults, compared.ids, selectedId]);
   const center = useMemo<Coordinates>(() => {
@@ -635,7 +689,11 @@ export function ResearchMapSearch() {
     railRevealFrame.current = window.requestAnimationFrame(() => {
       railRevealFrame.current = null;
       const rail = railRef.current;
-      const card = document.getElementById(`research-map-${id}`)?.closest<HTMLElement>('[data-property-id]');
+      const candidates = rail ? [...rail.querySelectorAll<HTMLElement>('[data-property-id]')].filter(card => card.dataset.propertyId === id) : [];
+      const centre = rail ? rail.scrollLeft + rail.clientWidth / 2 : 0;
+      const card = candidates.reduce<HTMLElement | null>((best, card) => !best ||
+        Math.abs(card.offsetLeft + card.offsetWidth / 2 - centre) < Math.abs(best.offsetLeft + best.offsetWidth / 2 - centre) ? card : best, null)
+        || document.getElementById(`research-map-${id}`)?.closest<HTMLElement>('[data-property-id]');
       if (!rail || !card) return;
       rail.scrollTo({
         left: card.offsetLeft - (rail.clientWidth - card.offsetWidth) / 2,
@@ -669,6 +727,16 @@ export function ResearchMapSearch() {
 
   function onRailScroll() {
     if (railHidden || campusFocus) return;
+    const rail = railRef.current;
+    if (rail && loopCopies > 1) {
+      const primary = rail.querySelector<HTMLElement>('[data-loop-anchor="true"]');
+      const previous = rail.querySelector<HTMLElement>(`[data-loop-copy="${middleCopy - 1}"]`);
+      if (primary && previous) {
+        const anchor = primary.offsetLeft - (rail.clientWidth - primary.offsetWidth) / 2;
+        const wrapped = wrapCarouselPosition(rail.scrollLeft, anchor, primary.offsetLeft - previous.offsetLeft);
+        if (Math.abs(wrapped - rail.scrollLeft) > 1) rail.scrollTo({ left: wrapped, behavior: 'instant' });
+      }
+    }
     if (railSelectionLock.current !== null) {
       // Keep the tapped price selected throughout a long programmatic scroll.
       window.clearTimeout(railSelectionLock.current);
@@ -788,7 +856,7 @@ export function ResearchMapSearch() {
     <div id="research-map-carousel" className={`map-card-rail${railHidden ? ' is-hidden' : ''}`} ref={railRef} onScroll={onRailScroll}
       onPointerDown={onRailInteract} onWheel={onRailInteract} onKeyDown={onRailInteract}
       aria-label="Researched accommodation listings" aria-hidden={railHidden} inert={railHidden} tabIndex={railHidden ? -1 : 0}>
-      {carouselResults.length === 0 ? <div className="map-rail-empty"><b>No researched places match.</b><span>Clear the map area or change the search filters.</span></div> : carouselResults.map(item => {
+      {carouselResults.length === 0 ? <div className="map-rail-empty"><b>No researched places match.</b><span>Clear the map area or change the search filters.</span></div> : carouselEntries.map(({ item, copy }, index) => {
         const image = researchImages(item.id)[0];
         const price = researchPriceSummary(item.advertisedPrice);
         const offerings = parseOfferings(item);
@@ -801,11 +869,14 @@ export function ResearchMapSearch() {
 
         return (
           <article
-            key={item.id}
+            key={`${copy}-${item.id}`}
             data-property-id={item.id}
+            data-loop-copy={copy}
+            data-loop-primary={copy === middleCopy}
+            data-loop-anchor={copy === middleCopy && index % carouselResults.length === 0}
             className={`map-rail-card airbnb-card${isSelected ? ' is-selected' : ''}`}
           >
-            <button id={`research-map-${item.id}`} type="button" className="property-card-open" aria-label={`Preview ${item.name}`} onClick={() => openDetail(item.id)} />
+            <button id={copy === middleCopy ? `research-map-${item.id}` : undefined} type="button" className="property-card-open" aria-label={`Preview ${item.name}`} onClick={() => openDetail(item.id)} />
             <div className="airbnb-card-media">
               <img
                 src={image}
@@ -879,7 +950,7 @@ export function ResearchMapSearch() {
 
               <div className="airbnb-card-price-row">
                 <span className="airbnb-card-price">{price?.label ?? 'Ask for rates'}</span>
-                <span className="airbnb-card-period">/ month</span>
+                {price && <span className="airbnb-card-period">/ month</span>}
               </div>
               <PropertySocialLinks item={item} />
             </div>

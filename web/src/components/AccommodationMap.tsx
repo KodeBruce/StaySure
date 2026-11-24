@@ -50,8 +50,42 @@ export function AccommodationMap({ properties, center, userPosition, accuracyMet
   useEffect(() => {
     const property = properties.find((item) => item.id === selectedId);
     const location = property && propertyPosition(property);
-    if (location) map.current?.panTo(location.position);
-  }, [selectedId]);
+    const instance = map.current;
+    if (location && instance) {
+      const targetPos: Coordinates = location.position;
+      let flyCenter: Coordinates = targetPos;
+
+      const rail = document.querySelector('.map-card-rail');
+      const isRailVisible = rail && rail.getAttribute('aria-hidden') !== 'true' && (rail as HTMLElement).offsetHeight > 0;
+
+      if (isRailVisible) {
+        const mapContainer = instance.getContainer();
+        const mapRect = mapContainer.getBoundingClientRect();
+        const railRect = rail.getBoundingClientRect();
+        const selectedCard = rail.querySelector<HTMLElement>('.map-rail-card.is-selected') || rail.querySelector<HTMLElement>('.map-rail-card');
+        const railTop = selectedCard ? (selectedCard.getBoundingClientRect().top - mapRect.top) : (railRect.top - mapRect.top);
+        const containerSize = instance.getSize();
+        const containerCenter = containerSize.divideBy(2);
+
+        const topControls = document.querySelector('.fullscreen-map-top');
+        const topOffset = topControls ? Math.max(topControls.getBoundingClientRect().bottom - mapRect.top, 0) : 80;
+
+        if (railTop > topOffset + 60 && railTop < containerSize.y) {
+          const visibleCenterY = (topOffset + railTop) / 2;
+          const targetPoint = L.point(containerCenter.x, visibleCenterY);
+          const currentZoom = instance.getZoom() || 13;
+
+          const projectedTarget = instance.project(targetPos, currentZoom);
+          const offset = containerCenter.subtract(targetPoint);
+          const projectedCenter = projectedTarget.add(offset);
+          const offsetLatLng = instance.unproject(projectedCenter, currentZoom);
+          flyCenter = [offsetLatLng.lat, offsetLatLng.lng];
+        }
+      }
+
+      instance.panTo(flyCenter);
+    }
+  }, [selectedId, properties]);
 
   useEffect(() => {
     const group = markers.current;

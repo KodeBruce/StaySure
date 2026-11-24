@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getPropertyById } from '../services/propertyService';
 import { submitApplication, uploadStudentDoc } from '../services/applicationService';
@@ -6,203 +6,7 @@ import { Property } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { formatRand } from '../data/matchScore';
 import { CustomSelect } from '../components/CustomSelect';
-import { ArrowLeft, ShieldCheck, CheckCircle2, Upload, FileText, X } from 'lucide-react';
-
-interface FileUploadFieldProps {
-  id: string;
-  label: string;
-  file: File | null;
-  onFileSelect: (file: File | null) => void;
-  accept?: string;
-}
-
-const FileUploadField: React.FC<FileUploadFieldProps> = ({
-  id,
-  label,
-  file,
-  onFileSelect,
-  accept = '.pdf,image/*'
-}) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      onFileSelect(e.dataTransfer.files[0]);
-    }
-  };
-
-  return (
-    <div className="field">
-      <label htmlFor={id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span>{label}</span>
-        {file && (
-          <span style={{ fontSize: '11px', color: 'var(--green-ink)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-            <CheckCircle2 size={12} /> Ready to upload
-          </span>
-        )}
-      </label>
-
-      <input
-        ref={inputRef}
-        id={id}
-        type="file"
-        accept={accept}
-        style={{ display: 'none' }}
-        onChange={e => onFileSelect(e.target.files ? e.target.files[0] : null)}
-      />
-
-      <div
-        onClick={() => inputRef.current?.click()}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        role="button"
-        tabIndex={0}
-        onKeyDown={e => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            inputRef.current?.click();
-          }
-        }}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          minHeight: '48px',
-          padding: '6px 12px',
-          borderRadius: 'var(--r-input, 12px)',
-          border: isDragging
-            ? '1.5px dashed var(--navy)'
-            : file
-              ? '1.5px solid var(--line-2)'
-              : '1.5px dashed var(--line-2)',
-          background: isDragging
-            ? 'var(--navy-soft)'
-            : file
-              ? 'var(--bg)'
-              : '#ffffff',
-          cursor: 'pointer',
-          transition: 'all 0.15s ease',
-          gap: '12px',
-          boxSizing: 'border-box'
-        }}
-        onMouseEnter={e => {
-          if (!file && !isDragging) {
-            e.currentTarget.style.borderColor = 'var(--navy)';
-            e.currentTarget.style.background = 'var(--navy-tint)';
-          }
-        }}
-        onMouseLeave={e => {
-          if (!file && !isDragging) {
-            e.currentTarget.style.borderColor = 'var(--line-2)';
-            e.currentTarget.style.background = '#ffffff';
-          }
-        }}
-      >
-        {file ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
-            <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '8px',
-              background: 'var(--green-soft)',
-              color: 'var(--green-ink)',
-              display: 'grid',
-              placeItems: 'center',
-              flexShrink: 0
-            }}>
-              <FileText size={16} />
-            </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{
-                fontSize: '13px',
-                fontWeight: 600,
-                color: 'var(--navy)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}>
-                {file.name}
-              </div>
-              <div style={{ fontSize: '11px', color: 'var(--ink-3)' }}>
-                {formatFileSize(file.size)}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={e => {
-                e.stopPropagation();
-                onFileSelect(null);
-                if (inputRef.current) inputRef.current.value = '';
-              }}
-              style={{
-                border: 'none',
-                background: 'var(--navy-tint)',
-                color: 'var(--ink-2)',
-                padding: '4px 8px',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                flexShrink: 0
-              }}
-              aria-label="Remove or change file"
-            >
-              <X size={12} /> Remove
-            </button>
-          </div>
-        ) : (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '8px',
-                background: 'var(--navy-tint)',
-                color: 'var(--navy)',
-                fontSize: '12.5px',
-                fontWeight: 600,
-                border: '1px solid var(--line-2)',
-                flexShrink: 0
-              }}>
-                <Upload size={13} strokeWidth={2.4} /> Choose File
-              </span>
-              <span style={{ fontSize: '12.5px', color: 'var(--ink-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                No file chosen
-              </span>
-            </div>
-            <span style={{ fontSize: '11px', color: 'var(--ink-3)', fontWeight: 500, flexShrink: 0 }}>
-              PDF or Image (max 10MB)
-            </span>
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
+import { ArrowLeft, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 export const Apply: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -328,7 +132,7 @@ export const Apply: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                   <span className="tiny muted">Application for Student Accommodation</span>
                   <span className="pill pill--green" style={{ fontSize: '11px', padding: '2px 8px' }}>
-                    <ShieldCheck size={12} strokeWidth={2.4} /> {property.verified ? 'Verified Direct Flow' : 'Provider confirmation required'}
+                    <ShieldCheck size={12} strokeWidth={2.4} /> Verified Direct Flow
                   </span>
                 </div>
                 <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--navy)', margin: '4px 0 8px' }}>
@@ -345,7 +149,6 @@ export const Apply: React.FC = () => {
                     {property.area}
                   </span>
                 </div>
-                {property.priceNote && <p className="tiny muted mt-12">{property.priceNote}</p>}
             </div>
 
             {error && (
@@ -418,19 +221,23 @@ export const Apply: React.FC = () => {
                             Uploaded files are stored encrypted and accessible only by verified property managers for accommodation vetting.
                           </p>
 
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                            <FileUploadField
+                          <div className="field" style={{ marginBottom: '12px' }}>
+                            <label htmlFor="idfile">Certified ID or Passport Copy (PDF / Image)</label>
+                            <input
                               id="idfile"
-                              label="Certified ID or Passport Copy (PDF / Image)"
-                              file={idFile}
-                              onFileSelect={setIdFile}
+                              type="file"
+                              accept=".pdf,image/*"
+                              onChange={e => setIdFile(e.target.files ? e.target.files[0] : null)}
                             />
+                          </div>
 
-                            <FileUploadField
+                          <div className="field">
+                            <label htmlFor="regfile">Proof of Registration / Acceptance Letter (PDF / Image)</label>
+                            <input
                               id="regfile"
-                              label="Proof of Registration / Acceptance Letter (PDF / Image)"
-                              file={regFile}
-                              onFileSelect={setRegFile}
+                              type="file"
+                              accept=".pdf,image/*"
+                              onChange={e => setRegFile(e.target.files ? e.target.files[0] : null)}
                             />
                           </div>
                         </div>

@@ -122,7 +122,7 @@ function AirbnbPropertyCard({
         </div>
         <div className="airbnb-card-price-row">
           <span className="airbnb-card-price">{price?.label ?? 'Ask for rates'}</span>
-          <span className="airbnb-card-period">/ month</span>
+          {price && <span className="airbnb-card-period">/ month</span>}
         </div>
         <PropertySocialLinks item={item} />
       </div>

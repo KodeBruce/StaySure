@@ -4,6 +4,9 @@ const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { runInNewContext } = require('node:vm');
+const { stripTypeScriptTypes } = require('node:module');
+const loopCode = stripTypeScriptTypes(readFileSync(join(__dirname, '../web/src/data/carouselLoop.ts'), 'utf8')).replace('export function', 'function');
+const wrapCarouselPosition = runInNewContext(`${loopCode}\n;wrapCarouselPosition`);
 
 // Exercise the actual screen's event handlers with deterministic React hooks and
 // animation frames. Map tiles and geolocation are not needed for rail behaviour.
@@ -11,7 +14,7 @@ async function screenHarness(reducedMotion = false, university = 'all', recordCo
   const { transformSync } = await import(pathToFileURL(join(__dirname, '../web/node_modules/rolldown/dist/utils-index.mjs')));
   const jsxRuntime = require('../web/node_modules/react/jsx-runtime');
   const records = require('../web/src/data/researchProperties.json').filter(item => Number.isFinite(item.latitude)).slice(0, recordCount);
-  const state = [], refs = [], frames = new Map(), timers = new Map(), scrolls = [];
+  const state = [], refs = [], frames = new Map(), timers = new Map(), scrolls = [], layoutEffects = [];
   let stateIndex = 0, refIndex = 0, nextId = 0;
   const criteria = { universityId: university, area: '', region: '', maxRent: null, roomTypes: [], preferences: [] };
   const hooks = {
@@ -21,14 +24,15 @@ async function screenHarness(reducedMotion = false, university = 'all', recordCo
       return [state[index], value => { state[index] = typeof value === 'function' ? value(state[index]) : value; }];
     },
     useRef(initial) { const index = refIndex++; return refs[index] ??= { current: initial }; },
-    useMemo: fn => fn(), useEffect() {}
+    useMemo: fn => fn(), useEffect() {}, useLayoutEffect(fn) { layoutEffects.push(fn); }
   };
   const selection = { ids: [], toggle(id) {
     this.ids = this.ids.includes(id) ? this.ids.filter(value => value !== id) : [...this.ids, id];
   } };
   const railNode = { clientWidth: 600, scrollLeft: 0,
-    scrollTo: options => scrolls.push(options), querySelectorAll: () => [] };
+    scrollTo: options => { scrolls.push(options); railNode.scrollLeft = options.left; }, querySelectorAll: () => [], querySelector: () => null };
   const data = {
+    wrapCarouselPosition,
     readSearchCriteria: () => criteria, saveSearchCriteria() {},
     useResearchSelection: () => selection,
     matchesSelectedRoomTypes: () => true, parseRoomTypes: () => [], ROOM_TYPE_OPTIONS: [],
@@ -61,7 +65,7 @@ async function screenHarness(reducedMotion = false, university = 'all', recordCo
     .replace(/import\s+["'][^"']+["'];?/g, '')
     .replace(/export function /g, 'function ');
   const screen = runInNewContext(`${source}\n;ResearchMapSearch`, {
-    load: deps, URLSearchParams, navigator: {},
+    load: deps, URLSearchParams, navigator: {}, ResizeObserver: class { observe() {} disconnect() {} },
     document: { getElementById: () => ({ closest: () => ({ offsetLeft: 900, offsetWidth: 300 }) }) },
     window: {
       matchMedia: () => ({ matches: reducedMotion }),
@@ -72,6 +76,7 @@ async function screenHarness(reducedMotion = false, university = 'all', recordCo
     }
   });
   function render() {
+    layoutEffects.length = 0;
     stateIndex = refIndex = 0;
     const tree = screen();
     const elements = [];
@@ -96,9 +101,33 @@ async function screenHarness(reducedMotion = false, university = 'all', recordCo
     };
   }
   return { render, records, scrolls, frames, selection, railNode,
+    flushLayout() { layoutEffects.splice(0).forEach(fn => fn()); },
     flushTimers() { const callbacks = [...timers.values()]; timers.clear(); callbacks.forEach(fn => fn()); },
     flushFrames() { const callbacks = [...frames.values()]; frames.clear(); callbacks.forEach(fn => fn()); } };
 }
+
+test('loop starts surrounded by cards and wraps either way with the same highlighted residence', async () => {
+  const app = await screenHarness();
+  const view = app.render();
+  const cards = view.rail.props.children.map((card, index) => ({
+    offsetLeft: 150 + index * 310, offsetWidth: 300,
+    dataset: { propertyId: card.props['data-property-id'], copy: card.props['data-loop-copy'] },
+    primary: card.props['data-loop-primary'], anchor: card.props['data-loop-anchor']
+  }));
+  app.railNode.querySelectorAll = selector => selector.includes('data-loop-primary') ? cards.filter(c => c.primary) : cards;
+  app.railNode.querySelector = selector => selector.includes('data-loop-anchor') ? cards.find(c => c.anchor)
+    : cards.find(c => c.dataset.copy === Number(selector.match(/"(\d+)"/)[1]));
+  app.flushLayout();
+  assert.equal(app.railNode.scrollLeft, 1860, 'Initial position has two full copies to its left');
+  for (const left of [2300, 2400, 1300, 1860, 2800, 900]) {
+    app.railNode.scrollLeft = left;
+    app.render().rail.props.onScroll();
+    app.flushTimers();
+    const expected = cards.reduce((best, card) => Math.abs(card.offsetLeft - left - 150) < Math.abs(best.offsetLeft - left - 150) ? card : best);
+    assert.equal(app.render().pins.props.selectedId, expected.dataset.propertyId);
+    assert.ok(app.railNode.scrollLeft >= 1395 && app.railNode.scrollLeft < 2325);
+  }
+});
 
 test('three selected cards swipe to either end and back while updating the highlighted map price', async () => {
   const app = await screenHarness();
@@ -115,7 +144,7 @@ test('three selected cards swipe to either end and back while updating the highl
     const view = app.render();
     assert.equal(view.pins.props.selectedId, ids[index]);
     assert.equal(view.pins.props.items.length, 3);
-    assert.equal(view.rail.props.children.length, 3);
+    assert.equal(view.rail.props.children.filter(card => card.props['data-loop-primary']).length, 3);
   }
 });
 
@@ -137,7 +166,7 @@ test('manual carousel interaction cancels the automatic reveal lock and campus f
 test('three comparison choices hide other cards and removing one restores all choices', async () => {
   const app = await screenHarness(false, 'all', 4);
   const all = app.records.map(item => item.id);
-  const cards = () => Array.from(app.render().rail.props.children, card => card.props['data-property-id']);
+  const cards = () => Array.from(app.render().rail.props.children.filter(card => card.props['data-loop-primary']), card => card.props['data-property-id']);
   app.render().pins.props.onSelect(all[3]);
   app.selection.toggle(all[0]);
   assert.deepEqual(cards(), all);
@@ -159,7 +188,7 @@ test('map shows only ticked residences and restores all prices when the last tic
   assert.deepEqual(ids(), [all[0]]);
   app.selection.toggle(all[2]);
   assert.deepEqual(ids(), [all[0], all[2]]);
-  assert.equal(app.render().rail.props.children.length, 3, 'Other cards remain available to select');
+  assert.equal(app.render().rail.props.children.filter(card => card.props['data-loop-primary']).length, 3, 'Other cards remain available to select');
   app.render().pins.props.onSelect(all[0]);
   assert.equal(app.render().pins.props.selectedId, all[0], 'The active card keeps its price highlighted');
   assert.equal(app.render().pins.props.focusSelected, false, 'Highlighting keeps the other ticked residences in view');

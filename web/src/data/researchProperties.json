@@ -2473,16 +2473,16 @@
     "coordinatePrecision": "",
     "coordinateNotes": "No Nominatim result for address/property query.",
     "coordinateSource": "",
-    "website": "https://kemetprop.co.za/",
+    "website": "https://kemetprop.co.za/#accommodation",
     "contact": "info@kemetprop.co.za. NWU 2026 landlord-list contact: 073 349 2459; langa@zingitwawealth.co.za.",
     "advertisedPrice": "Advertised price: Not publicly disclosed. Confirmed price: Not verified. Per-person/per-room basis: Not verified.",
-    "pricePeriod": "Provider site advertises a 2027 application form, but no rate period or price is publicly disclosed. Academic cycle researched: 2026/2027. Verified 2026-11-12.",
+    "pricePeriod": "The provider's accommodation section did not display rent when checked on 2026-11-24. An older indexed copy showed R5,000 per month for an en-suite single room without an applicable year. Confirm the current rate with Kemet.",
     "rooms": "Provider advertises 75 in-suite single rooms, each with a private bathroom, study desk and storage. NWU's 2026 landlord list records 75 single beds and zero sharing beds; verified count is 75, not current availability.",
     "amenities": "Provider-advertised: private bathrooms, study rooms, communal kitchens, laundry with washers/dryers, Wi-Fi, entertainment room, CCTV/access control and 24/7 security, solar/generator and borehole-water backup. Not independently inspected.",
     "campus": "Provider describes the residence as minutes from VUT and NWU Vaal. NWU 2026 list associates it with Vanderbijlpark Campus. Exact nearest campus and route distance not independently verified.",
     "funding": "NWU-accredited off-campus landlord for Vanderbijlpark in the official 2026 list (75 single beds). This does not establish NSFAS property-level approval. NSFAS approval for 2026/2027: Unknown/Not verified.",
     "fundingEvidence": "https://studies.nwu.ac.za/sites/studies.nwu.ac.za/files/files/Residences/2026-Accredited-Landlords-VC.26March.pdf (official NWU 2026 accreditation evidence; not NSFAS approval evidence). NSFAS property-level evidence: Unknown/Not verified.",
-    "verification": "Property name, address and 2026 NWU accreditation verified in official NWU list; provider site opened and describes room count, amenities and 2027 applications. No price verified.",
+    "verification": "Property name, address and 2026 NWU accreditation verified in the official NWU list. The provider site describes room count, amenities and 2027 applications. The current accommodation section did not display rent on 2026-11-24.",
     "confidence": "High for official NWU 2026 listing and address; medium for provider-advertised features; low/not verified for prices, actual current availability, NSFAS approval and route distance.",
     "gaps": "No published rate or rate period, current availability, official NSFAS property-level approval, or measured route distance verified.",
     "witsStatus": "Not assessed against Wits list; outside the public page’s stated core area.",
@@ -2493,7 +2493,7 @@
     "sources": [
       "https://studies.nwu.ac.za/studies/residences",
       "https://studies.nwu.ac.za/sites/studies.nwu.ac.za/files/files/Residences/2026-Accredited-Landlords-VC.26March.pdf",
-      "https://kemetprop.co.za/"
+      "https://kemetprop.co.za/#accommodation"
     ],
     "completeness": "61.5"
   },
