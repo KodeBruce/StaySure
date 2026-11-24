@@ -267,7 +267,7 @@
   .map-card-rail {
     bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
   }
-  .map-rail-card {
+  .fullscreen-search:not(.research-map-search) .map-rail-card {
     height: 130px !important;
   }
   .map-rail-card > img {

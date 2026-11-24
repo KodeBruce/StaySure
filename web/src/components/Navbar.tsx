@@ -4,10 +4,10 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { AuthModal } from './AuthModal';
 import { useResearchSelection } from '../data/researchSelection';
-import { House, Search as SearchIcon, GitCompareArrows, ClipboardList, Heart, User } from 'lucide-react';
+import { House, Search as SearchIcon, GitCompareArrows, ClipboardList, Heart, User, LogOut } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { user, role, profile, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const researchCompared = useResearchSelection('compare');
   const researchSaved = useResearchSelection('saved');
   const [showAuth, setShowAuth] = useState(false);
@@ -15,104 +15,56 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <header className="topnav" id="topnav">
-        <div className="wrap row" style={{ justifyContent: 'space-between', width: '100%' }}>
-          <div className="row" style={{ gap: '20px' }}>
-            <Link to="/" className="logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="StaySure logo" role="img" style={{ flexShrink: 0 }}>
-                  {/* Deep navy rounded square icon base */}
-                  <rect width="100" height="100" rx="24" fill="#13234f" />
-                  {/* House roof outline — thick white stroke */}
-                  <path
-                    d="M 25 47 L 50 24 L 75 47"
-                    stroke="white"
-                    strokeWidth="8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                  />
-                  {/* House walls and floor outline — thick white stroke */}
-                  <path
-                    d="M 33 46 V 70 H 67 V 46"
-                    stroke="white"
-                    strokeWidth="8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                  />
-                  {/* Green checkmark at bottom */}
-                  <path
-                    d="M 35 70.5 L 48.5 78.5 L 68 61.5"
-                    stroke="#249f60"
-                    strokeWidth="8.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                  />
-                </svg>
-                  <span style={{ fontSize: '22px', fontWeight: 800, color: '#13234f', letterSpacing: '-0.03em', lineHeight: 1 }}>
-                    Stay<span style={{ color: '#249f60' }}>Sure</span>
-                  </span>
-                </Link>
+        <div className="wrap topnav-inner">
+          <Link to="/" className="logo brand" aria-label="StaySure home">
+            <svg width="38" height="38" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+              <rect width="100" height="100" rx="24" fill="#13234f" />
+              <path d="M 25 47 L 50 24 L 75 47 M 33 46 V 70 H 67 V 46"
+                stroke="white" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M 35 70.5 L 48.5 78.5 L 68 61.5"
+                stroke="#249f60" strokeWidth="8.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="brand-word">Stay<em>Sure</em></span>
+          </Link>
 
-                <nav className="desktop-links row" style={{ gap: '6px' }}>
-                  <NavLink to="/" end data-walkthrough-tab="home" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
-                    <House size={16} />
-                    <span>Home</span>
-                  </NavLink>
-                  <NavLink to="/search" data-walkthrough-tab="search" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
-                    <SearchIcon size={16} />
-                    <span>Search</span>
-                  </NavLink>
-                  <NavLink to="/compare" data-walkthrough-tab="compare" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
-                    <GitCompareArrows size={16} />
-                    <span>Compare</span>
-                    {researchCompared.ids.length > 0 && <span className="chip" style={{ background: 'var(--green-soft)', color: 'var(--green-ink)', marginLeft: '4px' }}>{researchCompared.ids.length}</span>}
-                  </NavLink>
-                  <NavLink to="/applications" data-walkthrough-tab="applications" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
-                    <ClipboardList size={16} />
-                    <span>Applications</span>
-                  </NavLink>
-                  <NavLink to="/saved" data-walkthrough-tab="saved" className={({ isActive }) => `pill ${isActive ? 'pill--navy' : 'pill--ghost'}`}>
-                    <Heart size={16} />
-                    <span>Saved</span>
-                    {researchSaved.ids.length > 0 && <span className="chip" style={{ marginLeft: '4px' }}>{researchSaved.ids.length}</span>}
-                  </NavLink>
-                </nav>
-              </div>
+          <nav className="desktop-links" aria-label="Primary navigation">
+            <NavLink to="/" end data-walkthrough-tab="home">
+              <House size={16} aria-hidden="true" />
+              <span>Home</span>
+            </NavLink>
+            <NavLink to="/search" data-walkthrough-tab="search">
+              <SearchIcon size={16} aria-hidden="true" />
+              <span>Search</span>
+            </NavLink>
+            <NavLink to="/compare" data-walkthrough-tab="compare">
+              <GitCompareArrows size={16} aria-hidden="true" />
+              <span>Compare</span>
+              {researchCompared.ids.length > 0 && <span className="desktop-nav-count">{researchCompared.ids.length}</span>}
+            </NavLink>
+            <NavLink to="/applications" data-walkthrough-tab="applications">
+              <ClipboardList size={16} aria-hidden="true" />
+              <span>Applications</span>
+            </NavLink>
+            <NavLink to="/saved" data-walkthrough-tab="saved">
+              <Heart size={16} aria-hidden="true" />
+              <span>Saved</span>
+              {researchSaved.ids.length > 0 && <span className="desktop-nav-count">{researchSaved.ids.length}</span>}
+            </NavLink>
+          </nav>
 
-              <div className="row" style={{ gap: '10px' }}>
-                <Link to="/provider/tours" className="btn btn--sm btn--ghost hide-mobile" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                  {user && (role === 'provider' || role === 'admin') ? 'Create 3D tour' : '3D tours'}
-                </Link>
-
-                {user ? (
-                  <div className="row" style={{ gap: '8px', alignItems: 'center' }}>
-                    <span className="tiny hide-mobile" style={{ fontWeight: 600 }}>{user.email || profile.name}</span>
-                    <button
-                      type="button"
-                      className="nav-person-btn"
-                      onClick={() => signOut()}
-                      title="Signed in · Click to Sign Out"
-                      aria-label="Account profile"
-                      style={{ color: 'var(--green-ink)' }}
-                    >
-                      <User size={24} strokeWidth={2.2} />
-                    </button>
-                    <button className="btn btn--sm btn--ghost" onClick={() => signOut()}>Sign Out</button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    className="nav-person-btn"
-                    onClick={() => setShowAuth(true)}
-                    title="Sign In"
-                    aria-label="Sign In"
-                  >
-                    <User size={24} strokeWidth={2.2} />
-                  </button>
-                )}
-              </div>
+          <div className="nav-right">
+            <button
+              type="button"
+              className="nav-action nav-person-btn"
+              onClick={user ? () => signOut() : () => setShowAuth(true)}
+              title={user ? (user.email || profile.name || 'Sign out') : 'Sign in'}
+              aria-label={user ? 'Sign out' : 'Sign in'}
+            >
+              {user ? <LogOut size={16} aria-hidden="true" /> : <User size={18} aria-hidden="true" />}
+              <span>{user ? 'Sign out' : 'Sign in'}</span>
+            </button>
           </div>
+        </div>
       </header>
 
       {createPortal(

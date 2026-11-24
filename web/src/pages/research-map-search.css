@@ -615,8 +615,7 @@
   right: 0;
   bottom: 24px;
   display: flex;
-  /* Let each card end after its content instead of stretching to the tallest result. */
-  align-items: flex-end;
+  align-items: stretch;
   gap: 14px;
   /* Both end cards must be able to reach the centre, even with only three cards. */
   padding: 10px max(var(--rail-edge), calc((100% - var(--rail-card-width)) / 2));
@@ -656,8 +655,7 @@
   box-shadow: 0 8px 28px rgba(19, 35, 79, 0.13);
   overflow: hidden;
   position: relative;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+  transition: box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
     border-color 0.2s ease;
 }
 
@@ -676,13 +674,13 @@
 }
 
 .research-map-search .map-rail-card:hover {
-  transform: translateY(-3px);
+  transform: none;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.15);
   border-color: rgba(15, 23, 42, 0.18);
 }
 
 .research-map-search .map-rail-card.is-selected {
-  border-color: var(--green);
+  border: 1px solid var(--green);
   box-shadow: 0 10px 30px rgba(31, 157, 92, 0.25), 0 0 0 2px var(--green);
 }
 
@@ -710,6 +708,7 @@
 
 /* Card Body — generous padding, comfortable line-heights */
 .research-map-search .map-rail-card .airbnb-card-body {
+  flex: 1 0 auto;
   padding: 14px 16px 16px;
   display: flex;
   flex-direction: column;
@@ -1799,7 +1798,6 @@
 
   .research-map-search .map-rail-card {
     flex: 0 0 var(--rail-card-width);
-    height: auto;
     border-radius: 16px;
   }
 
@@ -1842,7 +1840,8 @@
   }
 }
 
-@media (max-width: 1024px) and (max-height: 480px) and (orientation: portrait) {
+@media (max-width: 1024px) and (max-height: 480px) and (orientation: portrait),
+  (max-height: 600px) and (orientation: landscape) {
   .research-map-search .map-rail-card .airbnb-card-media {
     height: 80px;
   }

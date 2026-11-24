@@ -297,43 +297,47 @@ ul { margin: 0; padding: 0; list-style: none; }
   display: flex;
   align-items: center;
   gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
 }
 .desktop-links a {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #64748b;
-  text-decoration: none;
-  background: transparent;
-  transition: all 0.15s ease;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--ink-2);
+  transition: background 0.15s ease, color 0.15s ease;
 }
 .desktop-links a svg {
-  flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
+  flex-shrink: 0;
 }
 .desktop-links a:hover {
-  background: rgba(15, 23, 42, 0.04);
-  color: #0f172a;
+  background: var(--navy-soft);
+  color: var(--navy);
 }
-.desktop-links a.active,
-.desktop-links a.pill--navy {
-  background: rgba(15, 23, 42, 0.06) !important;
-  color: #0f172a !important;
-  font-weight: 700 !important;
+.desktop-links a[aria-current="page"] {
+  background: var(--green-soft);
+  color: var(--green-ink);
 }
-.desktop-links .chip {
-  background: #059669 !important;
-  color: #fff !important;
-  font-size: 10px !important;
-  font-weight: 800 !important;
-  padding: 1px 6px !important;
-  border-radius: 999px !important;
-  line-height: 1.2 !important;
+.desktop-nav-count {
+  min-width: 18px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: var(--green-soft);
+  color: var(--green-ink);
+  font-size: 10px;
+  line-height: 1.4;
+  text-align: center;
+}
+.desktop-links a[aria-current="page"] .desktop-nav-count {
+  background: var(--card);
 }
 
 .nav-badge {
@@ -682,24 +686,27 @@ textarea.input { height: auto; min-height: 84px; padding: 12px 14px; resize: ver
   top: 0;
   z-index: 60;
   height: var(--nav-h);
+  flex-shrink: 0;
   background: rgba(255, 255, 255, 0.86);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
 .topnav-inner {
+  max-width: none;
   height: 100%;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 }
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  margin-right: 6px;
-  flex: 0 0 auto;
+  justify-self: start;
+  gap: 10px;
 }
+.brand svg { flex-shrink: 0; }
 .brand-word {
   font-family: var(--display);
   font-weight: 800;
@@ -732,30 +739,33 @@ textarea.input { height: auto; min-height: 84px; padding: 12px 14px; resize: ver
 .navlink:hover { background: var(--navy-tint); color: var(--navy); }
 .navlink.is-active { background: var(--navy-soft); color: var(--navy); font-weight: 700; }
 
-.nav-right { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+.nav-right { display: flex; align-items: center; justify-self: end; gap: 8px; }
 
-/* Borderless person/account button for sign in */
-.nav-person-btn {
-  background: transparent;
-  border: none;
-  outline: none;
-  box-shadow: none;
-  padding: 8px;
-  cursor: pointer;
-  color: var(--navy);
+.nav-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 700;
   line-height: 1;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
-.nav-person-btn:hover {
+.nav-action:hover {
   background: var(--navy-tint);
-  color: var(--green);
 }
-.nav-person-btn:active {
-  transform: scale(0.92);
+.nav-person-btn {
+  min-width: 44px;
+  border-color: var(--line-2);
+  background: var(--card);
+  cursor: pointer;
 }
 
 .avatar {
@@ -1076,6 +1086,7 @@ textarea.input { height: auto; min-height: 84px; padding: 12px 14px; resize: ver
   .navlink { padding: 8px 11px; font-size: 14px; }
   .hide-mobile { display: none !important; }
   .desktop-links { display: none !important; }
+  .topnav-inner { grid-template-columns: minmax(0, 1fr) auto; }
 }
 
 @media (max-width: 860px) {
