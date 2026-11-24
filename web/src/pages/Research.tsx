@@ -1086,7 +1086,16 @@ export function ResearchCompare() {
               const rankedItems = rankItems(compareBy);
               return <section key={compareBy} id={`compare-topic-${compareBy}`} tabIndex={-1} className="cmp-priority cmp-priority-section" aria-label={'Comparison by ' + focusLabels[compareBy]}>
                 <div className="cmp-priority-section-heading">
-                  <div><span className="cmp-priority-eyebrow">RANKED COMPARISON</span><div className="cmp-priority-title-row"><h3>{focusLabels[compareBy]}</h3><button type="button" className="cmp-summary-open" onClick={() => setSummaryFocus(compareBy)} aria-label={'Open ' + focusLabels[compareBy] + ' comparison summary'} title={'View ' + focusLabels[compareBy] + ' summary'}><FileText size={16} strokeWidth={1.9} /></button></div></div>
+                  <div>
+                    <span className="cmp-priority-eyebrow">RANKED COMPARISON</span>
+                    <div className="cmp-priority-title-row">
+                      <h3>{focusLabels[compareBy]}</h3>
+                      <button type="button" className="cmp-summary-open" onClick={() => setSummaryFocus(compareBy)} aria-label={`Summary for ${focusLabels[compareBy]}`}>
+                        <FileText size={16} strokeWidth={1.9} aria-hidden="true" />
+                        Summary
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 {compareBy === 'room' && <div className="cmp-room-filters" role="group" aria-label="Room type to compare">
                   {(['single', 'sharing', 'studio', 'apartment'] as RoomCategory[]).map(room => <button key={room} type="button" className={roomChoice === room ? 'is-active' : ''} aria-pressed={roomChoice === room} onClick={() => { setRoomChoice(room); carouselRefs.current.room?.scrollTo({ left: 0, behavior: 'smooth' }); }}>{room === 'single' ? 'Single room' : room === 'sharing' ? 'Sharing room' : room === 'studio' ? 'Studio' : 'Apartment'}</button>)}
