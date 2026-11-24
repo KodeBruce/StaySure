@@ -837,32 +837,12 @@ export function ResearchCompare() {
   const [selectedPriorities, setSelectedPriorities] = useState<CompareFocus[]>(['price']);
   const [roomChoice, setRoomChoice] = useState<RoomCategory>('single');
   const carouselRefs = useRef<Partial<Record<CompareFocus, HTMLDivElement | null>>>({});
-  const topicsHeadingRef = useRef<HTMLHeadingElement>(null);
-  const previousTopicCount = useRef(selectedPriorities.length);
-  const latestTopicId = `compare-topic-${selectedPriorities[selectedPriorities.length - 1]}`;
 
-  useEffect(() => {
-    const topicCount = selectedPriorities.length;
-    const addedTopic = topicCount > previousTopicCount.current;
-    previousTopicCount.current = topicCount;
-    if (addedTopic && topicCount > 1) {
-      window.scrollBy({ top: 72, behavior: comparisonScrollBehavior() });
-    }
-  }, [selectedPriorities.length]);
-
-  function comparisonScrollBehavior(): ScrollBehavior {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth';
-  }
-
-  function showLatestComparison() {
-    const section = document.getElementById(latestTopicId);
+  function jumpToRanking(sectionId: string) {
+    const section = document.getElementById(sectionId);
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth';
     section?.focus({ preventScroll: true });
-    section?.scrollIntoView({ behavior: comparisonScrollBehavior(), block: 'start', inline: 'nearest' });
-  }
-
-  function returnToComparisonTopics() {
-    topicsHeadingRef.current?.focus({ preventScroll: true });
-    window.scrollTo({ top: 0, behavior: comparisonScrollBehavior() });
+    section?.scrollIntoView({ behavior, block: 'start', inline: 'nearest' });
   }
 
   // Resolve ALL compared IDs — both research JSON props AND mock/CompareContext props
@@ -883,6 +863,10 @@ export function ResearchCompare() {
     price: 'Monthly price', distance: 'Campus distance', transport: 'Transportation', room: 'Room type',
     wifi: 'Wi-Fi', furniture: 'Furniture', study: 'Study area', security: 'Security', rating: 'Student ratings'
   } as const;
+  const topics = Object.keys(focusLabels) as CompareFocus[];
+  const rankedTopics = topics.filter(topic => selectedPriorities.includes(topic));
+  const firstRankingId = `compare-topic-${rankedTopics[0]}`;
+  const lastRankingId = `compare-topic-${rankedTopics[rankedTopics.length - 1]}`;
   const focusIcons = {
     price: <Banknote size={21} />,
     distance: <MapPin size={21} />,
@@ -1085,12 +1069,12 @@ export function ResearchCompare() {
               <div className="cmp-priority-heading">
                 <div>
                   <span className="cmp-priority-eyebrow">YOUR COMPARISON</span>
-                  <h2 ref={topicsHeadingRef} tabIndex={-1} id="compare-topics-heading">What matters most?</h2>
+                  <h2>What matters most?</h2>
                   <p>Select one or more topics. Each comparison appears below in its own row.</p>
                 </div>
               </div>
               <div className="cmp-priority-filters" role="group" aria-label="Comparison topics; select multiple">
-                {(Object.keys(focusLabels) as CompareFocus[]).map(focus => (
+                {topics.map(focus => (
                   <button key={focus} type="button" className={selectedPriorities.includes(focus) ? 'is-active' : ''} aria-pressed={selectedPriorities.includes(focus)} onClick={() => setSelectedPriorities(current => current.includes(focus) ? current.length > 1 ? current.filter(value => value !== focus) : current : [...current, focus])}>
                     <span className="cmp-priority-filter-icon" aria-hidden="true">{focusIcons[focus]}</span>
                     <span>{focusLabels[focus]}</span>
@@ -1098,7 +1082,7 @@ export function ResearchCompare() {
                 ))}
               </div>
             </section>
-            {(Object.keys(focusLabels) as CompareFocus[]).filter(focus => selectedPriorities.includes(focus)).map(compareBy => {
+            {rankedTopics.map(compareBy => {
               const rankedItems = rankItems(compareBy);
               return <section key={compareBy} id={`compare-topic-${compareBy}`} tabIndex={-1} className="cmp-priority cmp-priority-section" aria-label={'Comparison by ' + focusLabels[compareBy]}>
                 <div className="cmp-priority-section-heading">
@@ -1164,13 +1148,13 @@ export function ResearchCompare() {
         )}
       </div>
 
-      {items.length >= 2 && selectedPriorities.length > 1 && !addSheetOpen && !summaryFocus && !detailId && (
-        <div className="page-scroll-controls compare-scroll-controls" role="group" aria-label="Jump between comparison topics and results">
-          <button type="button" className="page-scroll-button" onClick={showLatestComparison} aria-controls={latestTopicId}>
-            More comparisons <ChevronDown size={20} aria-hidden="true" />
+      {items.length >= 2 && !addSheetOpen && !summaryFocus && !detailId && (
+        <div className="page-scroll-controls compare-scroll-controls" role="group" aria-label="Jump between comparison rankings">
+          <button type="button" className="page-scroll-button" onClick={() => jumpToRanking(firstRankingId)} aria-controls={firstRankingId}>
+            <ChevronUp size={20} aria-hidden="true" /> First ranking
           </button>
-          <button type="button" className="page-scroll-button" onClick={returnToComparisonTopics} aria-label="Back to comparison topics" aria-controls="compare-topics-heading" title="Back to comparison topics">
-            <ChevronUp size={20} aria-hidden="true" />
+          <button type="button" className="page-scroll-button" onClick={() => jumpToRanking(lastRankingId)} aria-controls={lastRankingId}>
+            <ChevronDown size={20} aria-hidden="true" /> Last ranking
           </button>
         </div>
       )}
@@ -1179,7 +1163,11 @@ export function ResearchCompare() {
       <CompareAddSheet
         isOpen={addSheetOpen}
         onClose={() => setAddSheetOpen(false)}
-        onSelect={id => compared.toggle(id)}
+        onSelect={id => {
+          const addedSecondProperty = items.length === 1 && !compared.ids.includes(id);
+          compared.toggle(id);
+          if (addedSecondProperty) setAddSheetOpen(false);
+        }}
         savedIds={saved.ids}
         comparedIds={compared.ids}
       />
