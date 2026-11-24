@@ -621,8 +621,7 @@
   padding: 10px max(var(--rail-edge), calc((100% - var(--rail-card-width)) / 2));
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
+  scroll-snap-type: none;
   touch-action: pan-x;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
@@ -648,7 +647,6 @@
 .research-map-search .map-rail-card,
 .research-map-search .map-rail-empty {
   flex: 0 0 var(--rail-card-width);
-  scroll-snap-align: center;
   border: 1px solid rgba(19, 35, 79, 0.1);
   border-radius: 18px;
   background: #ffffff;
@@ -825,10 +823,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .research-map-search .map-card-rail {
-    scroll-behavior: auto;
-  }
-
   .research-map-search .map-card-rail,
   .research-map-search .map-card-rail.is-hidden {
     transition: none;

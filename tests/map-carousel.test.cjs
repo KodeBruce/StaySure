@@ -10,7 +10,7 @@ const wrapCarouselPosition = runInNewContext(`${loopCode}\n;wrapCarouselPosition
 
 // Exercise the actual screen's event handlers with deterministic React hooks and
 // animation frames. Map tiles and geolocation are not needed for rail behaviour.
-async function screenHarness(reducedMotion = false, university = 'all', recordCount = 3) {
+async function screenHarness(reducedMotion = false, university = 'all', recordCount = 3, nativeScrollEnd = false) {
   const { transformSync } = await import(pathToFileURL(join(__dirname, '../web/node_modules/rolldown/dist/utils-index.mjs')));
   const jsxRuntime = require('../web/node_modules/react/jsx-runtime');
   const records = require('../web/src/data/researchProperties.json').filter(item => Number.isFinite(item.latitude)).slice(0, recordCount);
@@ -31,6 +31,7 @@ async function screenHarness(reducedMotion = false, university = 'all', recordCo
   } };
   const railNode = { clientWidth: 600, scrollLeft: 0,
     scrollTo: options => { scrolls.push(options); railNode.scrollLeft = options.left; }, querySelectorAll: () => [], querySelector: () => null };
+  if (nativeScrollEnd) railNode.onscrollend = null;
   const data = {
     wrapCarouselPosition,
     readSearchCriteria: () => criteria, saveSearchCriteria() {},
@@ -106,13 +107,14 @@ async function screenHarness(reducedMotion = false, university = 'all', recordCo
     flushFrames() { const callbacks = [...frames.values()]; frames.clear(); callbacks.forEach(fn => fn()); } };
 }
 
-test('loop starts surrounded by cards and wraps either way with the same highlighted residence', async () => {
-  const app = await screenHarness();
+test('loop lets swipes coast in both directions and wraps only after they stop', async () => {
+  const app = await screenHarness(false, 'all', 3, true);
   const view = app.render();
   const cards = view.rail.props.children.map((card, index) => ({
     offsetLeft: 150 + index * 310, offsetWidth: 300,
     dataset: { propertyId: card.props['data-property-id'], copy: card.props['data-loop-copy'] },
-    primary: card.props['data-loop-primary'], anchor: card.props['data-loop-anchor']
+    primary: card.props['data-loop-primary'], anchor: card.props['data-loop-anchor'],
+    classList: { contains: name => card.props.className.split(' ').includes(name) }
   }));
   app.railNode.querySelectorAll = selector => selector.includes('data-loop-primary') ? cards.filter(c => c.primary) : cards;
   app.railNode.querySelector = selector => selector.includes('data-loop-anchor') ? cards.find(c => c.anchor)
@@ -121,12 +123,30 @@ test('loop starts surrounded by cards and wraps either way with the same highlig
   assert.equal(app.railNode.scrollLeft, 1860, 'Initial position has two full copies to its left');
   for (const left of [2300, 2400, 1300, 1860, 2800, 900]) {
     app.railNode.scrollLeft = left;
-    app.render().rail.props.onScroll();
+    const { rail } = app.render();
+    rail.props.onScroll();
     app.flushTimers();
+    assert.equal(app.railNode.scrollLeft, left, 'Reaching a loop boundary must not interrupt momentum');
+    rail.props.onScrollEnd();
     const expected = cards.reduce((best, card) => Math.abs(card.offsetLeft - left - 150) < Math.abs(best.offsetLeft - left - 150) ? card : best);
     assert.equal(app.render().pins.props.selectedId, expected.dataset.propertyId);
     assert.ok(app.railNode.scrollLeft >= 1395 && app.railNode.scrollLeft < 2325);
   }
+});
+
+test('older browsers wait for a held touch before settling the swipe', async () => {
+  const app = await screenHarness();
+  const { rail } = app.render();
+  const propertyId = app.records[1].id;
+  app.railNode.querySelectorAll = () => [{ offsetLeft: 460, offsetWidth: 300, dataset: { propertyId } }];
+  rail.props.onTouchStart({ touches: [{}] });
+  app.railNode.scrollLeft = 310;
+  rail.props.onScroll();
+  app.flushTimers();
+  assert.equal(app.render().pins.props.selectedId, null);
+  rail.props.onTouchEnd({ touches: [] });
+  app.flushTimers();
+  assert.equal(app.render().pins.props.selectedId, propertyId);
 });
 
 test('three selected cards swipe to either end and back while updating the highlighted map price', async () => {

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type TouchEvent } from 'react';
 import { wrapCarouselPosition } from '../data/carouselLoop';
 import { createPortal } from 'react-dom';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -472,11 +472,11 @@ export function ResearchMapSearch() {
   const [radiusKm, setRadiusKm] = useState(0);
   const locationMessage = nearby ? '' : nearbyLocationMessage(location);
   const railRef = useRef<HTMLDivElement>(null);
-  const railSelectionLock = useRef<number | null>(null);
+  const railPinScroll = useRef(false);
+  const railTouching = useRef(false);
   const railScrollTimer = useRef<number | null>(null);
   const railRevealFrame = useRef<number | null>(null);
   useEffect(() => () => {
-    if (railSelectionLock.current !== null) window.clearTimeout(railSelectionLock.current);
     if (railScrollTimer.current !== null) window.clearTimeout(railScrollTimer.current);
     if (railRevealFrame.current !== null) window.cancelAnimationFrame(railRevealFrame.current);
   }, []);
@@ -606,11 +606,16 @@ export function ResearchMapSearch() {
     if (!rail) return;
     const centreRail = () => {
       const cards = [...rail.querySelectorAll<HTMLElement>('[data-loop-primary="true"]')];
-      const card = cards.find(item => item.dataset.propertyId === selectedId) || cards[0];
+      const card = cards.find(item => item.classList.contains('is-selected')) || cards[0];
       if (card) rail.scrollTo({ left: card.offsetLeft - (rail.clientWidth - card.offsetWidth) / 2, behavior: 'instant' });
     };
     centreRail();
-    const observer = new ResizeObserver(centreRail);
+    let railWidth = rail.clientWidth;
+    const observer = new ResizeObserver(() => {
+      if (rail.clientWidth === railWidth) return;
+      railWidth = rail.clientWidth;
+      centreRail();
+    });
     observer.observe(rail);
     return () => observer.disconnect();
   }, [carouselKey, middleCopy]);
@@ -682,8 +687,6 @@ export function ResearchMapSearch() {
     setCarouselHidden(false);
     setCampusFocus(null);
     setSelectedId(id);
-    if (railSelectionLock.current !== null) window.clearTimeout(railSelectionLock.current);
-    railSelectionLock.current = window.setTimeout(() => { railSelectionLock.current = null; }, 700);
     if (railRevealFrame.current !== null) window.cancelAnimationFrame(railRevealFrame.current);
     // Wait for the reveal to commit, then move only the carousel, not the page.
     railRevealFrame.current = window.requestAnimationFrame(() => {
@@ -695,8 +698,10 @@ export function ResearchMapSearch() {
         Math.abs(card.offsetLeft + card.offsetWidth / 2 - centre) < Math.abs(best.offsetLeft + best.offsetWidth / 2 - centre) ? card : best, null)
         || document.getElementById(`research-map-${id}`)?.closest<HTMLElement>('[data-property-id]');
       if (!rail || !card) return;
+      const left = card.offsetLeft - (rail.clientWidth - card.offsetWidth) / 2;
+      railPinScroll.current = Math.abs(left - rail.scrollLeft) > 1;
       rail.scrollTo({
-        left: card.offsetLeft - (rail.clientWidth - card.offsetWidth) / 2,
+        left,
         behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
       });
     });
@@ -711,6 +716,8 @@ export function ResearchMapSearch() {
   }
 
   function openDetail(id: string) {
+    if (railScrollTimer.current !== null) window.clearTimeout(railScrollTimer.current);
+    railScrollTimer.current = null;
     setCampusFocus(null);
     setSelectedId(id);
     setDetailId(id);
@@ -718,42 +725,55 @@ export function ResearchMapSearch() {
 
   function onRailInteract() {
     // A swipe or wheel gesture takes over from a pending price-pin reveal.
-    if (railSelectionLock.current !== null) window.clearTimeout(railSelectionLock.current);
-    railSelectionLock.current = null;
+    const rail = railRef.current;
+    if (railPinScroll.current && rail) rail.scrollTo({ left: rail.scrollLeft, behavior: 'instant' });
+    railPinScroll.current = false;
     if (railRevealFrame.current !== null) window.cancelAnimationFrame(railRevealFrame.current);
     railRevealFrame.current = null;
     setCampusFocus(null);
   }
 
+  function trackRailTouch(event: TouchEvent<HTMLDivElement>) {
+    railTouching.current = event.touches.length > 0;
+  }
+
   function onRailScroll() {
-    if (railHidden || campusFocus) return;
     const rail = railRef.current;
-    if (rail && loopCopies > 1) {
+    if (!rail || 'onscrollend' in rail || railHidden || campusFocus) return;
+    if (railScrollTimer.current !== null) window.clearTimeout(railScrollTimer.current);
+    // Older browsers need a fallback that also waits for the finger to lift.
+    railScrollTimer.current = window.setTimeout(() => {
+      railScrollTimer.current = null;
+      if (railTouching.current) onRailScroll();
+      else onRailScrollEnd();
+    }, 180);
+  }
+
+  function onRailScrollEnd() {
+    if (railHidden || campusFocus || railTouching.current) return;
+    const rail = railRef.current;
+    if (!rail || railRevealFrame.current !== null) return;
+
+    let settledLeft = rail.scrollLeft;
+    if (loopCopies > 1) {
       const primary = rail.querySelector<HTMLElement>('[data-loop-anchor="true"]');
       const previous = rail.querySelector<HTMLElement>(`[data-loop-copy="${middleCopy - 1}"]`);
       if (primary && previous) {
         const anchor = primary.offsetLeft - (rail.clientWidth - primary.offsetWidth) / 2;
-        const wrapped = wrapCarouselPosition(rail.scrollLeft, anchor, primary.offsetLeft - previous.offsetLeft);
-        if (Math.abs(wrapped - rail.scrollLeft) > 1) rail.scrollTo({ left: wrapped, behavior: 'instant' });
+        settledLeft = wrapCarouselPosition(rail.scrollLeft, anchor, primary.offsetLeft - previous.offsetLeft);
+        if (Math.abs(settledLeft - rail.scrollLeft) > 1) rail.scrollTo({ left: settledLeft, behavior: 'instant' });
       }
     }
-    if (railSelectionLock.current !== null) {
-      // Keep the tapped price selected throughout a long programmatic scroll.
-      window.clearTimeout(railSelectionLock.current);
-      railSelectionLock.current = window.setTimeout(() => { railSelectionLock.current = null; }, 150);
+    if (railPinScroll.current) {
+      railPinScroll.current = false;
       return;
     }
-    if (railScrollTimer.current !== null) window.clearTimeout(railScrollTimer.current);
-    railScrollTimer.current = window.setTimeout(() => {
-      railScrollTimer.current = null;
-      const rail = railRef.current;
-      if (!rail) return;
-      const centre = rail.scrollLeft + rail.clientWidth / 2;
-      const cards = [...rail.querySelectorAll<HTMLElement>('[data-property-id]')];
-      const closest = cards.reduce<HTMLElement | null>((best, card) =>
-        !best || Math.abs(card.offsetLeft + card.offsetWidth / 2 - centre) < Math.abs(best.offsetLeft + best.offsetWidth / 2 - centre) ? card : best, null);
-      if (closest?.dataset.propertyId) setSelectedId(previous => previous === closest.dataset.propertyId ? previous : closest.dataset.propertyId!);
-    }, 100);
+
+    const centre = settledLeft + rail.clientWidth / 2;
+    const cards = [...rail.querySelectorAll<HTMLElement>('[data-property-id]')];
+    const closest = cards.reduce<HTMLElement | null>((best, card) =>
+      !best || Math.abs(card.offsetLeft + card.offsetWidth / 2 - centre) < Math.abs(best.offsetLeft + best.offsetWidth / 2 - centre) ? card : best, null);
+    if (closest?.dataset.propertyId) setSelectedId(closest.dataset.propertyId);
   }
 
   function useMyLocation() {
@@ -853,7 +873,8 @@ export function ResearchMapSearch() {
     {mapBounds && <button type="button" className="map-area-clear" onClick={() => { setMapBounds(null); setPendingBounds(null); }}>Clear map area</button>}
     {locationMessage && <p className="map-location-toast" role="status">{locationMessage}</p>}
 
-    <div id="research-map-carousel" className={`map-card-rail${railHidden ? ' is-hidden' : ''}`} ref={railRef} onScroll={onRailScroll}
+    <div id="research-map-carousel" className={`map-card-rail${railHidden ? ' is-hidden' : ''}`} ref={railRef} onScroll={onRailScroll} onScrollEnd={onRailScrollEnd}
+      onTouchStart={trackRailTouch} onTouchEnd={trackRailTouch} onTouchCancel={trackRailTouch}
       onPointerDown={onRailInteract} onWheel={onRailInteract} onKeyDown={onRailInteract}
       aria-label="Researched accommodation listings" aria-hidden={railHidden} inert={railHidden} tabIndex={railHidden ? -1 : 0}>
       {carouselResults.length === 0 ? <div className="map-rail-empty"><b>No researched places match.</b><span>Clear the map area or change the search filters.</span></div> : carouselEntries.map(({ item, copy }, index) => {
